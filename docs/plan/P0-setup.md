@@ -19,7 +19,7 @@
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 0.1 | README Getting Started | A newcomer can go from a bare Windows 11 machine to a passing build using only the README. | In progress |
+| 0.1 | README Getting Started | A newcomer can go from a bare Windows 11 machine to a passing build using only the README. | Done |
 | 0.2 | Toolchain on the dev machine | Rust (MSVC) works on the development machine, installed exactly as the README says. | Done |
 | 0.3 | Workspace skeleton | The six-crate workspace builds, tests and runs `gwsim --version`. | Done |
 | 0.4 | `.gitignore` | Local-only and generated files can't be committed by accident. | Done |
@@ -40,7 +40,7 @@
 | --- | --- | --- | --- | --- |
 | T0.1.1 | Confirm current Windows install steps | Research | — | Done |
 | T0.1.2 | Write the README | Docs | T0.1.1 | Done |
-| T0.1.3 | Owner reads the README | Review | T0.1.2 | Todo |
+| T0.1.3 | Owner reads the README | Review | T0.1.2 | Done |
 
 ### T0.1.1 Confirm current Windows install steps
 
