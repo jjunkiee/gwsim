@@ -1,0 +1,82 @@
+// The 42 attributes.
+//
+// Template ids 26, 27 and 28 exist in the skill template format's numbering
+// but name no attribute, so they appear nowhere here. The id itself is not
+// stored: it is a fixed identity, so it lives in Attribute::template_id().
+//
+// `primary` is cross-checked at load against Attribute::is_primary(), which
+// derives the same fact from the profession graph in code. The duplication is
+// deliberate: a disagreement means one of the two has a typo, and the loader
+// says which.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Attribute",
+            "https://wiki.guildwars.com/wiki/Primary_attribute",
+            "https://wiki.guildwars.com/wiki/Secondary_attribute",
+            "https://wiki.guildwars.com/wiki/Skill_template_format",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: [],
+        notes: "Values from T1.1.1. An inherent effect is not the same as being                 primary: Beast Mastery, Dagger Mastery, Death Magic and the seven                 weapon masteries all carry one without being primary attributes.",
+    ),
+
+    attributes: [
+        // Mesmer
+        (key: FastCasting, primary: true, inherent: [FastCasting]),
+        (key: IllusionMagic, primary: false, inherent: []),
+        (key: DominationMagic, primary: false, inherent: []),
+        (key: InspirationMagic, primary: false, inherent: []),
+        // Necromancer
+        (key: BloodMagic, primary: false, inherent: []),
+        (key: DeathMagic, primary: false, inherent: [MinionCap]),
+        (key: SoulReaping, primary: true, inherent: [SoulReaping]),
+        (key: Curses, primary: false, inherent: []),
+        // Elementalist
+        (key: AirMagic, primary: false, inherent: []),
+        (key: EarthMagic, primary: false, inherent: []),
+        (key: FireMagic, primary: false, inherent: []),
+        (key: WaterMagic, primary: false, inherent: []),
+        (key: EnergyStorage, primary: true, inherent: [EnergyStorage]),
+        // Monk
+        (key: HealingPrayers, primary: false, inherent: []),
+        (key: SmitingPrayers, primary: false, inherent: []),
+        (key: ProtectionPrayers, primary: false, inherent: []),
+        (key: DivineFavor, primary: true, inherent: [DivineFavor]),
+        // Warrior
+        (key: Strength, primary: true, inherent: [ArmorPenetration]),
+        (key: AxeMastery, primary: false, inherent: [WeaponMastery]),
+        (key: HammerMastery, primary: false, inherent: [WeaponMastery]),
+        (key: Swordsmanship, primary: false, inherent: [WeaponMastery]),
+        (key: Tactics, primary: false, inherent: []),
+        // Ranger
+        (key: BeastMastery, primary: false, inherent: [PetMastery]),
+        (key: Expertise, primary: true, inherent: [Expertise]),
+        (key: WildernessSurvival, primary: false, inherent: []),
+        (key: Marksmanship, primary: false, inherent: [WeaponMastery]),
+        // Assassin
+        (key: DaggerMastery, primary: false, inherent: [WeaponMastery, DoubleStrike]),
+        (key: DeadlyArts, primary: false, inherent: []),
+        (key: ShadowArts, primary: false, inherent: []),
+        // Ritualist
+        (key: Communing, primary: false, inherent: []),
+        (key: RestorationMagic, primary: false, inherent: []),
+        (key: ChannelingMagic, primary: false, inherent: []),
+        // Assassin
+        (key: CriticalStrikes, primary: true, inherent: [CriticalStrikes]),
+        // Ritualist
+        (key: SpawningPower, primary: true, inherent: [SpawningPower]),
+        // Paragon
+        (key: SpearMastery, primary: false, inherent: [WeaponMastery]),
+        (key: Command, primary: false, inherent: []),
+        (key: Motivation, primary: false, inherent: []),
+        (key: Leadership, primary: true, inherent: [Leadership]),
+        // Dervish
+        (key: ScytheMastery, primary: false, inherent: [WeaponMastery]),
+        (key: WindPrayers, primary: false, inherent: []),
+        (key: EarthPrayers, primary: false, inherent: []),
+        (key: Mysticism, primary: true, inherent: [Mysticism]),
+    ],
+)

@@ -1,0 +1,8 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"ReduceIncomingDamage(to: TargetAlly, flat: Some(Scaled(3, 18)))\"),\nrender(\"ReduceIncomingDamage(to: Self, percent: Some(Fixed(50)))\"),\nrender(\"ReduceIncomingDamage(to: Self, percent: Some(Scaled(5, 35)), only_from: Some(Spells))\"),\nrender(\"ReduceIncomingDamage(to: InRangeOf(Spirits), cap_percent_of_max_health: Some(Fixed(10)))\"),].join(\"\\n\")"
+---
+Damage to target ally is reduced by 3…18.
+You take 50% less damage.
+You take 5…35% less damage from spells.
+Allies within the range of spirits cannot lose more than 10% of their maximum health from one hit.

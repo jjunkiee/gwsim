@@ -1,0 +1,8 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"Damage(to: TargetFoe, amount: Fixed(20))\"),\nrender(\"Damage(to: TargetFoe, amount: Fixed(20), armor_ignoring: true)\"),\nrender(\"Damage(to: Nearby(TargetFoe), kind: Some(Lightning), amount: Scaled(5, 110))\"),\nrender(\"LifeSteal(to: TargetFoe, amount: Scaled(5, 65))\"),].join(\"\\n\")"
+---
+Target foe takes 20 damage.
+Target foe takes 20 damage, ignoring armor.
+Target foe and nearby foes take 5…110 lightning damage.
+Steal 5…65 health from target foe.

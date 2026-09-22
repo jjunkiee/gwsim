@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+skills/energy-surge.ron:
+  error: this path is not part of the data layout; see docs/data-authoring.md for where files belong
+
+1 error, 1 warning in 2 files

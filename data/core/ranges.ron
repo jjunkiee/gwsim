@@ -1,0 +1,43 @@
+// Named range bands, in gwinches.
+//
+// Bands must be listed in increasing order; the loader rejects the file
+// otherwise, because callers compare bands without looking up both numbers.
+//
+// Two bands are deliberately absent:
+//   - "half range" means half of whatever the skill's own range is, so it is
+//     a modifier on a band rather than a band, and a fixed number here would
+//     be meaningless. Half-ranged skills carry a flag instead.
+//   - "adjacent to target" is roughly melee reach and is the scythe radius,
+//     but the wiki publishes no gwinch value for it. Skills needing it use
+//     Touch until WP4.2 settles a value.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Range",
+            "https://wiki.guildwars.com/wiki/Area_of_effect",
+            "https://wiki.guildwars.com/wiki/Spirit_range",
+            "https://wiki.guildwars.com/wiki/Nature_ritual",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: ["A-018", "A-024", "A-025"],
+        notes: "Values from T1.1.1. A-018: nature rituals are 3000 since the 2026-08-26 update; the Range page still says 2512 or 3500 and is treated as stale. A-024: the AoE page puts adjacent at about a sixth of the aggro bubble, which 166 matches, while the Adjacent page says a ninth; the AoE page is self-consistent so 166 stands. A-025: the 240 band is real and per-skill, not a rounding of 252.",
+    ),
+
+    bands: [
+        (Touch, 144.0),         // melee attacks and touch skills
+        (Adjacent, 166.0),      // the "adjacent" area; self-targeted skills
+        (Aoe240, 240.0),        // the skills that use 240 rather than nearby
+        (Nearby, 252.0),        // "nearby", "near the target"
+        (InTheArea, 322.0),     // "in this location"; wards and wells
+        (Spear, 1004.0),        // spear and shortbow
+        (Earshot, 1012.0),      // the aggro bubble; most shouts and chants
+        (Casting, 1248.0),      // targeted non-attack skills; staves and wands
+        (Hornbow, 1273.0),      // hornbow and recurve bow
+        (Longbow, 1498.0),      // longbow, flatbow, and spirit attacks
+        (SpiritRange, 2512.0),  // binding rituals and most passive spirits
+        (NatureRitual, 3000.0), // nature rituals, since 2026-08-26
+        (Party, 5020.0),        // party-area skills; upkeep drop range
+    ],
+)

@@ -1,0 +1,10 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"ApplyCondition(to: Adjacent(Self), condition: Weakness, duration: Scaled(5, 15))\"),\nrender(\"RemoveConditions(from: Party, count: Fixed(99))\"),\nrender(\"RemoveEffects(from: TargetAlly, kind: Hex, count: Fixed(1))\"),\nrender(\"Interrupt(to: TargetFoe)\"), render(\"FailSkill(to: Target)\"),\nrender(\"KnockDown(to: Adjacent(TargetFoe), duration: Fixed(2))\"),].join(\"\\n\")"
+---
+Foes adjacent to you suffer weakness for 5…15 seconds.
+Remove 99 conditions from all party members.
+Remove 1 hex from target ally.
+Interrupt target foe.
+The skill target is using fails.
+Target foe and adjacent foes are knocked down for 2 seconds.

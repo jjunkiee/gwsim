@@ -1,0 +1,8 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: problems.to_string()
+---
+skills/mesmer/energy-surge.ron:
+  error: no handler is registered under the name `energy_surge`; registered handlers are panic, mistrust
+
+1 error, 0 warnings in 1 file

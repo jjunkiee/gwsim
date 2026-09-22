@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "describe(&skill, &DescribeContext::ranges(&NoHandlers))"
+---
+Remove 1 enchantment from target foe. The next time an enchantment is removed, you gain 8…17 energy. You gain 40…120 health.

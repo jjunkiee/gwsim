@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "render(\"Control(Chance(percent: 20.0, actions: [Interrupt(to: TargetFoe)]))\")"
+---
+20% of the time, interrupt target foe.

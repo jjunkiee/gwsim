@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: sentence
+---
+For 6 seconds, target foe is affected. The next time a spell is cast, the skill target is using fails. Target foe takes 10…80 damage.

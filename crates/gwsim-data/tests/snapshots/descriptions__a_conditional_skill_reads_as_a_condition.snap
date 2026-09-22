@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "render(r#\"Control(If(\n            condition: Enchanted,\n            of: Some(TargetFoe),\n            then: [Damage(to: TargetFoe, amount: Scaled(10, 100))],\n        ))\"#)"
+---
+If target foe is enchanted, target foe takes 10…100 damage.

@@ -1,0 +1,97 @@
+// Base armor rating per profession and piece.
+//
+// Armor rating is PER BODY LOCATION, not a total across the set: a Mesmer at
+// maximum armor has 60 on each of five pieces, not 12 each. The figures are
+// the maximum ("perfect") rating, which is all gwsim models.
+//
+// Every piece of a profession is the same today, which makes this file look
+// redundant against professions.ron. It is not: the wiki records per-piece
+// exceptions (the Prophecies Warrior Chainmail Helm lacks the +20 physical
+// bonus; Factions and Nightfall Warrior starter armor gives +10 rather than
+// +20), and this is where such a case would go. Nothing in M1 uses one.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Armor_rating",
+            "https://wiki.guildwars.com/wiki/Basic_armor",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: [],
+        notes: "Values from T1.4.1. Damage-type bonuses (Warrior +20 vs physical, Ranger +30 vs elemental) apply to every piece and live in core/professions.ron, not here.",
+    ),
+
+    pieces: [
+        // Warrior
+        (profession: Warrior, slot: Head, armor: 80),
+        (profession: Warrior, slot: Chest, armor: 80),
+        (profession: Warrior, slot: Hands, armor: 80),
+        (profession: Warrior, slot: Legs, armor: 80),
+        (profession: Warrior, slot: Feet, armor: 80),
+
+        // Ranger
+        (profession: Ranger, slot: Head, armor: 70),
+        (profession: Ranger, slot: Chest, armor: 70),
+        (profession: Ranger, slot: Hands, armor: 70),
+        (profession: Ranger, slot: Legs, armor: 70),
+        (profession: Ranger, slot: Feet, armor: 70),
+
+        // Monk
+        (profession: Monk, slot: Head, armor: 60),
+        (profession: Monk, slot: Chest, armor: 60),
+        (profession: Monk, slot: Hands, armor: 60),
+        (profession: Monk, slot: Legs, armor: 60),
+        (profession: Monk, slot: Feet, armor: 60),
+
+        // Necromancer
+        (profession: Necromancer, slot: Head, armor: 60),
+        (profession: Necromancer, slot: Chest, armor: 60),
+        (profession: Necromancer, slot: Hands, armor: 60),
+        (profession: Necromancer, slot: Legs, armor: 60),
+        (profession: Necromancer, slot: Feet, armor: 60),
+
+        // Mesmer
+        (profession: Mesmer, slot: Head, armor: 60),
+        (profession: Mesmer, slot: Chest, armor: 60),
+        (profession: Mesmer, slot: Hands, armor: 60),
+        (profession: Mesmer, slot: Legs, armor: 60),
+        (profession: Mesmer, slot: Feet, armor: 60),
+
+        // Elementalist
+        (profession: Elementalist, slot: Head, armor: 60),
+        (profession: Elementalist, slot: Chest, armor: 60),
+        (profession: Elementalist, slot: Hands, armor: 60),
+        (profession: Elementalist, slot: Legs, armor: 60),
+        (profession: Elementalist, slot: Feet, armor: 60),
+
+        // Assassin
+        (profession: Assassin, slot: Head, armor: 70),
+        (profession: Assassin, slot: Chest, armor: 70),
+        (profession: Assassin, slot: Hands, armor: 70),
+        (profession: Assassin, slot: Legs, armor: 70),
+        (profession: Assassin, slot: Feet, armor: 70),
+
+        // Ritualist
+        (profession: Ritualist, slot: Head, armor: 60),
+        (profession: Ritualist, slot: Chest, armor: 60),
+        (profession: Ritualist, slot: Hands, armor: 60),
+        (profession: Ritualist, slot: Legs, armor: 60),
+        (profession: Ritualist, slot: Feet, armor: 60),
+
+        // Paragon
+        (profession: Paragon, slot: Head, armor: 80),
+        (profession: Paragon, slot: Chest, armor: 80),
+        (profession: Paragon, slot: Hands, armor: 80),
+        (profession: Paragon, slot: Legs, armor: 80),
+        (profession: Paragon, slot: Feet, armor: 80),
+
+        // Dervish
+        (profession: Dervish, slot: Head, armor: 70),
+        (profession: Dervish, slot: Chest, armor: 70),
+        (profession: Dervish, slot: Hands, armor: 70),
+        (profession: Dervish, slot: Legs, armor: 70),
+        (profession: Dervish, slot: Feet, armor: 70),
+
+    ],
+)

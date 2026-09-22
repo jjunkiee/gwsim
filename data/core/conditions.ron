@@ -1,0 +1,101 @@
+// The ten conditions.
+//
+// Conditions never scale with attribute rank. However a condition was
+// applied, its effect is the same and only the duration varies, which is why
+// every number here is fixed rather than scaled.
+//
+// Effects are a list rather than a fixed set of fields because the ten
+// conditions have almost nothing in common: only four of them touch health
+// regeneration at all.
+//
+// Not modelled here: the +33% weapon prefixes and the -20% rune and
+// inscription reductions, which are item properties and belong in items/;
+// and the rule that each duration reduction applies and rounds separately,
+// which is an engine rule for WP3.6.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Condition",
+            "https://wiki.guildwars.com/wiki/Fleshy",
+            "https://wiki.guildwars.com/wiki/Health_degeneration",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: ["A-021"],
+        notes: "Values from T1.1.1. A-021: the Bleeding page's extra plus or minus one second rule for prefixes and inscriptions appears on no other page, so it is not applied. Deep Wound's inability to kill on its own, and the delay before its health loss lands, are engine behaviour for WP3.6.",
+    ),
+
+    conditions: [
+        (
+            key: Bleeding,
+            fleshy_only: true,
+            affects_spirits: false,
+            effects: [HealthRegeneration(-3)],
+        ),
+        (
+            key: Blind,
+            fleshy_only: false,
+            affects_spirits: false,
+            // Melee and missile attacks only. Spells are unaffected.
+            effects: [MissChance(percent: 90)],
+        ),
+        (
+            // The only condition spirits can suffer, and the only one no
+            // weapon or armor upgrade can shorten. Despite the name it is not
+            // fire damage, so fire modifiers must not touch it.
+            key: Burning,
+            fleshy_only: false,
+            affects_spirits: true,
+            effects: [HealthRegeneration(-7)],
+        ),
+        (
+            key: CrackedArmor,
+            fleshy_only: false,
+            affects_spirits: false,
+            effects: [Armor(amount: -20, floor: Some(60))],
+        ),
+        (
+            key: Crippled,
+            fleshy_only: false,
+            affects_spirits: false,
+            effects: [MovementSpeed(percent: -50)],
+        ),
+        (
+            key: Dazed,
+            fleshy_only: false,
+            affects_spirits: false,
+            effects: [SpellActivation(percent: 200), EasilyInterruptedSpells],
+        ),
+        (
+            key: DeepWound,
+            fleshy_only: false,
+            affects_spirits: false,
+            effects: [
+                MaxHealth(percent: -20, cap: -100),
+                HealingReceived(percent: -20),
+            ],
+        ),
+        (
+            key: Disease,
+            fleshy_only: true,
+            affects_spirits: false,
+            effects: [HealthRegeneration(-4), Contagious],
+        ),
+        (
+            key: Poison,
+            fleshy_only: true,
+            affects_spirits: false,
+            effects: [HealthRegeneration(-4)],
+        ),
+        (
+            // Only the weapon's base damage is reduced; bonus damage from
+            // attack skills is not. Ranks already at 0 are unaffected, and
+            // title-based effective ranks are never reduced.
+            key: Weakness,
+            fleshy_only: false,
+            affects_spirits: false,
+            effects: [WeaponBaseDamage(percent: -66), AllAttributes(-1)],
+        ),
+    ],
+)

@@ -1,0 +1,120 @@
+// Insignias.
+//
+// An insignia's armor applies ONLY to the piece it sits on, and it counts as
+// core armor, so it is not limited by the +25 bonus-armor cap.
+//
+// Four of the five below are conditional. Only Tormentor's changes resting
+// armor, and it pays for that with holy vulnerability. A tool that folded the
+// conditional ones into a build's armor would overstate every M1 caster by up
+// to 15.
+//
+// `effects` is written in the effect DSL, which is a placeholder until WP1.5
+// (see crates/gwsim-data/src/dsl.rs). The entries below are stored and
+// round-tripped but not yet checked, so treat them as notes with a shape.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Insignia",
+            "https://wiki.guildwars.com/wiki/Equipment_template_format",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: [],
+        notes: "Values from T1.4.1. Only the five insignias M1 uses are listed. Insignia armor is core armor and sits outside the +25 bonus cap. Tormentor's also adds holy damage taken, +6 on the chest, +4 on the legs and +2 elsewhere, which is 14 across a set; the DSL has no per-piece amount yet, so that penalty is recorded here rather than encoded.",
+    ),
+
+    insignias: [
+        (
+            // Worn by the player and heroes 1 to 3.
+            slug: "prodigys",
+            name: "Prodigy's Insignia",
+            profession: Some(Mesmer),
+            effects: [
+                Control(If(condition: RechargingSkills(at_least: 1), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
+                ])),
+                Control(If(condition: RechargingSkills(at_least: 3), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+                ])),
+                Control(If(condition: RechargingSkills(at_least: 5), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(15), category: Core),
+                ])),
+            ],
+            per_piece: true,
+            template_modifier_id: Some(359),
+        ),
+        (
+            // Hero 4's chest piece. Grants no armor at all: it shortens the
+            // activation of corpse-exploiting spells, which for a minion
+            // master is Animate Bone Fiend.
+            slug: "bloodstained",
+            name: "Bloodstained Insignia",
+            profession: Some(Necromancer),
+            effects: [
+                Control(If(condition: ExploitsCorpse, then: [
+                    ModifyStat(to: Self, stat: ActivationTime, amount: Percent(-25.0), category: Multiplicative),
+                ])),
+            ],
+            per_piece: false,
+            template_modifier_id: Some(302),
+        ),
+        (
+            // Hero 4's other four pieces.
+            slug: "minion-masters",
+            name: "Minion Master's Insignia",
+            profession: Some(Necromancer),
+            effects: [
+                Control(If(condition: ControllingMinions(at_least: 1), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
+                ])),
+                Control(If(condition: ControllingMinions(at_least: 3), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+                ])),
+                Control(If(condition: ControllingMinions(at_least: 5), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(15), category: Core),
+                ])),
+            ],
+            per_piece: true,
+            template_modifier_id: Some(305),
+        ),
+        (
+            // Hero 5 wears five. The only M1 insignia that raises resting
+            // armor, and the holy penalty is the price: +6 chest, +4 legs,
+            // +2 on the other three, so +14 holy damage taken across a set.
+            slug: "tormentors",
+            name: "Tormentor's Insignia",
+            profession: Some(Necromancer),
+            // The holy penalty differs per piece (+6 chest, +4 legs, +2
+            // elsewhere) and the DSL has no per-piece amount, so only the
+            // uniform armor bonus is encoded. The penalty is recorded in
+            // the notes until WP4.3 gives per-piece effects a shape.
+            effects: [
+                ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+            ],
+            per_piece: true,
+            template_modifier_id: Some(303),
+        ),
+        (
+            // Heroes 6 and 7 wear five each. Note the thresholds are 1/2/3+
+            // spirits, not the 1/3/5+ the Mesmer and Necromancer insignias
+            // use.
+            slug: "shamans",
+            name: "Shaman's Insignia",
+            profession: Some(Ritualist),
+            effects: [
+                Control(If(condition: ControllingSpirits(at_least: 1), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
+                ])),
+                Control(If(condition: ControllingSpirits(at_least: 2), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+                ])),
+                Control(If(condition: ControllingSpirits(at_least: 3), then: [
+                    ModifyStat(to: Self, stat: Armor, amount: Fixed(15), category: Core),
+                ])),
+            ],
+            per_piece: true,
+            template_modifier_id: Some(322),
+        ),
+    ],
+)

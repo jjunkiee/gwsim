@@ -1,0 +1,101 @@
+// Runes.
+//
+// Two rules make runes awkward, and both are encoded rather than left to the
+// reader:
+//
+//   * only the HIGHEST rune for an attribute counts, which non_stacking_key
+//     decides;
+//   * EVERY rune's health penalty applies, stacking or not, even when its
+//     bonus is suppressed by a better rune for the same attribute.
+//
+// The second rule is what makes 55-health farming builds possible, so it is
+// not an edge case. Vitae stacks with everything, including itself; Vigor
+// does not stack even with itself.
+//
+// Only the attributes M1 uses are listed. Other professions arrive in P7.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Rune",
+            "https://wiki.guildwars.com/wiki/Rune_of_Vigor",
+            "https://wiki.guildwars.com/wiki/Rune_of_Vitae",
+            "https://wiki.guildwars.com/wiki/Rune_of_Attunement",
+            "https://wiki.guildwars.com/wiki/Equipment_template_format",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: [],
+        notes: "Values from T1.4.1. Template modifier ids from T1.3.1, read off the Equipment template format page. Attribute runes only fit the primary profession's armor, so a secondary-profession attribute can never exceed rank 12.",
+    ),
+
+    runes: [
+        // Fast Casting
+        (slug: "minor-fast-casting", name: "Minor Rune of Fast Casting", kind: Attribute(attribute: FastCasting, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:FastCasting", template_modifier_id: Some(22)),
+        (slug: "major-fast-casting", name: "Major Rune of Fast Casting", kind: Attribute(attribute: FastCasting, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:FastCasting", template_modifier_id: Some(48)),
+        (slug: "superior-fast-casting", name: "Superior Rune of Fast Casting", kind: Attribute(attribute: FastCasting, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:FastCasting", template_modifier_id: Some(74)),
+
+        // Domination Magic
+        (slug: "minor-domination-magic", name: "Minor Rune of Domination Magic", kind: Attribute(attribute: DominationMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:DominationMagic", template_modifier_id: Some(23)),
+        (slug: "major-domination-magic", name: "Major Rune of Domination Magic", kind: Attribute(attribute: DominationMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:DominationMagic", template_modifier_id: Some(49)),
+        (slug: "superior-domination-magic", name: "Superior Rune of Domination Magic", kind: Attribute(attribute: DominationMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:DominationMagic", template_modifier_id: Some(75)),
+
+        // Inspiration Magic
+        (slug: "minor-inspiration-magic", name: "Minor Rune of Inspiration Magic", kind: Attribute(attribute: InspirationMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:InspirationMagic", template_modifier_id: Some(25)),
+        (slug: "major-inspiration-magic", name: "Major Rune of Inspiration Magic", kind: Attribute(attribute: InspirationMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:InspirationMagic", template_modifier_id: Some(51)),
+        (slug: "superior-inspiration-magic", name: "Superior Rune of Inspiration Magic", kind: Attribute(attribute: InspirationMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:InspirationMagic", template_modifier_id: Some(77)),
+
+        // Blood Magic
+        (slug: "minor-blood-magic", name: "Minor Rune of Blood Magic", kind: Attribute(attribute: BloodMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:BloodMagic", template_modifier_id: Some(26)),
+        (slug: "major-blood-magic", name: "Major Rune of Blood Magic", kind: Attribute(attribute: BloodMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:BloodMagic", template_modifier_id: Some(52)),
+        (slug: "superior-blood-magic", name: "Superior Rune of Blood Magic", kind: Attribute(attribute: BloodMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:BloodMagic", template_modifier_id: Some(78)),
+
+        // Death Magic
+        (slug: "minor-death-magic", name: "Minor Rune of Death Magic", kind: Attribute(attribute: DeathMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:DeathMagic", template_modifier_id: Some(27)),
+        (slug: "major-death-magic", name: "Major Rune of Death Magic", kind: Attribute(attribute: DeathMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:DeathMagic", template_modifier_id: Some(53)),
+        (slug: "superior-death-magic", name: "Superior Rune of Death Magic", kind: Attribute(attribute: DeathMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:DeathMagic", template_modifier_id: Some(79)),
+
+        // Soul Reaping
+        (slug: "minor-soul-reaping", name: "Minor Rune of Soul Reaping", kind: Attribute(attribute: SoulReaping, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:SoulReaping", template_modifier_id: Some(29)),
+        (slug: "major-soul-reaping", name: "Major Rune of Soul Reaping", kind: Attribute(attribute: SoulReaping, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:SoulReaping", template_modifier_id: Some(55)),
+        (slug: "superior-soul-reaping", name: "Superior Rune of Soul Reaping", kind: Attribute(attribute: SoulReaping, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:SoulReaping", template_modifier_id: Some(81)),
+
+        // Channeling Magic
+        (slug: "minor-channeling-magic", name: "Minor Rune of Channeling Magic", kind: Attribute(attribute: ChannelingMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:ChannelingMagic", template_modifier_id: Some(166)),
+        (slug: "major-channeling-magic", name: "Major Rune of Channeling Magic", kind: Attribute(attribute: ChannelingMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:ChannelingMagic", template_modifier_id: Some(174)),
+        (slug: "superior-channeling-magic", name: "Superior Rune of Channeling Magic", kind: Attribute(attribute: ChannelingMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:ChannelingMagic", template_modifier_id: Some(182)),
+
+        // Restoration Magic
+        (slug: "minor-restoration-magic", name: "Minor Rune of Restoration Magic", kind: Attribute(attribute: RestorationMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:RestorationMagic", template_modifier_id: Some(167)),
+        (slug: "major-restoration-magic", name: "Major Rune of Restoration Magic", kind: Attribute(attribute: RestorationMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:RestorationMagic", template_modifier_id: Some(175)),
+        (slug: "superior-restoration-magic", name: "Superior Rune of Restoration Magic", kind: Attribute(attribute: RestorationMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:RestorationMagic", template_modifier_id: Some(183)),
+
+        // Communing
+        (slug: "minor-communing", name: "Minor Rune of Communing", kind: Attribute(attribute: Communing, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:Communing", template_modifier_id: Some(168)),
+        (slug: "major-communing", name: "Major Rune of Communing", kind: Attribute(attribute: Communing, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:Communing", template_modifier_id: Some(176)),
+        (slug: "superior-communing", name: "Superior Rune of Communing", kind: Attribute(attribute: Communing, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:Communing", template_modifier_id: Some(184)),
+
+        // Spawning Power
+        (slug: "minor-spawning-power", name: "Minor Rune of Spawning Power", kind: Attribute(attribute: SpawningPower, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:SpawningPower", template_modifier_id: Some(169)),
+        (slug: "major-spawning-power", name: "Major Rune of Spawning Power", kind: Attribute(attribute: SpawningPower, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:SpawningPower", template_modifier_id: Some(177)),
+        (slug: "superior-spawning-power", name: "Superior Rune of Spawning Power", kind: Attribute(attribute: SpawningPower, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:SpawningPower", template_modifier_id: Some(185)),
+
+        // Energy Storage. Not an M1 attribute, but the wiki's itemised
+        // maximum-Elementalist-energy sum (T1.4.1 6) is a required test
+        // vector and needs the superior rune to reach rank 16.
+        (slug: "minor-energy-storage", name: "Minor Rune of Energy Storage", kind: Attribute(attribute: EnergyStorage, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:EnergyStorage", template_modifier_id: Some(30)),
+        (slug: "major-energy-storage", name: "Major Rune of Energy Storage", kind: Attribute(attribute: EnergyStorage, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:EnergyStorage", template_modifier_id: Some(56)),
+        (slug: "superior-energy-storage", name: "Superior Rune of Energy Storage", kind: Attribute(attribute: EnergyStorage, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:EnergyStorage", template_modifier_id: Some(82)),
+
+        // Profession-independent runes. Vigor does not stack, even with
+        // itself: two Superior Vigor runes still give +50.
+        (slug: "minor-vigor", name: "Minor Rune of Vigor", kind: Vigor(Minor), bonus: Some(MaxHealth(30)), health_penalty: 0, non_stacking_key: "vigor", template_modifier_id: Some(156)),
+        (slug: "major-vigor", name: "Major Rune of Vigor", kind: Vigor(Major), bonus: Some(MaxHealth(41)), health_penalty: 0, non_stacking_key: "vigor", template_modifier_id: Some(157)),
+        (slug: "superior-vigor", name: "Superior Rune of Vigor", kind: Vigor(Superior), bonus: Some(MaxHealth(50)), health_penalty: 0, non_stacking_key: "vigor", template_modifier_id: Some(158)),
+
+        // Vitae and Attunement stack with themselves and everything else, so
+        // each one gets its own key.
+        (slug: "vitae", name: "Rune of Vitae", kind: Vitae, bonus: Some(MaxHealth(10)), health_penalty: 0, non_stacking_key: "vitae:stacks", template_modifier_id: Some(353)),
+        (slug: "attunement", name: "Rune of Attunement", kind: Attunement, bonus: Some(MaxEnergy(2)), health_penalty: 0, non_stacking_key: "attunement:stacks", template_modifier_id: Some(352)),
+    ],
+)

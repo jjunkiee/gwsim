@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: sentence
+---
+For 1 second, you are affected. When it ends, foes adjacent to target ally take 5…110 lightning damage.

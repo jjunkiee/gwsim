@@ -1,0 +1,8 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  error: this file cites A-404, which is not in data/assumptions.ron; add it to the register or correct the id
+
+1 error, 0 warnings in 1 file

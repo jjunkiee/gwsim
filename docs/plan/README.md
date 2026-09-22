@@ -3,8 +3,8 @@
 This plan breaks the roadmap in [DESIGN.md §19](../DESIGN.md#19-roadmap-and-work-packages) down into phases, work packages and tasks.
 
 - **DESIGN.md** remains the source of truth for requirements and decisions. This plan covers how the work gets done and in what order. If the two disagree, DESIGN.md wins and the plan is corrected.
-- **Status:** draft plan, 2026-09-22. No task has started.
-- **Where to start:** P0 Setup, beginning with WP0.4 (git-ignore `research/` before anything is committed).
+- **Status:** 2026-09-22. **P0 complete. P1 complete except T1.5.9, which is an owner review.**
+- **Where to start:** P2 (the extractor) and P3 (the engine core) are both unblocked. T1.5.9 wants the owner to review the effect DSL's shape before P3 builds an interpreter on it.
 
 ## Phases
 
@@ -19,6 +19,10 @@ This plan breaks the roadmap in [DESIGN.md §19](../DESIGN.md#19-roadmap-and-wor
 | P6 | [P6-desktop-app.md](P6-desktop-app.md) | Ship the egui desktop app as a single Windows executable covering UC1–UC12. | **M3** |
 | P7 | [P7-coverage.md](P7-coverage.md) | Bring every player skill to `Reviewed`, profession by profession, with supporting foes, encounters and henchmen. | Ongoing |
 | P8 | [P8-weapon-swapping.md](P8-weapon-swapping.md) | Model weapon-set swapping in the engine, the player AI and the optimiser. | Swap benchmark |
+
+[**fallout-tasks.md**](fallout-tasks.md) tracks the small items that fell out of
+finished work: owner decisions, gaps in tasks marked done, deliberately
+incomplete encodings, and open questions from the findings.
 
 ```text
 P0 → P1 → P3 → M0 → P4 → M1 → P5 → M2 → P6 → M3
@@ -131,6 +135,8 @@ Research tasks come before the build tasks that depend on them.
 | T1.4.1 | Derived-stat formulas; M1 runes, insignias, weapons and 40/40 mods | WP1.4 |
 | T1.5.1 | DSL coverage study over the 72 M1 skills | WP1.5 |
 | T1.7.1 | Data pack format and embedding approach | WP1.7 |
+
+Every P1 research task is written up in `docs/findings/`: T1.1.1 core values, T1.2.1 RON and serde, T1.3.1 templates, T1.4.1 derived stats, T1.5.1 DSL coverage, T1.7.1 data pack.
 | T2.1.1–T2.1.3 | robots.txt, headers and HTML structure of each page kind | P2 |
 | T3.1.1 | Timing facts: activation, aftercast, queueing, cadence | WP3.1 |
 | T3.2.1 | Movement speed, collision radius, projectile speeds, aggro range | WP3.2 |

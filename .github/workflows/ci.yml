@@ -44,11 +44,13 @@ jobs:
       - name: Test
         run: cargo test --workspace
 
-      # --- Steps below are enabled by later tasks. ---
+      # Checks data/ the way a contributor would, rather than through the
+      # tests, so a data file that breaks the shipped tree fails CI even if
+      # no test happens to read it (T1.2.12).
+      - name: Validate data
+        run: cargo run -p gwsim-cli -- data validate
 
-      # Enabled by T1.2.12 (data schema validation).
-      # - name: Validate data
-      #   run: cargo run --release -p gwsim-cli -- data validate
+      # --- Steps below are enabled by later tasks. ---
 
       # Enabled by T4.10.6 (reduced relative checks RC1/RC2/RC6).
       # Runs a reduced seed count so CI stays under a few minutes.

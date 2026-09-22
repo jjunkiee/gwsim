@@ -1,0 +1,8 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"ModifyStat(to: Party, stat: Armor, amount: Fixed(24))\"),\nrender(\"ModifyStat(to: Self, stat: HealthRegeneration, amount: Scaled(3, 10))\"),\nrender(\"ModifyStat(to: Self, stat: AttributeRank(DeathMagic), amount: Fixed(2))\"),\nrender(\"SetStat(to: Self, stat: ElementalAttributes, value: Scaled(8, 14))\"),].join(\"\\n\")"
+---
+All party members gain 24 armor.
+You gain 3…10 health regeneration.
+You gain 2 Death Magic.
+Your elemental attributes are set to 8…14.

@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "render(r#\"Damage(\n            to: Secondary(of: Nearby(TargetFoe), factor: 0.75),\n            amount: Scaled(10, 80),\n        )\"#)"
+---
+Other foes near target foe (75% of that) take 10…80 damage.

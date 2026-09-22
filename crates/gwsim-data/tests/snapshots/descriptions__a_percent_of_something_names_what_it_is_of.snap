@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "render(\"Heal(to: Self, amount: PercentOf(percent: 200.0, of: EnergyCost))\")"
+---
+You gain health equal to 200% of the energy cost.

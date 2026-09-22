@@ -1,0 +1,7 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(r#\"Control(Triggered(\n                    event: OnSpellCast,\n                    charges: Some(1),\n                    actions: [FailSkill(to: Target)],\n                ))\"#),\nrender(r#\"Control(Triggered(\n                    event: OnHit,\n                    charges: Some(5),\n                    actions: [Damage(to: Adjacent(TargetFoe), amount: Scaled(5, 50))],\n                ))\"#),\nrender(r#\"Control(Triggered(\n                    event: OnSkillUsed,\n                    actions: [Interrupt(to: Nearby(TargetFoe))],\n                ))\"#),].join(\"\\n\")"
+---
+The next time a spell is cast, the skill target is using fails.
+The next 5 times an attack hits, target foe and adjacent foes take 5…50 damage.
+Whenever a skill is used, interrupt target foe and nearby foes.

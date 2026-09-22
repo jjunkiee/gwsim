@@ -1,0 +1,192 @@
+// Weapon types.
+//
+// Damage and attack interval are the maximum figures, which apply once the
+// wielder meets the weapon's attribute requirement. Two identical weapons
+// with different requirements deal the same damage once both are met.
+//
+// Caster weapons work differently from martial ones, and the difference
+// decides which attribute matters:
+//
+//   * a STAFF's attribute is tied to its DAMAGE, so its +10 energy works for
+//     any profession;
+//   * a FOCUS's attribute is tied to its ENERGY, so the +12 drops to +6 or +3
+//     when the requirement is not met;
+//   * wand and staff damage scales with character LEVEL, not with any weapon
+//     mastery.
+//
+// `mastery` is therefore left unset for staves, wands and foci: the linked
+// attribute varies per item rather than per type.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Weapon",
+            "https://wiki.guildwars.com/wiki/Bow",
+            "https://wiki.guildwars.com/wiki/Energy",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: ["A-003"],
+        notes: "Values from T1.4.1. A-003: projectile speeds are not documented per item, so projectile_speed is left unset and the engine uses a per-category default. Ranges are in gwinches, converted from the wiki's aggro-circle multiples using earshot = 1012.",
+    ),
+
+    weapons: [
+        // Caster weapons. M1's party uses staff, wand and focus only.
+        (
+            slug: "staff",
+            name: "Staff",
+            damage_type: None,
+            damage_range_at_max_req: Some((11, 22)),
+            attack_interval: Some(1.75),
+            range: Some(1248.0),
+            mastery: None,
+            two_handed: true,
+            energy: Some(10),
+        ),
+        (
+            slug: "wand",
+            name: "Wand",
+            damage_type: None,
+            damage_range_at_max_req: Some((11, 22)),
+            attack_interval: Some(1.75),
+            range: Some(1248.0),
+            mastery: None,
+            two_handed: false,
+            energy: None,
+        ),
+        (
+            // +12 only when the requirement is met; +6 or +3 otherwise,
+            // depending on where the item came from. The reduced values are
+            // not modelled, because gwsim only builds sets that meet their
+            // own requirements.
+            slug: "focus",
+            name: "Focus item",
+            damage_type: None,
+            damage_range_at_max_req: None,
+            attack_interval: None,
+            range: None,
+            mastery: None,
+            two_handed: false,
+            energy: Some(12),
+        ),
+
+        // Martial weapons the Kournan patrol uses (WP4.2 confirms which).
+        (
+            slug: "axe",
+            name: "Axe",
+            damage_type: Some(Slashing),
+            damage_range_at_max_req: Some((6, 28)),
+            attack_interval: Some(1.33),
+            range: Some(144.0),
+            mastery: Some(AxeMastery),
+            two_handed: false,
+            energy: None,
+        ),
+        (
+            slug: "hammer",
+            name: "Hammer",
+            damage_type: Some(Blunt),
+            damage_range_at_max_req: Some((19, 35)),
+            attack_interval: Some(1.75),
+            range: Some(144.0),
+            mastery: Some(HammerMastery),
+            two_handed: true,
+            energy: None,
+        ),
+        (
+            slug: "sword",
+            name: "Sword",
+            damage_type: Some(Slashing),
+            damage_range_at_max_req: Some((15, 22)),
+            attack_interval: Some(1.33),
+            range: Some(144.0),
+            mastery: Some(Swordsmanship),
+            two_handed: false,
+            energy: None,
+        ),
+        (
+            // Hits up to two extra foes in melee range of the target. Its
+            // critical factor is only 1.09 rather than the usual 1.41, which
+            // WP3.5 needs.
+            slug: "scythe",
+            name: "Scythe",
+            damage_type: Some(Slashing),
+            damage_range_at_max_req: Some((9, 41)),
+            attack_interval: Some(1.5),
+            range: Some(144.0),
+            mastery: Some(ScytheMastery),
+            two_handed: true,
+            energy: None,
+        ),
+        (
+            slug: "spear",
+            name: "Spear",
+            damage_type: Some(Piercing),
+            damage_range_at_max_req: Some((14, 27)),
+            attack_interval: Some(1.5),
+            range: Some(1004.0),
+            mastery: Some(SpearMastery),
+            two_handed: false,
+            energy: None,
+        ),
+
+        // Bows. All five share a damage range; they differ in speed, range
+        // and flight time, which is the whole point of having five.
+        (
+            slug: "flatbow",
+            name: "Flatbow",
+            damage_type: Some(Piercing),
+            damage_range_at_max_req: Some((15, 28)),
+            attack_interval: Some(2.025),
+            range: Some(1498.0),
+            mastery: Some(Marksmanship),
+            two_handed: true,
+            energy: None,
+        ),
+        (
+            slug: "longbow",
+            name: "Longbow",
+            damage_type: Some(Piercing),
+            damage_range_at_max_req: Some((15, 28)),
+            attack_interval: Some(2.475),
+            range: Some(1498.0),
+            mastery: Some(Marksmanship),
+            two_handed: true,
+            energy: None,
+        ),
+        (
+            // The only bow with inherent armor penetration: +10%.
+            slug: "hornbow",
+            name: "Hornbow",
+            damage_type: Some(Piercing),
+            damage_range_at_max_req: Some((15, 28)),
+            attack_interval: Some(2.7),
+            range: Some(1273.0),
+            mastery: Some(Marksmanship),
+            two_handed: true,
+            energy: None,
+        ),
+        (
+            slug: "recurve-bow",
+            name: "Recurve Bow",
+            damage_type: Some(Piercing),
+            damage_range_at_max_req: Some((15, 28)),
+            attack_interval: Some(2.475),
+            range: Some(1273.0),
+            mastery: Some(Marksmanship),
+            two_handed: true,
+            energy: None,
+        ),
+        (
+            slug: "shortbow",
+            name: "Shortbow",
+            damage_type: Some(Piercing),
+            damage_range_at_max_req: Some((15, 28)),
+            attack_interval: Some(2.025),
+            range: Some(1004.0),
+            mastery: Some(Marksmanship),
+            two_handed: true,
+            energy: None,
+        ),
+    ],
+)

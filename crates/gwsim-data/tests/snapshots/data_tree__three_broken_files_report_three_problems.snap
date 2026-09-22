@@ -1,0 +1,15 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: problems.to_string()
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+  error: this foe has no hard-mode level; take it from the mapping in core/levels.ron and write it here
+
+encounters/curated/nightfall/vehtendi-valley/kournan-patrol.ron:
+  error: this encounter uses the foe `nobody`, but there is no creatures/foes/**/nobody.ron
+
+skills/mesmer/energy-surge.ron:
+  12:5 error: recharge_time: there is no field named `recharge_time` here; did you mean `recharge`?
+
+3 errors, 1 warning in 3 files

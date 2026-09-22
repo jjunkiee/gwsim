@@ -20,13 +20,13 @@
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 1.1 | Core types | Professions, attributes, conditions, ranges, levels, modes and titles exist as types and verified `data/core/*.ron` files. | Todo |
-| 1.2 | Schemas, loader and validation | Every data file kind has a schema, loads with precise errors, and is cross-checked by `gwsim data validate`. | Todo |
-| 1.3 | Template codec | Skill (type 14) and equipment (type 15) template codes encode and decode exactly. | Todo |
-| 1.4 | Derived stats | Pure functions compute a build's ranks, health, energy, armor and skill values, matching the wiki's examples. | Todo |
-| 1.5 | Effect DSL v0 and renderer | A typed effect language can encode the M1 formulaic and conditional skills and renders them as English. | Todo |
-| 1.6 | Assumptions and coverage | The assumptions register is data that code reads by ID, and coverage is reported. | Todo |
-| 1.7 | Data pack and user data | Binaries embed a validated data pack and load user files from `%APPDATA%\gwsim\`. | Todo |
+| 1.1 | Core types | Professions, attributes, conditions, ranges, levels, modes and titles exist as types and verified `data/core/*.ron` files. | Done |
+| 1.2 | Schemas, loader and validation | Every data file kind has a schema, loads with precise errors, and is cross-checked by `gwsim data validate`. | Done |
+| 1.3 | Template codec | Skill (type 14) and equipment (type 15) template codes encode and decode exactly. | Done |
+| 1.4 | Derived stats | Pure functions compute a build's ranks, health, energy, armor and skill values, matching the wiki's examples. | Done |
+| 1.5 | Effect DSL v0 and renderer | A typed effect language can encode the M1 formulaic and conditional skills and renders them as English. | Owner review |
+| 1.6 | Assumptions and coverage | The assumptions register is data that code reads by ID, and coverage is reported. | Done |
+| 1.7 | Data pack and user data | Binaries embed a validated data pack and load user files from `%APPDATA%\gwsim\`. | Done |
 
 ---
 
@@ -40,11 +40,32 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.1.1 | Research the core values | Research | — | Todo |
-| T1.1.2 | Core enums and value types | Build | — | Todo |
-| T1.1.3 | Skill type hierarchy | Build | T1.1.2 | Todo |
-| T1.1.4 | Write `data/core/*.ron` | Data | T1.1.1, T1.1.2 | Todo |
-| T1.1.5 | Core loader and tests | Build | T1.1.3, T1.1.4 | Todo |
+| T1.1.1 | Research the core values | Research | — | Done |
+| T1.1.2 | Core enums and value types | Build | — | Done |
+| T1.1.3 | Skill type hierarchy | Build | T1.1.2 | Done |
+| T1.1.4 | Write `data/core/*.ron` | Data | T1.1.1, T1.1.2 | Done |
+| T1.1.5 | Core loader and tests | Build | T1.1.3, T1.1.4 | Done |
+
+> **Notes on what was built (2026-09-22).** Three departures from this work
+> package as written, none of which change its goal:
+>
+> 1. **`Provenance`, `ReviewStatus`, `AssumptionId` and `IsoDate` landed here, not
+>    in T1.2.2.** T1.1.4 requires a provenance block on every core file, and a
+>    provenance block needs a date type and assumption ids, so WP1.2 cannot be the
+>    first to define them. T1.2.2 still adds `SkillId`, `Slug`, `WikiTitle` and
+>    `slugify` to the same module.
+> 2. **An attribute's inherent effect is a list, not a single tag.** Dagger Mastery
+>    has two — it scales dagger damage like every weapon mastery *and* grants the
+>    double-strike chance — so a single tag would have silently dropped one.
+> 3. **The core files are `review: Draft`, not `Reviewed`.** T1.1.4 asks for
+>    `Reviewed`, but §8.7 defines that as "reviewed by the owner or a second
+>    contributor", and nobody has yet. The values are cross-checked against the
+>    wiki's own worked tables in T1.1.5, which is what `Draft` claims. The owner
+>    promotes them.
+>
+> Also settled here: **A-032 stays `Pending`.** The plan allowed T1.1.1 to set the
+> hard-mode recharge reduction, but the Hard mode page says only "shorter
+> recharges" and gives no number, so there is nothing to read. It passes to T4.2.1.
 
 ### T1.1.1 Research the core values
 
@@ -168,18 +189,44 @@ In `crates/gwsim-data/src/core/`:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.2.1 | RON and serde error reporting | Research | — | Todo |
-| T1.2.2 | Identifiers, slugs and provenance | Build | T1.2.1 | Todo |
-| T1.2.3 | Skill file schema | Build | T1.2.2 | Todo |
-| T1.2.4 | Foe and creature schemas | Build | T1.2.2 | Todo |
-| T1.2.5 | Item schemas | Build | T1.2.2 | Todo |
-| T1.2.6 | Encounter, situation, set and benchmark schemas | Build | T1.2.2 | Todo |
-| T1.2.7 | Tree loader | Build | T1.2.3–T1.2.6 | Todo |
-| T1.2.8 | Cross-reference and consistency checks | Build | T1.2.7 | Todo |
-| T1.2.9 | `gwsim data validate` | Build | T1.2.8 | Todo |
-| T1.2.10 | Invalid-fixture test suite | Test | T1.2.9 | Todo |
-| T1.2.11 | Data authoring guide v0 | Docs | T1.2.9 | Todo |
-| T1.2.12 | Enable validation in CI | Setup | T1.2.9 | Todo |
+| T1.2.1 | RON and serde error reporting | Research | — | Done |
+| T1.2.2 | Identifiers, slugs and provenance | Build | T1.2.1 | Done |
+| T1.2.3 | Skill file schema | Build | T1.2.2 | Done |
+| T1.2.4 | Foe and creature schemas | Build | T1.2.2 | Done |
+| T1.2.5 | Item schemas | Build | T1.2.2 | Done |
+| T1.2.6 | Encounter, situation, set and benchmark schemas | Build | T1.2.2 | Done |
+| T1.2.7 | Tree loader | Build | T1.2.3–T1.2.6 | Done |
+| T1.2.8 | Cross-reference and consistency checks | Build | T1.2.7 | Done |
+| T1.2.9 | `gwsim data validate` | Build | T1.2.8 | Done |
+| T1.2.10 | Invalid-fixture test suite | Test | T1.2.9 | Done |
+| T1.2.11 | Data authoring guide v0 | Docs | T1.2.9 | Done |
+| T1.2.12 | Enable validation in CI | Setup | T1.2.9 | Done |
+
+> **Notes on what was built (2026-09-22).** Four departures, none changing the goal:
+>
+> 1. **T1.2.1's premise was wrong for RON 0.12.** The task assumed RON gives no
+>    span for a semantic error, so the plan split reporting into positions for
+>    syntax and field paths for semantics. Measurement showed 0.12 gives spans
+>    for *both*, plus structured error codes carrying the expected and found
+>    names. Reporting is therefore one tier, richer than planned, and the codes
+>    drive "did you mean ...?" suggestions.
+> 2. **Fixtures are built in memory, not as `tests/fixtures/<case>/` trees.**
+>    Each invalid case is the valid tree with one thing changed, so the defect
+>    is visible in the test rather than buried in a directory diff, and
+>    fourteen near-identical trees cannot drift apart as the schemas move.
+>    `MemSource` exists for this.
+> 3. **The assumptions *schema* landed here, not in T1.6.1.** T1.2.7 has to
+>    route `assumptions.ron` and T1.2.8 has to check that every cited id
+>    exists. T1.6.1 still adds typed keys and use-recording on top.
+> 4. **The CI step runs in debug, not `--release`.** The placeholder said
+>    release; using debug reuses the artifacts the test step already built
+>    instead of recompiling the workspace a second time.
+>
+> **Deferred to the work package that defines them:** effect-definition and
+> benchmark-skill-id reference checks (T1.2.8 items 1.5 and 1.7) need the DSL
+> (WP1.5) and the template codec (WP1.3). Handler-name checking is built, and
+> exposed as `checks::check_handlers`, which takes a registry from the caller
+> so the data crate never depends on the engine.
 
 ### T1.2.1 RON and serde error reporting
 
@@ -416,12 +463,36 @@ In `crates/gwsim-data/src/core/`:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.3.1 | Template formats, IDs and test vectors | Research | — | Todo |
-| T1.3.2 | Base64 alphabet and bit stream | Build | T1.3.1 | Todo |
-| T1.3.3 | Skill template codec | Build | T1.3.2 | Todo |
-| T1.3.4 | Equipment template codec | Build | T1.3.2 | Todo |
-| T1.3.5 | Test vectors and property tests | Test | T1.3.3, T1.3.4 | Todo |
-| T1.3.6 | `gwsim template decode` / `encode` (raw) | Build | T1.3.5 | Todo |
+| T1.3.1 | Template formats, IDs and test vectors | Research | — | Done |
+| T1.3.2 | Base64 alphabet and bit stream | Build | T1.3.1 | Done |
+| T1.3.3 | Skill template codec | Build | T1.3.2 | Done |
+| T1.3.4 | Equipment template codec | Build | T1.3.2 | Done |
+| T1.3.5 | Test vectors and property tests | Test | T1.3.3, T1.3.4 | Done |
+| T1.3.6 | `gwsim template decode` / `encode` (raw) | Build | T1.3.5 | Done |
+
+> **Notes on what was built (2026-09-22).** The codec reproduces all seven §20.1
+> codes byte for byte. Three things worth carrying forward:
+>
+> 1. **The attribute width rule has an undocumented floor.** Professions and
+>    skills use the smallest width that fits, as expected. Attributes do not:
+>    both Mesmer codes store ids no larger than 3, which four bits would hold,
+>    yet both use five. `max(1, needed - 4)` reproduces every published code,
+>    but it is inferred from two codes that are both Mesmer bars. If a future
+>    code fails to round-trip, this is the line to revisit (T1.3.1 §3).
+> 2. **Equipment templates describe PvP gear.** The item id list is `PvP Axe`,
+>    `PvP Longbow` and so on, and only PvP characters can load one. gwsim
+>    simulates PvE, so the equipment codec is for *reading* codes a published
+>    build includes, not for describing gwsim gear. Recorded because it changes
+>    how much T1.4.9's `to_templates` can promise.
+> 3. **Two format traps, both now covered by tests.** Equipment width fields
+>    are raw bit counts with no `+4`/`+8` offset, unlike the skill format; and
+>    an item's dye sits *between* the modifier count and the modifier list.
+>
+> **Property tests use a boundary sweep rather than `proptest`.** T1.3.5 asked
+> for `proptest`; instead the suite sweeps every width boundary, every
+> attribute, every slot and every profession pair, plus a no-panic pass over
+> malformed input. That covers where a hand-rolled bit codec actually breaks
+> without adding a dependency. `proptest` can be added if a real bug escapes.
 
 ### T1.3.1 Template formats, IDs and test vectors
 
@@ -536,16 +607,49 @@ They must reproduce the wiki's worked examples. The work package also defines th
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.4.1 | Derived-stat formulas and M1 gear | Research | — | Todo |
-| T1.4.2 | Item data for M1 gear | Data | T1.4.1, T1.2.5 | Todo |
-| T1.4.3 | `Build` type and legality | Build | T1.2.3 | Todo |
-| T1.4.4 | Attribute costs and effective ranks | Build | T1.4.3 | Todo |
-| T1.4.5 | Health and energy | Build | T1.4.4, T1.4.2 | Todo |
-| T1.4.6 | Armor per piece and damage type | Build | T1.4.2 | Todo |
-| T1.4.7 | Skill value tables | Build | T1.4.4 | Todo |
-| T1.4.8 | Foe derived stats and HM level mapping | Build | WP1.1 | Todo |
-| T1.4.9 | Build ↔ template conversion | Build | T1.4.3, WP1.3 | Todo |
-| T1.4.10 | §17.2 and M1 hand-value tests | Test | T1.4.5–T1.4.9 | Todo |
+| T1.4.1 | Derived-stat formulas and M1 gear | Research | — | Done |
+| T1.4.2 | Item data for M1 gear | Data | T1.4.1, T1.2.5 | Done |
+| T1.4.3 | `Build` type and legality | Build | T1.2.3 | Done |
+| T1.4.4 | Attribute costs and effective ranks | Build | T1.4.3 | Done |
+| T1.4.5 | Health and energy | Build | T1.4.4, T1.4.2 | Done |
+| T1.4.6 | Armor per piece and damage type | Build | T1.4.2 | Done |
+| T1.4.7 | Skill value tables | Build | T1.4.4 | Done |
+| T1.4.8 | Foe derived stats and HM level mapping | Build | WP1.1 | Done |
+| T1.4.9 | Build ↔ template conversion | Build | T1.4.3, WP1.3 | Done |
+| T1.4.10 | §17.2 and M1 hand-value tests | Test | T1.4.5–T1.4.9 | Done |
+
+> **Notes on what was built (2026-09-22).** Every M1 slot's hand values are
+> asserted, and they are checked against **two independently derived sources**:
+> the attribute points come from decoding the §20.1 template codes (T1.3.1) and
+> the gear from §20.1's equipment column. The two agreeing is what makes the
+> ranks trustworthy.
+>
+> **One part of the 136 test vector is not yet computable.** The wiki's itemised
+> maximum Elementalist energy is 20 base + 10 armor + 48 Energy Storage + 8
+> Radiant + 8 Attunement + 15 wand + 27 focus. The 98 that comes from armor,
+> Energy Storage, Attunement runes and the focus's inherent +12 is computed
+> through `energy()`; the remaining 38 comes from insignia and inscription
+> *effects*, which have no typed form until the DSL lands in WP1.5. The test
+> asserts the computed 98 exactly and documents the rest, so the part most
+> likely to be wrong — the rank-16 Energy Storage and the four-not-five
+> Attunement runes — is genuinely under test.
+>
+> **Two open questions carried forward from T1.4.1 §10:**
+>
+> 1. **Heroes 4 to 7 have no weapons in §20.1**, so their energy is the
+>    profession base of 30 rather than 42. `the_caster_weapon_set_is_what_makes_
+>    the_difference_in_energy` pins the current answer so that filling the gap
+>    is a visible change rather than a silent one. It wants an assumption in the
+>    spirit of A-033.
+> 2. **The player wears three runes, not five**, under A-033, which is the only
+>    reason it is 25 health lighter than every hero. Worth confirming before it
+>    shows up as a simulation result.
+>
+> **`armor_profile` returns resting armor only.** Four of the five M1 insignias
+> are conditional (Prodigy's, Minion Master's, Shaman's) or grant no armor
+> (Bloodstained), and their conditions are DSL values until WP1.5. The
+> `conditional` list exists and is empty; folding those bonuses in would
+> overstate every M1 caster by up to 15.
 
 ### T1.4.1 Derived-stat formulas and M1 gear
 
@@ -730,15 +834,47 @@ Using `research/` (Attributes, Item_types, Game_mechanics) and the wiki pages At
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.5.1 | DSL coverage study of the 72 M1 skills | Research | — | Todo |
-| T1.5.2 | Values, selectors and actions | Build | T1.5.1 | Todo |
-| T1.5.3 | Effect definitions, AI hints and role tags | Build | T1.5.2 | Todo |
-| T1.5.4 | Static validation of encodings | Build | T1.5.3 | Todo |
-| T1.5.5 | Description renderer | Build | T1.5.3 | Todo |
-| T1.5.6 | `gwsim data describe` | Build | T1.5.5 | Todo |
-| T1.5.7 | Golden description tests | Test | T1.5.6 | Todo |
-| T1.5.8 | DSL reference v0 | Docs | T1.5.7 | Todo |
+| T1.5.1 | DSL coverage study of the 72 M1 skills | Research | — | Done |
+| T1.5.2 | Values, selectors and actions | Build | T1.5.1 | Done |
+| T1.5.3 | Effect definitions, AI hints and role tags | Build | T1.5.2 | Done |
+| T1.5.4 | Static validation of encodings | Build | T1.5.3 | Done |
+| T1.5.5 | Description renderer | Build | T1.5.3 | Done |
+| T1.5.6 | `gwsim data describe` | Build | T1.5.5 | Done |
+| T1.5.7 | Golden description tests | Test | T1.5.6 | Done |
+| T1.5.8 | DSL reference v0 | Docs | T1.5.7 | Done |
 | T1.5.9 | Owner review of the DSL shape | Review | T1.5.8 | Todo |
+
+> **Notes on what was built (2026-09-22).** T1.5.1 through T1.5.8 are done.
+> **T1.5.9 is an owner gate and is not.**
+>
+> **The headline finding is that the design over-estimates handlers.** §8.5
+> names 16 M1 skills as likely handlers; writing all 72 out in pseudo-DSL
+> found **four**. Twelve of the sixteen are ordinary data once a hex or
+> enchantment can say "when X happens, do Y", which §8.4's `Triggered` already
+> allowed for. If that rate holds, §22's estimate of ~320 handlers across
+> ~1,400 skills is closer to ~80. **One sample is not proof** — M1 is
+> Mesmer-heavy — so this should be re-measured at the first P7 profession
+> batch rather than planned around.
+>
+> **The insignias found constructs the skill study missed.** T1.5.1 read
+> *skills*; the M1 insignias needed threshold filters (`RechargingSkills`,
+> `ControllingMinions`, `ControllingSpirits`) and `ExploitsCorpse` that no
+> skill did. Gear is worth studying in its own right before P7.
+>
+> **Reviewing the golden snapshots caught real defects**, which is the argument
+> for having them. A negative range rendered as `1…-3` rather than `-1…-3`,
+> reporting a different number from the one encoded; `Secondary` read as though
+> the primary target also took the reduced share; and subject-verb agreement
+> was wrong throughout ("target foe take 20 damage"). Since the generated text
+> exists to be compared against the wiki by eye, each of those would have made
+> a reviewer distrust a correct encoding.
+>
+> **Two encodings are deliberately incomplete, and say so in the data:**
+> Tormentor's holy penalty differs per armor piece and the DSL has no
+> per-piece amount; and every 40/40 upgrade applies only to spells of the
+> item's own attribute, which needs an item-relative scope. "Master of My
+> Domain" is left with `effects: []` for the same reason — an encoding that
+> validated but meant nothing would be worse than none.
 
 ### T1.5.1 DSL coverage study of the 72 M1 skills
 
@@ -885,11 +1021,31 @@ Using `research/` (Attributes, Item_types, Game_mechanics) and the wiki pages At
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.6.1 | Assumption types and typed access | Build | — | Todo |
-| T1.6.2 | Write `data/assumptions.ron` | Data | T1.6.1 | Todo |
-| T1.6.3 | Assumption-use recording | Build | T1.6.1 | Todo |
-| T1.6.4 | Coverage computation and `gwsim data coverage` | Build | WP1.2 | Todo |
-| T1.6.5 | Tests | Test | T1.6.2–T1.6.4 | Todo |
+| T1.6.1 | Assumption types and typed access | Build | — | Done |
+| T1.6.2 | Write `data/assumptions.ron` | Data | T1.6.1 | Done |
+| T1.6.3 | Assumption-use recording | Build | T1.6.1 | Done |
+| T1.6.4 | Coverage computation and `gwsim data coverage` | Build | WP1.2 | Done |
+| T1.6.5 | Tests | Test | T1.6.2–T1.6.4 | Done |
+
+> **Notes on what was built (2026-09-22).** One deviation, in the direction of
+> honesty rather than away from it.
+>
+> **Ten assumptions carry values, not the five T1.6.2 listed.** The task said
+> A-012, A-018, A-024, A-028 and A-030 get values and the rest start
+> `Pending`. But P1's own research settled A-005, A-020, A-025, A-033 and
+> A-021 along the way, and `core/modes.ron` and `core/ranges.ron` already use
+> those numbers. Marking them `Pending` would make the register contradict the
+> data it exists to explain. A test asserts that every assumption the core
+> files rely on has a value.
+>
+> **Every `Pending` entry names the task that will settle it**, enforced by a
+> test. A pending assumption with no owner is one nobody comes back to, which
+> defeats the register.
+>
+> **Coverage says what its percentages are of.** Until `data/skills/index.ron`
+> arrives in T2.3.6 there is no list of every skill in the game, so a
+> percentage is of the files that happen to exist — which is always 100%.
+> `gwsim data coverage` prints that caveat rather than a flattering number.
 
 ### T1.6.1 Assumption types and typed access
 
@@ -975,13 +1131,44 @@ Using `research/` (Attributes, Item_types, Game_mechanics) and the wiki pages At
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T1.7.1 | Choose the pack format and embedding | Research / Decision | — | Todo |
-| T1.7.2 | `DataPack` and its version | Build | T1.7.1 | Todo |
-| T1.7.3 | Build-time pack generation | Build | T1.7.2 | Todo |
-| T1.7.4 | Developer mode (`--data-dir`) | Build | T1.7.3 | Todo |
-| T1.7.5 | User data directory | Build | T1.7.2 | Todo |
-| T1.7.6 | Version and info output | Build | T1.7.3 | Todo |
-| T1.7.7 | Tests without `data/` | Test | T1.7.4–T1.7.6 | Todo |
+| T1.7.1 | Choose the pack format and embedding | Research / Decision | — | Done |
+| T1.7.2 | `DataPack` and its version | Build | T1.7.1 | Done |
+| T1.7.3 | Build-time pack generation | Build | T1.7.2 | Done |
+| T1.7.4 | Developer mode (`--data-dir`) | Build | T1.7.3 | Done |
+| T1.7.5 | User data directory | Build | T1.7.2 | Done |
+| T1.7.6 | Version and info output | Build | T1.7.3 | Done |
+| T1.7.7 | Tests without `data/` | Test | T1.7.4–T1.7.6 | Done |
+
+> **Notes on what was built (2026-09-22).** The measurement overturned the
+> plan's expected answer.
+>
+> **T1.7.1 chose option (a), embedded RON text, not option (b) with
+> `postcard`.** The plan expected (b) on start-up cost. A synthetic
+> full-coverage tree — 2,400 files, 2.9 MB, every skill carrying a real
+> encoding — loads in **36 ms in release** and 348 ms in debug. That is not a
+> cost worth a second format, a second dependency, a format version, and a
+> class of serialisation bug that (a) simply cannot have: the text in the
+> binary is the text that was validated, going through the same parser.
+> `crates/gwsim-data/tests/pack_scale.rs` keeps the measurement repeatable, so
+> revisiting this is a measurement rather than an argument.
+>
+> **Build-time validation still happens.** `build.rs` fails the build on a
+> broken tree, so a release binary cannot carry data that does not load. Only
+> what gets *embedded* differs from the plan.
+>
+> **The content hash is BLAKE3 over sorted, forward-slash `(path, contents)`
+> pairs**, with lengths hashed before each field so that two trees cannot
+> collide by splitting a name differently. The forward-slash guarantee came
+> from T1.2.7's `DataSource`, which is what makes the hash the same on Windows
+> and Linux.
+>
+> **`gwsim --version` now carries the data hash**, because two builds of the
+> same version can hold different data and a result is only reproducible
+> against the data it came from (ENG-43).
+>
+> **Every command says which data it used.** A result computed against a
+> developer's local edits and one computed against the shipped data are
+> different results, and nothing else in the output would tell them apart.
 
 ### T1.7.1 Choose the pack format and embedding
 
