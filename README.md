@@ -128,8 +128,25 @@ not need a "Developer Command Prompt" — Rust finds MSVC through the registry, 
 ordinary PowerShell window is fine.
 
 **`cargo` is not recognised**
-You have not opened a new terminal since installing rustup. If a fresh terminal still fails,
-check that `%USERPROFILE%\.cargo\bin` is in your `PATH`.
+You have not opened a new terminal since installing rustup.
+
+**In VS Code, a new terminal tab is not enough.** Tabs inherit VS Code's own environment, so
+if VS Code was running when rustup installed, every tab it opens has the old `PATH`. Restart
+VS Code itself, or reload the current session in place:
+
+```powershell
+$env:PATH = [Environment]::GetEnvironmentVariable("PATH","Machine") + ";" + [Environment]::GetEnvironmentVariable("PATH","User")
+```
+
+To tell which problem you have, check whether the setting took but the session missed it:
+
+```powershell
+[Environment]::GetEnvironmentVariable("PATH","User") -like "*.cargo*"   # should be True
+$env:PATH -like "*.cargo*"                                             # False means a stale session
+```
+
+If the first is `False`, rustup did not add the entry; add `%USERPROFILE%\.cargo\bin` to your
+user `PATH` yourself.
 
 **Builds are slow**
 Real-time antivirus scanning of the `target/` directory is a common cause. Excluding that
