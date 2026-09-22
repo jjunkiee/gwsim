@@ -313,11 +313,11 @@
         ),
         (
             id: "A-033",
-            statement: "The player's runes are superior Domination Magic, minor Fast Casting and minor Inspiration Magic.",
-            value: Text("superior Domination, minor Fast Casting, minor Inspiration"),
-            rationale: "The PvX page gives effective ranks of 12+1+3, 10+1 and 8+1 but does not name the runes. Those bonuses are only reachable with these three.",
-            status: Assumed,
-            notes: "This leaves two armor slots without a rune, which is why the player has 405 maximum health where every hero has 430. Worth confirming.",
+            statement: "The player's runes are superior Domination Magic on the headgear, minor Fast Casting, superior Vigor and two of Vitae.",
+            value: Text("superior Domination Magic (head), minor Fast Casting, superior Vigor, Vitae, Vitae"),
+            rationale: "Specified by the project owner on 2026-09-22. The PvX page gives effective ranks but never names the runes, so this is a decision about what M1 simulates rather than a fact recovered from a source.",
+            status: Confirmed,
+            notes: "All five armor slots carry a rune, so the player has 475 maximum health against every hero's 430. Note the consequence for Inspiration Magic: with no slot left for a minor Inspiration rune it stays at its 8 spent points, where the PvX attribute line implies 8+1. DESIGN 20.1 records the 8.",
         ),
     ],
 )

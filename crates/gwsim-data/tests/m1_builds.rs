@@ -54,24 +54,26 @@ const SLOTS: &[Slot] = &[
         label: "player, Me/-- Energy Surge",
         code: "OQBTAUBPQaJ4EY6x0BAAAAAAuE",
         headgear: Attribute::DominationMagic,
-        // A-033 infers three runes. The two empty slots are why the player is
-        // 25 health lighter than every hero.
+        // A-033, confirmed by the owner 2026-09-22: all five slots carry a
+        // rune. Note what this costs — there is no room left for a minor
+        // Inspiration rune, so Inspiration sits at its 8 spent points rather
+        // than the 9 the PvX page's attribute line implies.
         runes: [
             Some("superior-domination-magic"),
             Some("minor-fast-casting"),
-            Some("minor-inspiration-magic"),
-            None,
-            None,
+            Some("superior-vigor"),
+            Some("vitae"),
+            Some("vitae"),
         ],
         insignia: "prodigys",
         caster_set: true,
         expected_ranks: &[
             (Attribute::FastCasting, 11),
             (Attribute::DominationMagic, 16),
-            (Attribute::InspirationMagic, 9),
+            (Attribute::InspirationMagic, 8),
         ],
         expected_points: 195,
-        expected_health: 405,
+        expected_health: 475,
         expected_energy: 42,
         expected_pips: 4,
         expected_armor: 60,
@@ -319,16 +321,20 @@ fn every_slot_has_the_expected_resting_armor() {
 // ----------------------------------------------------- the interesting cases
 
 #[test]
-fn the_player_is_lighter_than_the_heroes() {
-    // 405 against 430. The player wears no Vigor or Vitae rune under A-033,
-    // which is worth being certain of before it shows up as a result.
+fn the_player_outlives_the_heroes() {
+    // 475 against 430. The player spends four of five rune slots on survival
+    // (Superior Vigor and two Vitae) and carries one superior penalty; the
+    // heroes carry two attribute runes with penalties each. Before A-033 was
+    // confirmed this read the other way round, 405 against 430, because the
+    // inferred loadout left two slots empty.
     let core = core();
     let data = data();
     let player = max_health(&assemble(&SLOTS[0]), 20, &data, &core);
     let hero = max_health(&assemble(&SLOTS[1]), 20, &data, &core);
-    assert_eq!(player, 405);
+    assert_eq!(player, 475);
+    // 480 - 75 (Superior Domination) + 50 (Superior Vigor) + 10 + 10 (Vitae).
+    assert_eq!(480 - 75 + 50 + 10 + 10, player);
     assert_eq!(hero, 430);
-    assert_eq!(hero - player, 25);
 }
 
 #[test]
