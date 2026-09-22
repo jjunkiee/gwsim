@@ -842,10 +842,11 @@ Using `research/` (Attributes, Item_types, Game_mechanics) and the wiki pages At
 | T1.5.6 | `gwsim data describe` | Build | T1.5.5 | Done |
 | T1.5.7 | Golden description tests | Test | T1.5.6 | Done |
 | T1.5.8 | DSL reference v0 | Docs | T1.5.7 | Done |
-| T1.5.9 | Owner review of the DSL shape | Review | T1.5.8 | Todo |
+| T1.5.9 | Owner review of the DSL shape | Review | T1.5.8 | Done |
 
 > **Notes on what was built (2026-09-22).** T1.5.1 through T1.5.8 are done.
-> **T1.5.9 is an owner gate and is not.**
+> **T1.5.9 was closed by the owner on 2026-09-22 without the packet being
+> built** — see that task for what was and was not approved.
 >
 > **The headline finding is that the design over-estimates handlers.** §8.5
 > names 16 M1 skills as likely handlers; writing all 72 out in pseudo-DSL
@@ -1008,6 +1009,19 @@ Using `research/` (Attributes, Item_types, Game_mechanics) and the wiki pages At
 2. Collect the owner's changes and apply them before P3 builds the interpreter on these types.
 
 - **Done when:** the owner approves the DSL shape.
+
+**Closed 2026-09-22 — approved, packet not built.** The owner accepted the
+DSL as it stands and chose to evolve it during implementation rather than
+review it up front. Step 1 was therefore never done: **no M1 skill has been
+encoded in the real types and rendered.** What was approved is the shape in
+`dsl.rs` and [effect-dsl.md](../effect-dsl.md), judged on the 25 synthetic
+description fixtures and the pseudo-DSL in
+[T1.5.1](../findings/T1.5.1-dsl-coverage.md) — not on five real skills.
+
+**The four questions the packet would have asked** are recorded in
+[fallout-tasks.md](fallout-tasks.md) §5 as Q9, because they do not stop being
+questions just because the gate is closed. The first real encodings in P2/WP4.1
+are where they get answered in practice.
 
 ---
 

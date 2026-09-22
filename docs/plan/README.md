@@ -3,8 +3,8 @@
 This plan breaks the roadmap in [DESIGN.md §19](../DESIGN.md#19-roadmap-and-work-packages) down into phases, work packages and tasks.
 
 - **DESIGN.md** remains the source of truth for requirements and decisions. This plan covers how the work gets done and in what order. If the two disagree, DESIGN.md wins and the plan is corrected.
-- **Status:** 2026-09-22. **P0 complete. P1 complete except T1.5.9, which is an owner review.**
-- **Where to start:** P2 (the extractor) and P3 (the engine core) are both unblocked. T1.5.9 wants the owner to review the effect DSL's shape before P3 builds an interpreter on it.
+- **Status:** 2026-09-22. **P0 and P1 are complete.**
+- **Where to start:** P2 (the extractor) and P3 (the engine core) are both unblocked. The effect DSL was approved as it stands (T1.5.9), on the understanding that it will change as real skills are encoded — so P3 should expect the types to move under it rather than treat them as settled.
 
 ## Phases
 
