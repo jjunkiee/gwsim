@@ -8,7 +8,7 @@ The phase files say what a phase set out to do. This file says what it left
 behind. An item leaves when it is done, or when it is absorbed into a real
 task in a phase file.
 
-- **Status:** 2026-09-23, after P1. O1–O4 closed; O6 and O7 opened by the PvX page that closed O4.
+- **Status:** 2026-09-23, after P1. **Section 1 is empty — nothing is waiting on the owner.** O1–O7 all closed; switching to the caster variants (O6) left E6–E8.
 - **Format:** each item says what it is, why it was left, and where it goes.
 
 ---
@@ -17,11 +17,8 @@ task in a phase file.
 
 Things I cannot decide or do.
 
-| # | Item | Why it needs you |
-| --- | --- | --- |
-| O5 | **Merge `setup/p0` and push.** Both P0 and P1 live on that branch. A remote now exists (`jjunkiee/gwsim`). | Committing and pushing is yours (C5). |
-| O6 | **Three hero slots run the melee-player variant while the player is a caster.** PvX splits four optional slots by player type. The caster column gives hero 2 Resurrection Chant, hero 4 Blood of the Master and hero 6 Lamentation; §20.1 has Flesh of My Flesh, Withering Aura and Splinter Weapon, which are the melee picks. Two have written rationales (no Blood Magic points; the 2026-08-26 Splinter Weapon AI fix) that were formed before the split was visible. | The player is **Me/— Energy Surge**, a caster, so the caster column is the one that applies. Either the picks change or the rationales need to say why they beat PvX's own advice. |
-| O7 | **The PvX team page carries an update warning.** It flags the 2026-06-24 build update — mesmer nerfs, buffs to competing builds — and asks for the article to be rewritten and possibly re-rated. §20.1 records the page as Great / Meta. | M1's whole party is this page. If it gets re-rated or rewritten, the benchmark M1 is built to reproduce moves. |
+**Nothing, as of 2026-09-23.** Every item that was here has been decided; they
+are in §7 with their outcomes. New ones go here rather than being guessed at.
 
 ---
 
@@ -53,6 +50,9 @@ findable.
 | E3 | **"Master of My Domain" has `effects: []`.** Its effect is "+1 to the item's attribute", which needs the same item-relative scope. Left empty on purpose: an encoding that validated but meant nothing would be worse than none. | Same as E2 |
 | E4 | **`data/skills/` is empty.** The schemas, DSL, validator and renderer are built and tested against fixtures, but no real skill exists, so `data describe` finds nothing on a fresh checkout. | P2 seeds them; WP4.1 encodes them |
 | E5 | **Hero 7's staff health modifiers are not encoded.** PvX names a Hale Spawning Power staff of fortitude. Both the staff head and the wrapping grant health, but the item data has no health-granting weapon upgrades and the wiki values have not been read. Hero 7's reported 400 maximum health is a floor, not the true figure. | Weapon upgrade effects, WP4.3 (A-034) |
+| E6 | **Lamentation and Blood of the Master are unstudied.** They joined the party on 2026-09-23 when it moved to PvX's caster column. T1.3.1 read 72 skill ids and T1.5.1 classified 72 skills; both read the *old* roster, so 69 of the current 71 are covered. Neither new skill has an id, values, or a DSL classification. | Two wiki pages; blocks WP4.1 |
+| E7 | **Three published template codes no longer encode their bars.** Heroes 4 and 6 carry PvX's melee-column codes (Withering Aura, Splinter Weapon). The codes still decode to the right profession and attributes, and the M1 tests only assert those, so nothing fails — but the code column and the skill column of §20.1 now disagree. Re-encoding is blocked on E6's two ids. | E6 |
+| E8 | **M1 no longer exercises weapon spells.** Splinter Weapon was the only one, so §20.5's "one weapon spell per target" rule will be built against no M1 skill and needs its own fixture. | WP4.3 |
 
 ---
 
@@ -116,4 +116,7 @@ Items move here briefly when closed, then leave.
 | O2 | **Promote `data/core/*.ron` to `Reviewed`.** | **Closed 2026-09-22: reviewed by the owner.** All seven files now carry `review: Reviewed, reviewed_by: Some("Jake Mansell")`. |
 | O3 | **Confirm A-033, the player's runes.** | **Closed 2026-09-23 from the current PvX page:** superior Domination Magic (head), minor Fast Casting, minor Inspiration Magic, superior Vigor, Vitae. A-033 is `Confirmed` and is no longer an inference. Player health 405 → 465; Inspiration stays at 9. An intermediate loadout that dropped minor Inspiration for a second Vitae was corrected before it reached `main`. |
 | O4 | **Decide the hero weapon assumption.** | **Closed 2026-09-23: no assumption needed.** The current PvX page names every weapon set, so this became sourced data rather than a guess. Heroes 4–6 carry 40/40 sets (Death, Restoration, Restoration); hero 7 carries a Spawning Power staff. Heroes 4–6 move 30 → 42 energy, hero 7 30 → 40. |
+| O5 | **Merge `setup/p0` and push.** | **Closed 2026-09-23.** P0 and P1 each merge into `main` through their own branch (`setup/p0`, `data/p1`), all pushed to `jjunkiee/gwsim`. |
+| O6 | **Three hero slots ran the melee-player variant.** | **Closed 2026-09-23: switched to the caster variants.** Hero 2 Flesh of My Flesh → Resurrection Chant (and Me/Rt → Me/Mo), hero 4 Withering Aura → Blood of the Master, hero 6 Splinter Weapon → Lamentation. The roster drops from 72 skills to 71. Left behind as E6, E7 and E8. |
+| O7 | **The PvX team page carries an update warning.** | **Closed 2026-09-23: ignored by the owner.** §20.1 keeps the page's Great / Meta rating. |
 | O1 | **T1.5.9 — review the effect DSL's shape.** | **Closed 2026-09-22: approved as it stands**, to be evolved during implementation rather than reviewed up front. The packet was never built, so no M1 skill has been encoded in the real types and rendered. The shape questions it would have raised are now Q9. |
