@@ -1,7 +1,8 @@
 # Attribution and licensing for gwsim data
 
-*This file describes everything under `data/`. The code in `crates/` is licensed
-separately — see the `LICENSE` file at the root of the repository.*
+*This file describes everything under `data/`. It is licensed the same way as the rest of
+gwsim — **GPL-3.0-or-later**, see the [`LICENSE`](../LICENSE) file at the root of the
+repository.*
 
 ## What this data is
 
@@ -29,7 +30,7 @@ information taken from a source under an incompatible licence may be used only i
 expressed originally, and that this does not extend to images. gwsim applies the same rule
 to the wiki itself: we take the facts and express them in our own form, because the wiki's
 editor text is licensed under the **GNU Free Documentation License**, which is not
-compatible with the CC BY-SA 4.0 licence used here.
+compatible with the GPL-3.0-or-later licence used here.
 
 ## What is deliberately not included
 
@@ -68,20 +69,25 @@ Each file records a review status:
 
 ## Reusing gwsim data
 
-The contents of `data/` are licensed under the **Creative Commons
-Attribution-ShareAlike 4.0 International** licence (CC BY-SA 4.0). The full legal code is
-in [`LICENSE`](LICENSE) in this directory, and online at
-<https://creativecommons.org/licenses/by-sa/4.0/>.
+`data/` is licensed under the **GNU General Public License, version 3 or later**, the same
+as the rest of gwsim. The full text is in [`LICENSE`](../LICENSE) at the root of the
+repository.
 
-You are free to share and adapt this data, including commercially, provided you give
-credit and license your adaptations under the same terms.
+**This is a copyleft licence, and it applies to the data as much as to the code.** If you
+build a tool on top of these files and distribute it, that tool has to be GPL-compatible.
+If you were hoping to drop this data into a closed-source or permissively licensed project,
+this licence does not allow it.
+
+The project is licensed this way deliberately: the data pack is compiled into the gwsim
+executable, so a single licence keeps the shipped binary unambiguous. It was previously
+CC BY-SA 4.0, which would have permitted wider reuse; see D33 in `docs/DESIGN.md` for the
+reasoning and the trade-off.
 
 Suggested credit:
 
-> gwsim game data, by the gwsim contributors, licensed under
-> [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+> gwsim game data, by the gwsim contributors, licensed under GPL-3.0-or-later.
 
-Note that this licence covers **gwsim's data only**. It does not and cannot grant any
+Note that this licence covers **gwsim's own data only**. It does not and cannot grant any
 rights in ArenaNet's or NCSOFT's intellectual property.
 
 ---

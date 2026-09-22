@@ -80,7 +80,7 @@ It is built command line first; the desktop app comes after the optimiser [Decid
 | ID | Constraint | Source |
 | --- | --- | --- |
 | C1 | **Wiki access.** [robots.txt](https://wiki.guildwars.com/robots.txt) disallows `/api.php`, `/index.php` and `Special:` pages for all user agents. Only ordinary article URLs (`/wiki/<Title>`) may be fetched, slowly. The wiki documents no rate limits and offers no public database dump. | Q24, D15 |
-| C2 | **Licensing.** (1) In-game skill description text and skill icons are ArenaNet content, not licensed to third parties: "The terms of the permission do not include third party use" ([Template:ArenaNet image](https://wiki.guildwars.com/wiki/Template:ArenaNet_image), [GWW:Copyrights](https://wiki.guildwars.com/wiki/Guild_Wars_Wiki:Copyrights)). (2) Text written by wiki editors is GFDL. (3) Numbers are facts; the wiki says facts may be used "if expressed originally" ([GWW:Copyrighted content](https://wiki.guildwars.com/wiki/Guild_Wars_Wiki:Copyrighted_content)). The app therefore bundles numbers and our own encodings only. Code is GPL-3.0; data files are CC BY-SA 4.0. *Not legal advice.* | Q25, Q38 |
+| C2 | **Licensing.** (1) In-game skill description text and skill icons are ArenaNet content, not licensed to third parties: "The terms of the permission do not include third party use" ([Template:ArenaNet image](https://wiki.guildwars.com/wiki/Template:ArenaNet_image), [GWW:Copyrights](https://wiki.guildwars.com/wiki/Guild_Wars_Wiki:Copyrights)). (2) Text written by wiki editors is GFDL. (3) Numbers are facts; the wiki says facts may be used "if expressed originally" ([GWW:Copyrighted content](https://wiki.guildwars.com/wiki/Guild_Wars_Wiki:Copyrighted_content)). The app therefore bundles numbers and our own encodings only. **The whole project, `data/` included, is GPL-3.0-or-later [D33].** *Not legal advice.* | Q25, Q38 |
 | C3 | **PvXwiki access.** gwpvx.fandom.com returns 403 to scripted requests. No attempt is made to get around this. Benchmark builds come from Wayback Machine snapshots or are typed in by hand. | D16 |
 | C4 | **Staleness.** The balance baseline is the wiki as of 2026-09-22. Later patches are applied by hand, and the app going out of date between updates is acceptable. | Q5, D2 |
 | C5 | **Platform and toolchain.** Rust. Windows is the official platform. Assume nothing is installed; the README's Getting Started section covers everything. Nothing is installed on a machine without asking. | Q23, D9, D21 |
@@ -145,7 +145,7 @@ See [§23](#23-out-of-scope). In brief:
 | Q35 | Curated encounter | **Kournan military patrol, Vehtendi Valley, Hard Mode.** |
 | Q36 | Profession order | Mesmer → Ritualist → Necromancer → **PvE-only skills** → Paragon → Monk → Elementalist → Warrior → Ranger → Dervish → Assassin. |
 | Q37 | Where tactics plans come from | **Generated from each build.** The user can override them. |
-| Q38 | Data licence | **CC BY-SA 4.0** (one-way compatible with GPL-3.0). |
+| Q38 | Data licence | ~~CC BY-SA 4.0 (one-way compatible with GPL-3.0).~~ **Superseded by D33 (2026-09-22): the whole project, data included, is GPL-3.0-or-later.** |
 | Q39 | Desktop UI framework | **egui (eframe).** |
 | Q40 | Player's optional slots (M1) | **Cry of Frustration, Spiritual Pain, Power Drain.** |
 | Q41 | Player weapon swapping (M1) | **Deferred.** The player uses the 40/40 Domination set. |
@@ -188,6 +188,7 @@ See [§23](#23-out-of-scope). In brief:
 | D30 | The optimiser's first real test is "the best player build for this Mesmerway team". Solo Resto becomes the second benchmark. |
 | D31 | M0 (internal step): the player's Energy Surge bar against training dummies. |
 | D32 | The code licence identifier is **`GPL-3.0-or-later`** (the FSF's recommended form), not `GPL-3.0-only`. The `LICENSE` text is unchanged either way; this sets whether later GPL versions may apply. Decided in T0.5.1, 2026-09-22. |
+| D33 | **One licence for the whole project: `GPL-3.0-or-later`, `data/` included. This supersedes Q38.** The facts in `data/` are not copyrightable and their expression is ours, so the project is free to license them as it likes; CC BY-SA was a choice, not an inheritance from the wiki. Unifying removes a real question raised by the WP1.7 data pack, which embeds `data/` into the shipped binary and so makes "one combined work or mere aggregation?" a live issue rather than a theoretical one. **Known cost, accepted:** other community tools can no longer reuse gwsim's data without adopting the GPL, which CC BY-SA would have allowed. Decided 2026-09-22. |
 
 ---
 
@@ -373,7 +374,6 @@ Evaluation { party, situation, runs: n, aggregates with confidence intervals }
 
 ```text
 data/
-├── LICENSE                     # CC BY-SA 4.0 [Decided Q38]
 ├── ATTRIBUTION.md              # facts derived from Guild Wars Wiki; no ArenaNet text or art
 ├── core/
 │   ├── professions.ron         # incl. template indices, base armor, energy
@@ -564,7 +564,7 @@ The DSL is a Rust enum tree, serialised as RON. It must express the formulaic (~
 
 ### 8.10 Licensing and attribution
 
-- Data files are CC BY-SA 4.0 [Decided Q38]. `data/ATTRIBUTION.md` credits the Guild Wars Wiki as the source of the facts.
+- Data files are GPL-3.0-or-later, like the rest of the project [D33, superseding Q38]. `data/ATTRIBUTION.md` credits the Guild Wars Wiki as the source of the facts and records what is deliberately excluded.
 - **Never commit:** in-game description text, skill icons or other ArenaNet art, or copied text written by wiki editors.
 - The extractor's cache (§9) contains raw wiki HTML, so it is **git-ignored** and never committed.
 - *Not legal advice.*
@@ -1246,8 +1246,7 @@ gwsim/
 ├── crates/
 │   ├── gwsim-data/  gwsim-engine/  gwsim-opt/  gwsim-cli/  gwsim-desktop/  gwsim-extractor/
 │   │   └── each with its own src/, tests/ and benches/ [Proposed]
-├── data/                         # CC BY-SA 4.0 (§8)
-│   ├── LICENSE                   # CC BY-SA 4.0 legal code
+├── data/                         # GPL-3.0-or-later, like the rest (§8) [D33]
 │   └── ATTRIBUTION.md            # source of the facts; what is excluded (§8.10)
 ├── docs/
 │   ├── DESIGN.md                 # this document
@@ -1258,7 +1257,7 @@ gwsim/
 ├── .github/
 │   ├── workflows/ci.yml          # once the repo has a GitHub remote
 │   └── pull_request_template.md  # incl. the licensing checklist [Proposed]
-├── LICENSE                       # GPL-3.0-or-later (code) [D32]
+├── LICENSE                       # GPL-3.0-or-later, whole project [D32, D33]
 ├── README.md                     # incl. Getting Started from zero [D21]
 ├── CONTRIBUTING.md
 └── .gitignore                    # Rust template + research/ + .cache/ [D9, Q42]
@@ -1266,7 +1265,7 @@ gwsim/
 
 - `research/` stays local and must be git-ignored [Decided Q42]. This is a licensing
   requirement as well as a tidiness one: the corpus contains wiki prose under the GFDL,
-  which is not compatible with the CC BY-SA 4.0 licence on `data/` (T0.5.2).
+  which is not compatible with the GPL-3.0-or-later licence on this project (T0.5.2).
 - `.cache/` (the extractor's cache, holding raw wiki HTML) must be git-ignored (§8.10).
 - **Tests and benchmarks are per-crate, not at the root** [Proposed, T0.3.1]. A virtual
   manifest has no package of its own, so it cannot host root `tests/` or `benches/`
@@ -1333,7 +1332,7 @@ The detailed plan of work (tasks per work package, research tasks and status tra
 | 0.2 | Install the toolchain on the dev machine (**ask first**): rustup (MSVC) and the VS C++ Build Tools. | `cargo --version` works |
 | 0.3 | Workspace skeleton with the six crates; `gwsim --version`. | `cargo build` and `cargo test` pass |
 | 0.4 | `.gitignore`: the Rust template plus `research/` and `.cache/`. | `git status` doesn't show `research/` |
-| 0.5 | Licences: GPL-3.0 (existing); `data/LICENSE` (CC BY-SA 4.0); `data/ATTRIBUTION.md`. | Files present |
+| 0.5 | Licences: GPL-3.0-or-later for the whole project (existing `LICENSE`); `data/ATTRIBUTION.md`. | Files present |
 | 0.6 | CONTRIBUTING skeleton. CI workflow ready for when a remote exists. | Files present |
 
 ### P1 Data foundations
@@ -1644,7 +1643,7 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | **Performance** (Rust helps, but many effects) | Slow optimiser | Performance budget in CI; data-oriented engine; adaptive evaluation; CRN |
 | **Extractor fragility** (HTML layout changes; category pagination is disallowed) | Seeding and diff break | WP2.1 spike; synthetic-fixture tests; discovery via list pages; the diff tolerates missing fields |
 | **Crawl etiquette** | Blocked by the wiki | EXT-1 to EXT-7; stop on 403/429; long delays; resumable cache |
-| **Licensing** | Takedown or contamination | Bundle numbers and our own encodings only; never commit the cache, prose or icons; CC BY-SA data; *not legal advice* |
+| **Licensing** | Takedown or contamination | Bundle numbers and our own encodings only; never commit the cache, prose or icons; one GPL-3.0-or-later licence throughout [D33]; *not legal advice* |
 | **PvX access blocked** | Benchmarks stale | Frozen benchmarks with URL and date; Wayback; manual entry |
 | **Balance patches** | Stale data | Change report workflow (UC11); stale data is acceptable (C4) |
 | **Rust barrier for contributors** | Fewer contributors | Data contributions need only RON; docs and validation with good errors |

@@ -137,19 +137,17 @@ directory speeds builds up noticeably — your call whether that trade-off is on
 
 ## Licence
 
-gwsim is split into two differently licensed parts.
-
-| Part | Licence |
-| --- | --- |
-| **Code** (`crates/`, and everything not under `data/`) | [GPL-3.0-or-later](LICENSE) |
-| **Game data** (`data/`) | [CC BY-SA 4.0](data/LICENSE) |
+**gwsim is [GPL-3.0-or-later](LICENSE) throughout — code and game data alike.**
 
 The data files contain **game facts** — numbers, names and relationships — expressed
 originally, together with gwsim's own encodings of what skills do. They contain **no
 ArenaNet text and no art**: no in-game descriptions, no icons, no screenshots. Skill
 descriptions shown in the application are generated from gwsim's own data. See
-[data/ATTRIBUTION.md](data/ATTRIBUTION.md) for the details and for how to credit this data
-if you reuse it.
+[data/ATTRIBUTION.md](data/ATTRIBUTION.md) for what the data is, where the facts come from,
+and what is deliberately excluded.
+
+If you want to reuse the data in your own Guild Wars tool, note that the GPL applies to it
+as much as to the code: your tool has to be GPL-compatible too.
 
 Guild Wars, ArenaNet and NCSOFT are trademarks or registered trademarks of NCSOFT
 Corporation. **gwsim is a fan project and is not affiliated with, endorsed by, or sponsored

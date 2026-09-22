@@ -2,7 +2,7 @@
 
 **Phase goal:** give the empty repository a Rust workspace that builds and tests on the development machine. The toolchain is installed by following the README's own instructions. Local-only material (`research/`, `.cache/`) is protected from commits. Licences and contributor scaffolding are in place, so P1 can start writing code.
 
-- **Design refs:** §2.2 (C2, C5), §6.1, §8.10, §18, Q38, Q42, D9, D20, D21.
+- **Design refs:** §2.2 (C2, C5), §6.1, §8.10, §18, Q42, D9, D20, D21, D32, D33.
 - **Starts when:** the design is agreed (done 2026-09-22).
 - **Ends when:**
   - `cargo build` and `cargo test` pass;
@@ -23,7 +23,7 @@
 | 0.2 | Toolchain on the dev machine | Rust (MSVC) works on the development machine, installed exactly as the README says. | Done |
 | 0.3 | Workspace skeleton | The six-crate workspace builds, tests and runs `gwsim --version`. | Done |
 | 0.4 | `.gitignore` | Local-only and generated files can't be committed by accident. | Done |
-| 0.5 | Licences | Code and data licensing are unambiguous and match C2 and Q38. | Done |
+| 0.5 | Licences | Code and data licensing are unambiguous and match C2 and D33. | Done |
 | 0.6 | CONTRIBUTING and CI | Contributors know the rules, and CI is ready for when a remote exists. | Done |
 
 ---
@@ -87,8 +87,7 @@ Replace the two-line README with these sections:
       - `cargo` not recognised means opening a new terminal, or checking that `%USERPROFILE%\.cargo\bin` is on `PATH`;
       - antivirus scanning `target/` can slow builds (optional exclusion, owner's choice).
 3. **Licence:**
-   - code GPL-3.0 (identifier from T0.5.1);
-   - data under `data/` CC BY-SA 4.0;
+   - one licence for the whole project, GPL-3.0-or-later (identifier from T0.5.1; D33), `data/` included;
    - no ArenaNet text or art is included;
    - not affiliated with ArenaNet or NCSOFT;
    - Guild Wars is their trademark.
@@ -403,11 +402,18 @@ Replace the two-line README with these sections:
 
 ## WP0.5 Licences
 
-**Goal:** code and data licensing are unambiguous, match C2 and Q38, and are stated where people look.
+**Goal:** code and data licensing are unambiguous, match C2 and D33, and are stated where people look.
 
-- **Refs:** C2, §8.10, Q38.
+- **Refs:** C2, §8.10, D33 (superseding Q38).
 - **Depends on:** —
-- **Done when:** `LICENSE` (existing), `data/LICENSE` and `data/ATTRIBUTION.md` exist, and the README and `Cargo.toml` state the licences.
+- **Done when:** `LICENSE` and `data/ATTRIBUTION.md` exist, and the README and `Cargo.toml` state the licence.
+
+> **Superseded after completion (2026-09-22).** This work package was carried out as written,
+> under Q38's split licence: GPL-3.0 for code, CC BY-SA 4.0 for `data/`. The owner then chose
+> a single licence for the whole project, **GPL-3.0-or-later** (**D33**). `data/LICENSE` was
+> consequently deleted and the README, CONTRIBUTING and `ATTRIBUTION.md` were rewritten.
+> The task text below is left as it was performed; T0.5.2's CC BY-SA research is what
+> established the one-way GPLv3 compatibility that made the change safe.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
@@ -451,6 +457,7 @@ Replace the two-line README with these sections:
 1. Create `data/LICENSE` containing the unmodified CC BY-SA 4.0 legal code text from creativecommons.org.
 
 - **Done when:** the file matches the canonical text.
+- **Superseded by D33:** this file was created, then deleted when the project moved to a single GPL-3.0-or-later licence. `data/` is now covered by the root `LICENSE`.
 
 ### T0.5.4 Add `data/ATTRIBUTION.md`
 
@@ -465,7 +472,7 @@ Write these sections:
    - no icons or other ArenaNet art;
    - no copied wiki prose.
 4. **Trademarks:** Guild Wars and ArenaNet are trademarks of their owners, and gwsim is not affiliated with them.
-5. **Reusing gwsim data:** CC BY-SA 4.0, using the attribution line from T0.5.2.
+5. **Reusing gwsim data:** GPL-3.0-or-later (D33), and what that copyleft means for a tool built on the data.
 6. *Not legal advice.*
 
 - **Output:** `data/ATTRIBUTION.md`.
@@ -506,7 +513,7 @@ Write these sections:
 1. **Start here:** links to the README Getting Started, DESIGN.md and the plan.
 2. **Ground rules:**
    - the licensing rules from §8.10, stated plainly (never commit ArenaNet text or art, copied wiki prose or the `.cache/`);
-   - inbound licences equal outbound: code under GPL-3.0, data under CC BY-SA 4.0.
+   - inbound licences equal outbound: everything, code and data alike, under GPL-3.0-or-later (D33).
 3. **Wiki etiquette** (EXT-1 to EXT-7), for anyone running the extractor or researching:
    - article pages only;
    - at least 3 s apart;

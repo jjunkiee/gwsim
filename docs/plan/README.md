@@ -123,7 +123,7 @@ Research tasks come before the build tasks that depend on them.
 | Task | Question | Feeds |
 | --- | --- | --- |
 | T0.1.1 | Current Windows install steps for Build Tools, rustup and Git | WP0.1, WP0.2 |
-| T0.5.2 | CC BY-SA 4.0 text, GPL-3.0 compatibility, attribution form | WP0.5 |
+| T0.5.2 | CC BY-SA 4.0 text, GPL-3.0 compatibility, the wiki's GFDL terms | WP0.5 |
 | T0.6.2 | GitHub Actions practice for a Rust workspace on Windows | WP0.6 |
 | T1.1.1 | Core values: professions, attributes, ranges, levels, conditions, modes, Asura title ranks | WP1.1 |
 | T1.2.1 | RON and serde: error positions, enum forms, field-path errors | WP1.2 |

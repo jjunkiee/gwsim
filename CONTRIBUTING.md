@@ -19,15 +19,11 @@ them even if you skip the rest.
 
 ### 1. Licensing
 
-gwsim is deliberately split:
+**gwsim is GPL-3.0-or-later throughout**, and that includes the game data in `data/`. There
+is one licence and one `LICENSE` file.
 
-| Part | Licence |
-| --- | --- |
-| Code (`crates/`, tooling, docs) | GPL-3.0-or-later |
-| Game data (`data/`) | CC BY-SA 4.0 |
-
-**Inbound equals outbound.** By contributing, you agree your contribution is licensed under
-the licence covering the part you are changing.
+**Inbound equals outbound.** By contributing — code or data — you agree your contribution
+is licensed under GPL-3.0-or-later.
 
 **Never commit:**
 
@@ -38,8 +34,8 @@ the licence covering the part you are changing.
 - text from the wiki's `Feedback:` namespace.
 
 **Why the prose rule is strict.** The Guild Wars Wiki's editor text is licensed under the
-**GFDL**, which is not compatible with the CC BY-SA 4.0 licence on `data/`. So wiki prose
-cannot legally be relicensed into this repository, however convenient it would be.
+**GFDL**, which is not compatible with GPL-3.0-or-later. So wiki prose cannot legally be
+relicensed into this repository, however convenient it would be.
 
 What we take instead is **facts** — numbers, names and relationships — expressed
 originally. This mirrors the wiki's own policy for material from incompatible sources:
