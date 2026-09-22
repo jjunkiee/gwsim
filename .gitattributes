@@ -1,0 +1,26 @@
+# Normalise text to LF in the repository and in the working tree.
+#
+# gwsim is developed and built on Windows, where git's autocrlf would
+# otherwise check files out with CRLF. LF everywhere keeps insta snapshots
+# (P1 onwards) byte-identical between a developer's machine and CI, and
+# keeps RON data files from showing spurious whole-file diffs.
+* text=auto eol=lf
+
+# Rust sources and the data format.
+*.rs text eol=lf
+*.ron text eol=lf
+*.toml text eol=lf
+
+# Snapshots are compared byte for byte. Never let git rewrite them.
+*.snap text eol=lf
+*.snap.new text eol=lf
+
+# Windows shell scripts need CRLF to run reliably.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files git must not touch or try to diff as text.
+*.png binary
+*.ico binary
+*.exe binary
+*.pdb binary

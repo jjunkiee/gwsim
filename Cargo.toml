@@ -1,0 +1,32 @@
+[workspace]
+members = ["crates/*"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "GPL-3.0-or-later"
+publish = false
+
+# DESIGN 18.5: the simulation has no need for unsafe, and forbidding it
+# outright removes a class of determinism bug we would otherwise have to
+# reason about.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+
+# Every dependency is declared here once, so versions stay aligned across
+# crates. Later work packages add to this list rather than declaring
+# versions in individual crate manifests.
+[workspace.dependencies]
+clap = { version = "4", features = ["derive"] }
+assert_cmd = "2"
+
+[profile.release]
+# Keeps release profiles readable for the performance work in WP4.11
+# without the cost of full debug info. LTO stays off until WP4.11
+# measures whether it is worth the build time.
+debug = "line-tables-only"

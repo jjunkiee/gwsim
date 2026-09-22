@@ -1,0 +1,13 @@
+[package]
+name = "gwsim-engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+gwsim-data = { path = "../gwsim-data" }
+
+[lints]
+workspace = true
