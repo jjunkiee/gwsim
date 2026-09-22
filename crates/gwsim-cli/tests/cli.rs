@@ -130,3 +130,50 @@ fn template_encode_round_trips_through_a_file() {
 
     std::fs::remove_file(&path).ok();
 }
+
+/// A bare `data describe` asks what you want rather than dumping the tree.
+///
+/// G2: `--all` used to parse and do nothing. Printing every skill because no
+/// arguments were given is a surprise, so the dump has to be asked for.
+#[test]
+fn data_describe_needs_a_skill_a_filter_or_all() {
+    Command::cargo_bin("gwsim")
+        .expect("the gwsim binary should be built for this test")
+        .args(["data", "describe"])
+        .assert()
+        .failure()
+        .stdout(predicates::str::contains("--all"));
+}
+
+/// `--all` means every skill, so combining it with a filter is a mistake
+/// clap should catch rather than one of the two silently winning.
+#[test]
+fn data_describe_all_refuses_to_be_combined_with_a_filter() {
+    for filter in [
+        vec!["data", "describe", "--all", "--profession", "Mesmer"],
+        vec!["data", "describe", "--all", "--status", "Draft"],
+        vec!["data", "describe", "--all", "energy-surge"],
+    ] {
+        Command::cargo_bin("gwsim")
+            .expect("the gwsim binary should be built for this test")
+            .args(&filter)
+            .assert()
+            .failure()
+            .stderr(predicates::str::contains("cannot be used with"));
+    }
+}
+
+/// `--all` is accepted on its own and reports the empty tree honestly.
+#[test]
+fn data_describe_all_is_accepted_on_its_own() {
+    let data_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data");
+
+    Command::cargo_bin("gwsim")
+        .expect("the gwsim binary should be built for this test")
+        .args(["data", "describe", "--all", "--data-dir"])
+        .arg(&data_dir)
+        .assert()
+        // data/skills/ is empty until P2, so this is the honest answer
+        // rather than silence.
+        .stdout(predicates::str::contains("no skills"));
+}

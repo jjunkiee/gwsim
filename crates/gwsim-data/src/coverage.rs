@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use crate::core::{Campaign, Profession};
 use crate::dataset::DataSet;
 use crate::foe::SkillRef;
-use crate::ids::{AssumptionId, Slug};
+use crate::ids::{AssumptionId, SkillId, Slug};
 use crate::provenance::ReviewStatus;
 
 /// The set of assumptions a run relied on.
@@ -76,6 +76,13 @@ pub struct Coverage {
     pub missing_skills: BTreeMap<Slug, Vec<Slug>>,
     /// Foes whose bars contain skills nobody has encoded.
     pub foes_with_unencoded_skills: BTreeMap<Slug, Vec<Slug>>,
+    /// Skill ids a benchmark's template codes name that have no file yet.
+    ///
+    /// A benchmark is a frozen copy of someone else's build, so it routinely
+    /// names skills gwsim has not reached. That makes this a coverage figure
+    /// rather than a fault: it answers "how far am I from being able to
+    /// reproduce this build", which is the question a benchmark exists to ask.
+    pub benchmarks_missing_skills: BTreeMap<Slug, Vec<SkillId>>,
     /// Whether percentages are out of the whole game or only what exists.
     ///
     /// Until `data/skills/index.ron` arrives in T2.3.6 there is no denominator
@@ -178,6 +185,30 @@ impl Coverage {
                 coverage
                     .foes_with_unencoded_skills
                     .insert(foe_slug, unencoded);
+            }
+        }
+
+        for entry in data.benchmarks.values() {
+            let slug = crate::ids::slugify(&entry.value.name);
+            let mut missing: Vec<SkillId> = Vec::new();
+
+            for slot in &entry.value.slots {
+                // A code that does not decode is `validate`'s problem, not
+                // this one, so it is passed over rather than reported twice.
+                let Ok(template) = crate::template::SkillTemplate::decode(&slot.skill_code) else {
+                    continue;
+                };
+                for id in template.skills.iter().flatten() {
+                    if data.skill_by_id(*id).is_none() {
+                        missing.push(*id);
+                    }
+                }
+            }
+
+            missing.sort();
+            missing.dedup();
+            if !missing.is_empty() {
+                coverage.benchmarks_missing_skills.insert(slug, missing);
             }
         }
 

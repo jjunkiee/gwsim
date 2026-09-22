@@ -628,3 +628,58 @@ fn a_clean_tree_reports_nothing_fatal() {
     let warnings: &DataErrors = data.warnings();
     assert!(!warnings.is_fatal());
 }
+
+// -------------------------------------------------------------- benchmarks
+
+#[test]
+fn a_benchmark_skill_code_that_does_not_decode_is_an_error() {
+    // T1.2.8 item 1. A benchmark exists to be reproduced, so a code that
+    // cannot be read makes the file useless rather than merely incomplete.
+    let source = valid().with(
+        "benchmarks/7-hero-mesmerway.ron",
+        BENCHMARK.replace("OQBTAUBPQaJ4EY6x0BAAAAAAuE", "not-a-template-code"),
+    );
+    insta::assert_snapshot!(report(&source));
+}
+
+#[test]
+fn a_benchmark_equipment_code_that_does_not_decode_is_an_error() {
+    let source = valid().with(
+        "benchmarks/7-hero-mesmerway.ron",
+        BENCHMARK.replace(
+            r#"skill_code: "OQBTAUBPQaJ4EY6x0BAAAAAAuE""#,
+            r#"skill_code: "OQBTAUBPQaJ4EY6x0BAAAAAAuE", equipment_code: Some("nonsense")"#,
+        ),
+    );
+    insta::assert_snapshot!(report(&source));
+}
+
+#[test]
+fn a_benchmark_naming_skills_we_do_not_have_is_coverage_not_a_fault() {
+    // The distinction that matters: the benchmark is not wrong, gwsim's
+    // coverage is incomplete. So `validate` stays silent and `coverage`
+    // answers it -- otherwise every benchmark carries a warning on every run
+    // from now until P7 finishes the skill files.
+    let data = load(&valid());
+
+    let mut problems = DataErrors::default();
+    gwsim_data::checks::run(&data, &mut problems);
+    assert!(
+        !problems.to_string().contains("benchmark"),
+        "validate should say nothing about benchmark coverage: {problems}"
+    );
+
+    let coverage = gwsim_data::coverage::Coverage::compute(&data);
+    let slug: gwsim_data::ids::Slug = "7-hero-mesmerway".parse().unwrap();
+    let missing = coverage
+        .benchmarks_missing_skills
+        .get(&slug)
+        .expect("the fixture's benchmark names skills the fixture does not have");
+
+    // The published player code fills five of its eight slots (the optional
+    // ones are empty on PvX), and the fixture holds two unrelated skills, so
+    // all five are missing. Empty slots are not counted as missing skills.
+    let ids: Vec<u16> = missing.iter().map(|id| id.get()).collect();
+    assert_eq!(ids, vec![39, 75, 934, 979, 2416], "{missing:?}");
+    assert!(missing.iter().all(|id| data.skill_by_id(*id).is_none()));
+}

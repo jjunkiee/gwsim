@@ -149,12 +149,23 @@ fn as_json(coverage: &Coverage) -> serde_json::Value {
             serde_json::Value::Object(entries)
         };
 
+    // Ids rather than names: a skill with no file has no name to print.
+    let benchmarks_missing: serde_json::Map<String, serde_json::Value> = coverage
+        .benchmarks_missing_skills
+        .iter()
+        .map(|(benchmark, ids)| {
+            let numbers: Vec<u16> = ids.iter().map(|id| id.get()).collect();
+            (benchmark.to_string(), serde_json::json!(numbers))
+        })
+        .collect();
+
     serde_json::json!({
         "by_profession": by_profession,
         "by_campaign": by_campaign,
         "total": counts(&coverage.total),
         "missing_skills": listing(&coverage.missing_skills),
         "foes_with_unencoded_skills": listing(&coverage.foes_with_unencoded_skills),
+        "benchmarks_missing_skills": benchmarks_missing,
         "denominator_is_complete": coverage.denominator_is_complete,
     })
 }

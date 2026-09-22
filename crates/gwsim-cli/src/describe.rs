@@ -46,11 +46,23 @@ pub fn run(args: &DescribeSkillArgs, out: &mut impl Write) -> io::Result<i32> {
         }
     };
 
+    // Printing every skill because no arguments were given is a surprise,
+    // so the whole-tree dump has to be asked for. clap already rejects
+    // --all alongside a filter, which leaves exactly these two cases.
+    if !args.all && args.skill.is_none() && profession.is_none() && status.is_none() {
+        writeln!(
+            out,
+            "name a skill, or filter with --profession or --status, or pass --all for every skill"
+        )?;
+        return Ok(FAILED);
+    }
+
     let matched = select(&data, args, profession, status);
     if matched.is_empty() {
-        match &args.skill {
-            Some(name) => writeln!(out, "no skill matches {name:?}")?,
-            None => writeln!(out, "no skills match those filters")?,
+        match (&args.skill, args.all) {
+            (Some(name), _) => writeln!(out, "no skill matches {name:?}")?,
+            (None, true) => writeln!(out, "there are no skills in the data yet")?,
+            (None, false) => writeln!(out, "no skills match those filters")?,
         }
         return Ok(FAILED);
     }
@@ -117,6 +129,11 @@ fn select<'a>(
     status: Option<ReviewStatus>,
 ) -> Vec<&'a Skill> {
     let mut matched: Vec<&Skill> = Vec::new();
+
+    if args.all {
+        // clap guarantees no other filter is set alongside --all.
+        return data.skills.values().map(|entry| &entry.value).collect();
+    }
 
     if let Some(name) = &args.skill {
         // A name may arrive as a slug, a template id, or the skill's own
