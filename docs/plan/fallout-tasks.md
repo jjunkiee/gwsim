@@ -8,7 +8,7 @@ The phase files say what a phase set out to do. This file says what it left
 behind. An item leaves when it is done, or when it is absorbed into a real
 task in a phase file.
 
-- **Status:** 2026-09-22, after P1. O1, O2 and O3 closed.
+- **Status:** 2026-09-23, after P1. O1–O4 closed; O6 and O7 opened by the PvX page that closed O4.
 - **Format:** each item says what it is, why it was left, and where it goes.
 
 ---
@@ -19,8 +19,9 @@ Things I cannot decide or do.
 
 | # | Item | Why it needs you |
 | --- | --- | --- |
-| O4 | **Decide the hero weapon assumption.** [DESIGN.md §20.1](../DESIGN.md#201-party) is the M1 party table — the eight slots (player plus seven heroes) that milestone M1 simulates. Its Equipment column names a weapon set for the player and heroes 1–3 ("40/40 Domination set") but gives heroes 4–7 insignias and runes only, no weapons. A caster without a wand and focus computes to 30 energy rather than 42. | Inventing gear for four party members is a bigger call than I should make alone. Wants an assumption in A-033's spirit. |
 | O5 | **Merge `setup/p0` and push.** Both P0 and P1 live on that branch. A remote now exists (`jjunkiee/gwsim`). | Committing and pushing is yours (C5). |
+| O6 | **Three hero slots run the melee-player variant while the player is a caster.** PvX splits four optional slots by player type. The caster column gives hero 2 Resurrection Chant, hero 4 Blood of the Master and hero 6 Lamentation; §20.1 has Flesh of My Flesh, Withering Aura and Splinter Weapon, which are the melee picks. Two have written rationales (no Blood Magic points; the 2026-08-26 Splinter Weapon AI fix) that were formed before the split was visible. | The player is **Me/— Energy Surge**, a caster, so the caster column is the one that applies. Either the picks change or the rationales need to say why they beat PvX's own advice. |
+| O7 | **The PvX team page carries an update warning.** It flags the 2026-06-24 build update — mesmer nerfs, buffs to competing builds — and asks for the article to be rewritten and possibly re-rated. §20.1 records the page as Great / Meta. | M1's whole party is this page. If it gets re-rated or rewritten, the benchmark M1 is built to reproduce moves. |
 
 ---
 
@@ -51,6 +52,7 @@ findable.
 | E2 | **The 40/40 upgrades are encoded too broadly.** Each applies only to spells of the *item's own* attribute, and the DSL has no item-relative scope, so the encodings currently apply to everything. | An item-relative scope, WP4.3 |
 | E3 | **"Master of My Domain" has `effects: []`.** Its effect is "+1 to the item's attribute", which needs the same item-relative scope. Left empty on purpose: an encoding that validated but meant nothing would be worse than none. | Same as E2 |
 | E4 | **`data/skills/` is empty.** The schemas, DSL, validator and renderer are built and tested against fixtures, but no real skill exists, so `data describe` finds nothing on a fresh checkout. | P2 seeds them; WP4.1 encodes them |
+| E5 | **Hero 7's staff health modifiers are not encoded.** PvX names a Hale Spawning Power staff of fortitude. Both the staff head and the wrapping grant health, but the item data has no health-granting weapon upgrades and the wiki values have not been read. Hero 7's reported 400 maximum health is a floor, not the true figure. | Weapon upgrade effects, WP4.3 (A-034) |
 
 ---
 
@@ -112,5 +114,6 @@ Items move here briefly when closed, then leave.
 | # | Item | Outcome |
 | --- | --- | --- |
 | O2 | **Promote `data/core/*.ron` to `Reviewed`.** | **Closed 2026-09-22: reviewed by the owner.** All seven files now carry `review: Reviewed, reviewed_by: Some("Jake Mansell")`. |
-| O3 | **Confirm A-033, the player's runes.** | **Closed 2026-09-22: specified by the owner** as superior Domination Magic (head), minor Fast Casting, superior Vigor and two of Vitae. A-033 is now `Confirmed`. Player health moves 405 → 475, and Inspiration Magic drops 9 → 8 because no slot is left for its minor rune — see DESIGN §20.1. |
+| O3 | **Confirm A-033, the player's runes.** | **Closed 2026-09-23 from the current PvX page:** superior Domination Magic (head), minor Fast Casting, minor Inspiration Magic, superior Vigor, Vitae. A-033 is `Confirmed` and is no longer an inference. Player health 405 → 465; Inspiration stays at 9. An intermediate loadout that dropped minor Inspiration for a second Vitae was corrected before it reached `main`. |
+| O4 | **Decide the hero weapon assumption.** | **Closed 2026-09-23: no assumption needed.** The current PvX page names every weapon set, so this became sourced data rather than a guess. Heroes 4–6 carry 40/40 sets (Death, Restoration, Restoration); hero 7 carries a Spawning Power staff. Heroes 4–6 move 30 → 42 energy, hero 7 30 → 40. |
 | O1 | **T1.5.9 — review the effect DSL's shape.** | **Closed 2026-09-22: approved as it stands**, to be evolved during implementation rather than reviewed up front. The packet was never built, so no M1 skill has been encoded in the real types and rendered. The shape questions it would have raised are now Q9. |

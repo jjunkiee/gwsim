@@ -38,8 +38,9 @@ struct Slot {
     /// The rune on each of the five armor pieces, head first.
     runes: [Option<&'static str>; 5],
     insignia: &'static str,
-    /// Whether the slot carries a wand and focus.
-    caster_set: bool,
+    /// The weapon set, as slugs. A staff is two-handed and has no offhand.
+    main_hand: Option<&'static str>,
+    offhand: Option<&'static str>,
     /// Effective ranks after runes and headgear.
     expected_ranks: &'static [(Attribute, u8)],
     expected_points: u16,
@@ -54,26 +55,27 @@ const SLOTS: &[Slot] = &[
         label: "player, Me/-- Energy Surge",
         code: "OQBTAUBPQaJ4EY6x0BAAAAAAuE",
         headgear: Attribute::DominationMagic,
-        // A-033, confirmed by the owner 2026-09-22: all five slots carry a
-        // rune. Note what this costs — there is no room left for a minor
-        // Inspiration rune, so Inspiration sits at its 8 spent points rather
-        // than the 9 the PvX page's attribute line implies.
+        // A-033, settled by the owner 2026-09-22 from the current PvX page.
+        // Three attribute runes plus Superior Vigor and one Vitae fills all
+        // five slots exactly, which is why only one Vitae fits here where
+        // the two-attribute heroes carry two.
         runes: [
             Some("superior-domination-magic"),
             Some("minor-fast-casting"),
+            Some("minor-inspiration-magic"),
             Some("superior-vigor"),
-            Some("vitae"),
             Some("vitae"),
         ],
         insignia: "prodigys",
-        caster_set: true,
+        main_hand: Some("wand"),
+        offhand: Some("focus"),
         expected_ranks: &[
             (Attribute::FastCasting, 11),
             (Attribute::DominationMagic, 16),
-            (Attribute::InspirationMagic, 8),
+            (Attribute::InspirationMagic, 9),
         ],
         expected_points: 195,
-        expected_health: 475,
+        expected_health: 465,
         expected_energy: 42,
         expected_pips: 4,
         expected_armor: 60,
@@ -90,7 +92,8 @@ const SLOTS: &[Slot] = &[
             Some("vitae"),
         ],
         insignia: "prodigys",
-        caster_set: true,
+        main_hand: Some("wand"),
+        offhand: Some("focus"),
         expected_ranks: &[
             (Attribute::FastCasting, 13),
             (Attribute::DominationMagic, 16),
@@ -111,10 +114,11 @@ const SLOTS: &[Slot] = &[
             Some("major-soul-reaping"),
             Some("superior-vigor"),
             Some("vitae"),
-            None,
+            Some("vitae"),
         ],
         insignia: "minion-masters",
-        caster_set: false,
+        main_hand: Some("wand"),
+        offhand: Some("focus"),
         expected_ranks: &[
             (Attribute::DeathMagic, 16),
             (Attribute::SoulReaping, 11),
@@ -123,8 +127,8 @@ const SLOTS: &[Slot] = &[
             (Attribute::Command, 9),
         ],
         expected_points: 193,
-        expected_health: 430,
-        expected_energy: 30,
+        expected_health: 440,
+        expected_energy: 42,
         expected_pips: 4,
         expected_armor: 60,
     },
@@ -137,18 +141,19 @@ const SLOTS: &[Slot] = &[
             Some("major-soul-reaping"),
             Some("superior-vigor"),
             Some("vitae"),
-            None,
+            Some("vitae"),
         ],
         insignia: "tormentors",
-        caster_set: false,
+        main_hand: Some("wand"),
+        offhand: Some("focus"),
         expected_ranks: &[
             (Attribute::BloodMagic, 13),
             (Attribute::SoulReaping, 11),
             (Attribute::RestorationMagic, 12),
         ],
         expected_points: 193,
-        expected_health: 430,
-        expected_energy: 30,
+        expected_health: 440,
+        expected_energy: 42,
         expected_pips: 4,
         expected_armor: 60,
     },
@@ -164,7 +169,8 @@ const SLOTS: &[Slot] = &[
             Some("vitae"),
         ],
         insignia: "shamans",
-        caster_set: false,
+        main_hand: Some("wand"),
+        offhand: Some("focus"),
         expected_ranks: &[
             (Attribute::RestorationMagic, 14),
             (Attribute::ChannelingMagic, 16),
@@ -172,7 +178,7 @@ const SLOTS: &[Slot] = &[
         ],
         expected_points: 200,
         expected_health: 430,
-        expected_energy: 30,
+        expected_energy: 42,
         expected_pips: 4,
         expected_armor: 60,
     },
@@ -186,14 +192,18 @@ const SLOTS: &[Slot] = &[
             Some("superior-spawning-power"),
             Some("superior-vigor"),
             Some("vitae"),
-            None,
+            Some("vitae"),
         ],
         insignia: "shamans",
-        caster_set: false,
+        // The only slot without a 40/40 set: a Spawning Power staff. Its
+        // +10 energy is two less than a focus's +12. Its two health
+        // modifiers are not encoded -- see fallout E5.
+        main_hand: Some("staff"),
+        offhand: None,
         expected_ranks: &[(Attribute::Communing, 16), (Attribute::SpawningPower, 15)],
         expected_points: 194,
-        expected_health: 390,
-        expected_energy: 30,
+        expected_health: 400,
+        expected_energy: 40,
         expected_pips: 4,
         expected_armor: 60,
     },
@@ -218,10 +228,8 @@ fn assemble(slot: &Slot) -> Build {
         rune: slot.runes[index].map(|name| name.parse().unwrap()),
     });
 
-    if slot.caster_set {
-        build.weapon_set.main = Some("wand".parse().unwrap());
-        build.weapon_set.offhand = Some("focus".parse().unwrap());
-    }
+    build.weapon_set.main = slot.main_hand.map(|name| name.parse().unwrap());
+    build.weapon_set.offhand = slot.offhand.map(|name| name.parse().unwrap());
 
     build
 }
@@ -321,20 +329,34 @@ fn every_slot_has_the_expected_resting_armor() {
 // ----------------------------------------------------- the interesting cases
 
 #[test]
-fn the_player_outlives_the_heroes() {
-    // 475 against 430. The player spends four of five rune slots on survival
-    // (Superior Vigor and two Vitae) and carries one superior penalty; the
-    // heroes carry two attribute runes with penalties each. Before A-033 was
-    // confirmed this read the other way round, 405 against 430, because the
-    // inferred loadout left two slots empty.
+fn the_player_outlives_the_mesmer_heroes_by_one_rune_penalty() {
+    // 465 against 430, and the whole of the difference is the heroes' major
+    // Fast Casting rune. Player and hero carry the same Superior Vigor, the
+    // same single Vitae and the same superior Domination penalty; the heroes
+    // run Fast Casting at 11+2 where the player runs 10+1.
     let core = core();
     let data = data();
     let player = max_health(&assemble(&SLOTS[0]), 20, &data, &core);
     let hero = max_health(&assemble(&SLOTS[1]), 20, &data, &core);
-    assert_eq!(player, 475);
-    // 480 - 75 (Superior Domination) + 50 (Superior Vigor) + 10 + 10 (Vitae).
-    assert_eq!(480 - 75 + 50 + 10 + 10, player);
+    // 480 - 75 (Superior Domination) + 50 (Superior Vigor) + 10 (Vitae).
+    assert_eq!(480 - 75 + 50 + 10, player);
+    assert_eq!(player, 465);
     assert_eq!(hero, 430);
+    assert_eq!(player - hero, 35, "a major rune's health penalty");
+}
+
+#[test]
+fn every_slot_fills_all_five_rune_slots() {
+    // The check that caught the missing Vitae on heroes 4, 5 and 7: nobody
+    // in a published build leaves a rune slot empty, so an empty one means
+    // the loadout was inferred rather than read.
+    for slot in SLOTS {
+        assert!(
+            slot.runes.iter().all(Option::is_some),
+            "{}: every armor slot should carry a rune",
+            slot.label
+        );
+    }
 }
 
 #[test]
@@ -344,9 +366,9 @@ fn two_superior_runes_cost_a_hundred_and_fifty_health() {
     let core = core();
     let data = data();
     let hero7 = max_health(&assemble(&SLOTS[5]), 20, &data, &core);
-    assert_eq!(hero7, 390);
-    // 480 + 50 (Superior Vigor) + 10 (Vitae) - 75 - 75 = 390.
-    assert_eq!(480 + 50 + 10 - 75 - 75, hero7);
+    assert_eq!(hero7, 400);
+    // 480 + 50 (Superior Vigor) + 10 + 10 (two Vitae) - 75 - 75 = 400.
+    assert_eq!(480 + 50 + 10 + 10 - 75 - 75, hero7);
 }
 
 #[test]
@@ -364,14 +386,26 @@ fn a_secondary_profession_attribute_cannot_take_a_rune() {
 
 #[test]
 fn the_caster_weapon_set_is_what_makes_the_difference_in_energy() {
-    // The Mesmers carry a 40/40 set, so the focus adds 12. The heroes whose
-    // weapons §20.1 does not name sit at the profession base of 30. That gap
-    // is T1.4.1 §10.1's open question, and this test pins the current answer
-    // so that filling the gap is a visible change.
+    // Seven of the eight slots carry a 40/40 set, whose focus adds 12 to the
+    // profession base of 30. The Soul Twisting ritualist is the exception: a
+    // two-handed staff adds 10, so it is the one slot at 40.
     let core = core();
     let data = data();
-    assert_eq!(energy(&assemble(&SLOTS[0]), &data, &core).max, 42);
-    assert_eq!(energy(&assemble(&SLOTS[2]), &data, &core).max, 30);
+    for slot in SLOTS {
+        let expected = if slot.offhand == Some("focus") {
+            42
+        } else {
+            40
+        };
+        assert_eq!(
+            energy(&assemble(slot), &data, &core).max,
+            expected,
+            "{}",
+            slot.label
+        );
+    }
+    // Spelled out: the staff costs the ritualist two energy against a focus.
+    assert_eq!(energy(&assemble(&SLOTS[5]), &data, &core).max, 40);
 }
 
 #[test]
