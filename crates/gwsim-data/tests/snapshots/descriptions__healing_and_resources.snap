@@ -1,0 +1,9 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"Heal(to: TargetAlly, amount: Scaled(30, 180))\"),\nrender(\"GainEnergy(to: Self, amount: Scaled(1, 31))\"),\nrender(\"LoseEnergy(to: TargetFoe, amount: Scaled(1, 10))\"),\nrender(\"SacrificeHealth(percent: Fixed(17))\"),\nrender(\"Resurrect(to: TargetAlly, health_percent: Fixed(50), energy_percent: Scaled(5, 35))\"),].join(\"\\n\")"
+---
+Target ally gains 30…180 health.
+You gain 1…31 energy.
+Target foe loses 1…10 energy.
+You sacrifice 17% of your maximum health.
+Resurrect target ally with 50% health and 5…35% energy.

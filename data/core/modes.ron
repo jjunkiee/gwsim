@@ -1,0 +1,59 @@
+// Game-mode rules.
+//
+// Hard mode is the only mode that changes combat. Reforged Mode changes
+// pre-Searing content, which M1 does not touch, and the two optional modes
+// only restrict which builds are legal.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Hard_mode",
+            "https://wiki.guildwars.com/wiki/Reforged_Mode",
+            "https://wiki.guildwars.com/wiki/Optional_game_modes",
+        ],
+        crawled: "2026-09-22",
+        review: Reviewed,
+        reviewed_by: Some("Jake Mansell"),
+        assumptions: ["A-005", "A-032"],
+        notes: "Values from T1.1.1. A-032 is still Pending: the Hard mode page says only that recharges are shorter and gives no number, so there is nothing to read and T4.2.1 must measure it. A-005 covers the fallback for foes whose hard-mode attribute ranks are unknown.",
+    ),
+
+    hard_mode: (
+        // The Hard mode page says 33; the Speed boost page says 33 to 50.
+        movement_speed_bonus_percent: 33,
+        // Roughly a third more hits.
+        attack_speed_bonus_percent: 25,
+        // Foe skills slower than this activate in half the time.
+        activation_halved_above_seconds: 2.0,
+
+        // No number exists to put here. A placeholder would be indistinguishable
+        // from a researched value, which is exactly what ENG-4 forbids.
+        recharge_reduction_percent: Pending("A-032"),
+
+        // A-005: when a foe's hard-mode attribute ranks are unknown, add this
+        // to its normal-mode ranks and cap the result.
+        missing_attribute_rank_bonus: 5,
+        attribute_rank_cap: 20,
+
+        hostile_spirit_armor: 100,
+        hostile_spirit_energy: 41,
+    ),
+
+    reforged_mode: (
+        presearing_health_percent: -20,
+        presearing_armor_percent: -20,
+        // It revises content, henchmen and costs, not the rules of combat.
+        changes_skills_or_attributes: false,
+    ),
+
+    optional_modes: (
+        dhuums_covenant: (
+            broken_by_death: true,
+        ),
+        melandrus_accord: (
+            skill_tomes_allowed: false,
+            trainer_sells_unlocked_skills: false,
+            mercenary_heroes_allowed: false,
+            account_titles_available: false,
+        ),
+    ),
+)

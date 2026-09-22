@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+skills/mesmer/energy-surge.ron:
+  error: the value `energy lost` is 5 at rank 12, but 1 at rank 0 and 10 at rank 15 give 8 under the usual rounding; check the wiki, and set special_rounding if the skill really does round differently
+
+1 error, 1 warning in 2 files

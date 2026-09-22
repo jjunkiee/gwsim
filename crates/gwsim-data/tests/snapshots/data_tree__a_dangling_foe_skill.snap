@@ -1,0 +1,9 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+  error: this foe uses the skill `power-spik`, but there is no skills/**/power-spik.ron
+
+1 error, 1 warning in 1 file

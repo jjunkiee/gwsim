@@ -1,0 +1,94 @@
+// Weapon upgrades.
+//
+// The "40/40 set" M1 uses is a wand and a focus, EACH carrying 20% halve
+// casting time and 20% halve skill recharge for one attribute — which is why
+// it is 40/40 and not 20/20. A conventional set is:
+//
+//   wand:  "of Memory" suffix (HSR 20%) + "Aptitude not Attitude" (HCT 20%)
+//   focus: "of Aptitude" suffix (HCT 20%) + "Forget Me Not" (HSR 20%)
+//
+// Both are CHANCES rolled per activation, not multipliers. Nothing here may
+// be folded into a derived stat; the engine rolls them (WP3.4).
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/List_of_weapon_upgrades",
+            "https://wiki.guildwars.com/wiki/Inscription",
+            "https://wiki.guildwars.com/wiki/40/40",
+            "https://wiki.guildwars.com/wiki/Equipment_template_format",
+        ],
+        crawled: "2026-09-22",
+        review: Draft,
+        reviewed_by: None,
+        assumptions: [],
+        notes: "Values from T1.4.1. Only the upgrades M1 uses are listed. Percentages are the maximum of the published range; lower-quality versions exist and are not modelled, because gwsim builds use perfect gear. KNOWN GAP: every one of these applies only to spells of the item's own attribute, and the DSL has no item-relative scope, so the encodings below are broader than the real effect. WP4.3 must narrow them before they are used for anything.",
+    ),
+
+    upgrades: [
+        (
+            slug: "of-memory",
+            name: "of Memory",
+            slot: Suffix,
+            effects: [
+                Control(Chance(percent: 20.0, actions: [
+                    ModifyStat(to: Self, stat: Recharge, amount: Percent(-50.0), category: Multiplicative),
+                ])),
+            ],
+            conditions: [],
+            template_modifier_id: Some(345),
+        ),
+        (
+            slug: "of-aptitude",
+            name: "of Aptitude",
+            slot: Suffix,
+            effects: [
+                Control(Chance(percent: 20.0, actions: [
+                    ModifyStat(to: Self, stat: ActivationTime, amount: Percent(-50.0), category: Multiplicative),
+                ])),
+            ],
+            conditions: [],
+            template_modifier_id: Some(343),
+        ),
+        (
+            slug: "aptitude-not-attitude",
+            name: "\"Aptitude not Attitude\"",
+            slot: Inscription,
+            effects: [
+                Control(Chance(percent: 20.0, actions: [
+                    ModifyStat(to: Self, stat: ActivationTime, amount: Percent(-50.0), category: Multiplicative),
+                ])),
+            ],
+            conditions: [],
+            template_modifier_id: Some(335),
+        ),
+        (
+            slug: "forget-me-not",
+            name: "\"Forget Me Not\"",
+            slot: Inscription,
+            effects: [
+                Control(Chance(percent: 20.0, actions: [
+                    ModifyStat(to: Self, stat: Recharge, amount: Percent(-50.0), category: Multiplicative),
+                ])),
+            ],
+            conditions: [],
+            template_modifier_id: Some(328),
+        ),
+        (
+            // The "+1 attribute" mod. It raises SKILL VALUES only: it does
+            // not touch a primary attribute's inherent effect, so it cannot
+            // be used to fake more Fast Casting or Soul Reaping.
+            slug: "master-of-my-domain",
+            name: "\"Master of My Domain\"",
+            slot: Inscription,
+            // Deliberately unencoded. The effect is "+1 to the ITEM's
+            // attribute", and which attribute that is depends on the item the
+            // mod is fitted to, not on the mod. Stat::AttributeRank needs a
+            // named attribute, so there is nothing truthful to write here
+            // until WP4.3 gives upgrades an item-relative scope. An encoding
+            // that validated but meant nothing would be worse than none.
+            effects: [],
+            conditions: [],
+            template_modifier_id: Some(334),
+        ),
+    ],
+)

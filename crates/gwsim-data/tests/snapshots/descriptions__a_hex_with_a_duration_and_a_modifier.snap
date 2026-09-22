@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: sentence
+---
+For 12…24 seconds, target loses 1…3 health regeneration.

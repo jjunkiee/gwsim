@@ -1,0 +1,9 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/margonite/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+  error: this foe's affiliation is "kournan", so it belongs in creatures/foes/kournan/, not creatures/foes/margonite/
+
+1 error, 1 warning in 1 file

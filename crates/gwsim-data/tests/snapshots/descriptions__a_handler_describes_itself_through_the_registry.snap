@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "describe(&skill, &context)"
+---
+Replaces itself with the next spell you cast.

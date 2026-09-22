@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+skills/mesmer/energy-surge.ron:
+  error: this skill has a title_track but is not pve_only; only PvE-only skills scale on a title
+
+1 error, 1 warning in 2 files

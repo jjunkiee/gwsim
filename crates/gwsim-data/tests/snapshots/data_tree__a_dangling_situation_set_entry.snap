@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+situation_sets/kournan-mix.ron:
+  error: this set uses the situation `nope`, but there is no situations/nope.ron
+
+1 error, 1 warning in 2 files

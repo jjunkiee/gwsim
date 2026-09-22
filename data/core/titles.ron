@@ -1,0 +1,36 @@
+// Title tracks, and the effective attribute rank each title rank gives to
+// PvE-only skills that scale on it.
+//
+// effective_ranks is indexed by title rank and starts at rank 0, so a track
+// reaching rank 10 holds 11 entries. The values come from the individual rank
+// pages (A-020). The old "title rank times 1.5" formula on the Title skill
+// page is flagged outdated and is not used.
+//
+// Not every title-scaled skill fits this shape: Sunspear Rebirth Signet,
+// Vampirism and the Lightbringer effects scale linearly with rank rather than
+// through a lookup. None of them is in M1, and they will need a second
+// mechanism when they arrive.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Title",
+            "https://wiki.guildwars.com/wiki/Asura_rank",
+        ],
+        crawled: "2026-09-22",
+        review: Reviewed,
+        reviewed_by: Some("Jake Mansell"),
+        assumptions: ["A-020"],
+        notes: "Values from T1.1.1. Only Asura is modelled: Air of Superiority is the one M1 skill that scales on a title track. WP5.7 and WP7.5 add the rest. Normal mode caps these tracks at rank 8, but the table plateaus at rank 5, so that cap never changes an effective rank and is a profile-legality matter rather than something this file expresses.",
+    ),
+
+    tracks: [
+        (
+            // Sunspear, Deldrimor, Ebon Vanguard and Norn share this table.
+            // They are added when a skill needs them.
+            key: Asura,
+            max_rank: 10,
+            //                r0 r1 r2 r3  r4  r5+
+            effective_ranks: [0, 3, 6, 9, 12, 15, 15, 15, 15, 15, 15],
+        ),
+    ],
+)

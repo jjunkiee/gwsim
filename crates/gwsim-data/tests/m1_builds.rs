@@ -1,0 +1,412 @@
+//! T1.4.10: every M1 party slot's derived stats match the T1.4.1 hand values.
+//!
+//! Each build is assembled from two sources that were worked out
+//! independently: the **attribute points** come from decoding the §20.1
+//! template code (T1.3.1), and the **runes, insignias and headgear** come
+//! from §20.1's gear column. If the two disagree, the effective ranks will
+//! not match T1.4.1's table and these tests fail — which is the point.
+
+use std::path::PathBuf;
+
+use gwsim_data::build::{ArmorPiece, Build};
+use gwsim_data::core::{ArmorSlot, Attribute, CoreData, DamageType, Profession};
+use gwsim_data::dataset::DataSet;
+use gwsim_data::derived::{
+    MAX_POINTS, armor_profile, effective_ranks, energy, max_health, points_spent,
+};
+use gwsim_data::source::DirSource;
+use gwsim_data::template::SkillTemplate;
+
+fn data_dir() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data")
+}
+
+fn core() -> CoreData {
+    CoreData::load(data_dir().join("core")).expect("data/core should load")
+}
+
+fn data() -> DataSet {
+    DataSet::load(&DirSource::new(data_dir())).expect("data/ should load")
+}
+
+/// One M1 slot, as T1.4.1 §9 records it.
+struct Slot {
+    label: &'static str,
+    /// The published template code the attribute points come from.
+    code: &'static str,
+    headgear: Attribute,
+    /// The rune on each of the five armor pieces, head first.
+    runes: [Option<&'static str>; 5],
+    insignia: &'static str,
+    /// Whether the slot carries a wand and focus.
+    caster_set: bool,
+    /// Effective ranks after runes and headgear.
+    expected_ranks: &'static [(Attribute, u8)],
+    expected_points: u16,
+    expected_health: i32,
+    expected_energy: i32,
+    expected_pips: u8,
+    expected_armor: i16,
+}
+
+const SLOTS: &[Slot] = &[
+    Slot {
+        label: "player, Me/-- Energy Surge",
+        code: "OQBTAUBPQaJ4EY6x0BAAAAAAuE",
+        headgear: Attribute::DominationMagic,
+        // A-033, confirmed by the owner 2026-09-22: all five slots carry a
+        // rune. Note what this costs — there is no room left for a minor
+        // Inspiration rune, so Inspiration sits at its 8 spent points rather
+        // than the 9 the PvX page's attribute line implies.
+        runes: [
+            Some("superior-domination-magic"),
+            Some("minor-fast-casting"),
+            Some("superior-vigor"),
+            Some("vitae"),
+            Some("vitae"),
+        ],
+        insignia: "prodigys",
+        caster_set: true,
+        expected_ranks: &[
+            (Attribute::FastCasting, 11),
+            (Attribute::DominationMagic, 16),
+            (Attribute::InspirationMagic, 8),
+        ],
+        expected_points: 195,
+        expected_health: 475,
+        expected_energy: 42,
+        expected_pips: 4,
+        expected_armor: 60,
+    },
+    Slot {
+        label: "heroes 1 to 3, Domination Mesmer",
+        code: "OQBTAWBPsBAkDmemuhAONDAAA",
+        headgear: Attribute::DominationMagic,
+        runes: [
+            Some("superior-domination-magic"),
+            Some("major-fast-casting"),
+            Some("minor-inspiration-magic"),
+            Some("superior-vigor"),
+            Some("vitae"),
+        ],
+        insignia: "prodigys",
+        caster_set: true,
+        expected_ranks: &[
+            (Attribute::FastCasting, 13),
+            (Attribute::DominationMagic, 16),
+            (Attribute::InspirationMagic, 7),
+        ],
+        expected_points: 195,
+        expected_health: 430,
+        expected_energy: 42,
+        expected_pips: 4,
+        expected_armor: 60,
+    },
+    Slot {
+        label: "hero 4, Minion Master N/P",
+        code: "OAljUwGpZS8Y7Y1YVVUBKgbhAAA",
+        headgear: Attribute::DeathMagic,
+        runes: [
+            Some("superior-death-magic"),
+            Some("major-soul-reaping"),
+            Some("superior-vigor"),
+            Some("vitae"),
+            None,
+        ],
+        insignia: "minion-masters",
+        caster_set: false,
+        expected_ranks: &[
+            (Attribute::DeathMagic, 16),
+            (Attribute::SoulReaping, 11),
+            // Command is a secondary-profession attribute, so it cannot take
+            // a rune and is stuck at whatever points buy.
+            (Attribute::Command, 9),
+        ],
+        expected_points: 193,
+        expected_health: 430,
+        expected_energy: 30,
+        expected_pips: 4,
+        expected_armor: 60,
+    },
+    Slot {
+        label: "hero 5, Blood is Power N/Rt",
+        code: "OAhjQkGZIP3hhmwrqKNncDzqH",
+        headgear: Attribute::BloodMagic,
+        runes: [
+            Some("superior-blood-magic"),
+            Some("major-soul-reaping"),
+            Some("superior-vigor"),
+            Some("vitae"),
+            None,
+        ],
+        insignia: "tormentors",
+        caster_set: false,
+        expected_ranks: &[
+            (Attribute::BloodMagic, 13),
+            (Attribute::SoulReaping, 11),
+            (Attribute::RestorationMagic, 12),
+        ],
+        expected_points: 193,
+        expected_health: 430,
+        expected_energy: 30,
+        expected_pips: 4,
+        expected_armor: 60,
+    },
+    Slot {
+        label: "hero 6, Signet of Spirits Rt",
+        code: "OACjEyiM5MXTvJzEAINncDzxJ",
+        headgear: Attribute::ChannelingMagic,
+        runes: [
+            Some("superior-channeling-magic"),
+            Some("major-restoration-magic"),
+            Some("minor-spawning-power"),
+            Some("superior-vigor"),
+            Some("vitae"),
+        ],
+        insignia: "shamans",
+        caster_set: false,
+        expected_ranks: &[
+            (Attribute::RestorationMagic, 14),
+            (Attribute::ChannelingMagic, 16),
+            (Attribute::SpawningPower, 4),
+        ],
+        expected_points: 200,
+        expected_health: 430,
+        expected_energy: 30,
+        expected_pips: 4,
+        expected_armor: 60,
+    },
+    Slot {
+        label: "hero 7, Soul Twisting Rt/Mo",
+        code: "OACiAyk8gNtePuwJ00ZaNBAA",
+        headgear: Attribute::Communing,
+        // Two superior runes: -150 health before any Vigor.
+        runes: [
+            Some("superior-communing"),
+            Some("superior-spawning-power"),
+            Some("superior-vigor"),
+            Some("vitae"),
+            None,
+        ],
+        insignia: "shamans",
+        caster_set: false,
+        expected_ranks: &[(Attribute::Communing, 16), (Attribute::SpawningPower, 15)],
+        expected_points: 194,
+        expected_health: 390,
+        expected_energy: 30,
+        expected_pips: 4,
+        expected_armor: 60,
+    },
+];
+
+/// Builds a slot from its published code plus its §20.1 gear.
+fn assemble(slot: &Slot) -> Build {
+    let template =
+        SkillTemplate::decode(slot.code).unwrap_or_else(|error| panic!("{}: {error}", slot.label));
+
+    let mut build = Build::new(template.primary);
+    build.secondary = template.secondary;
+    build.skills = template.skills;
+    for (attribute, rank) in &template.attributes {
+        build.attribute_points.insert(*attribute, *rank);
+    }
+    build.headgear_attribute = Some(slot.headgear);
+
+    build.armor = std::array::from_fn(|index| ArmorPiece {
+        slot: ArmorSlot::ALL[index],
+        insignia: Some(slot.insignia.parse().unwrap()),
+        rune: slot.runes[index].map(|name| name.parse().unwrap()),
+    });
+
+    if slot.caster_set {
+        build.weapon_set.main = Some("wand".parse().unwrap());
+        build.weapon_set.offhand = Some("focus".parse().unwrap());
+    }
+
+    build
+}
+
+#[test]
+fn every_slot_has_the_expected_effective_ranks() {
+    let data = data();
+    for slot in SLOTS {
+        let build = assemble(slot);
+        let ranks = effective_ranks(&build, &data);
+
+        for (attribute, expected) in slot.expected_ranks {
+            assert_eq!(
+                ranks.get(attribute),
+                Some(expected),
+                "{}: {attribute:?} should be rank {expected}, ranks are {ranks:?}",
+                slot.label
+            );
+        }
+        assert_eq!(
+            ranks.len(),
+            slot.expected_ranks.len(),
+            "{}: unexpected extra attributes in {ranks:?}",
+            slot.label
+        );
+    }
+}
+
+#[test]
+fn every_slot_is_within_the_attribute_point_budget() {
+    for slot in SLOTS {
+        let build = assemble(slot);
+        let spent = points_spent(&build);
+        assert_eq!(spent, slot.expected_points, "{}", slot.label);
+        assert!(
+            spent <= MAX_POINTS,
+            "{} spends {spent} of {MAX_POINTS}",
+            slot.label
+        );
+    }
+}
+
+#[test]
+fn every_slot_has_the_expected_health() {
+    let core = core();
+    let data = data();
+    for slot in SLOTS {
+        let build = assemble(slot);
+        assert_eq!(
+            max_health(&build, 20, &data, &core),
+            slot.expected_health,
+            "{}",
+            slot.label
+        );
+    }
+}
+
+#[test]
+fn every_slot_has_the_expected_energy_and_regeneration() {
+    let core = core();
+    let data = data();
+    for slot in SLOTS {
+        let build = assemble(slot);
+        let stats = energy(&build, &data, &core);
+        assert_eq!(stats.max, slot.expected_energy, "{} energy", slot.label);
+        assert_eq!(
+            stats.regen_pips, slot.expected_pips,
+            "{} regeneration",
+            slot.label
+        );
+    }
+}
+
+#[test]
+fn every_slot_has_the_expected_resting_armor() {
+    let core = core();
+    for slot in SLOTS {
+        let build = assemble(slot);
+        let profile = armor_profile(&build, &core);
+        for (index, piece) in profile.pieces.iter().enumerate() {
+            assert_eq!(
+                piece.against(DamageType::Fire),
+                slot.expected_armor,
+                "{} piece {index} vs fire",
+                slot.label
+            );
+            assert_eq!(
+                piece.against(DamageType::Slashing),
+                slot.expected_armor,
+                "{} piece {index} vs slashing",
+                slot.label
+            );
+        }
+    }
+}
+
+// ----------------------------------------------------- the interesting cases
+
+#[test]
+fn the_player_outlives_the_heroes() {
+    // 475 against 430. The player spends four of five rune slots on survival
+    // (Superior Vigor and two Vitae) and carries one superior penalty; the
+    // heroes carry two attribute runes with penalties each. Before A-033 was
+    // confirmed this read the other way round, 405 against 430, because the
+    // inferred loadout left two slots empty.
+    let core = core();
+    let data = data();
+    let player = max_health(&assemble(&SLOTS[0]), 20, &data, &core);
+    let hero = max_health(&assemble(&SLOTS[1]), 20, &data, &core);
+    assert_eq!(player, 475);
+    // 480 - 75 (Superior Domination) + 50 (Superior Vigor) + 10 + 10 (Vitae).
+    assert_eq!(480 - 75 + 50 + 10 + 10, player);
+    assert_eq!(hero, 430);
+}
+
+#[test]
+fn two_superior_runes_cost_a_hundred_and_fifty_health() {
+    // Hero 7 runs superior Communing and superior Spawning Power. Both
+    // penalties apply even though only one bonus does for each attribute.
+    let core = core();
+    let data = data();
+    let hero7 = max_health(&assemble(&SLOTS[5]), 20, &data, &core);
+    assert_eq!(hero7, 390);
+    // 480 + 50 (Superior Vigor) + 10 (Vitae) - 75 - 75 = 390.
+    assert_eq!(480 + 50 + 10 - 75 - 75, hero7);
+}
+
+#[test]
+fn a_secondary_profession_attribute_cannot_take_a_rune() {
+    // Hero 4's Command is a Paragon attribute on a Necromancer primary, so
+    // it stays at the 9 its points bought however many runes are worn.
+    let data = data();
+    let build = assemble(&SLOTS[2]);
+    assert!(!build.can_rune(Attribute::Command));
+    assert_eq!(
+        effective_ranks(&build, &data).get(&Attribute::Command),
+        Some(&9)
+    );
+}
+
+#[test]
+fn the_caster_weapon_set_is_what_makes_the_difference_in_energy() {
+    // The Mesmers carry a 40/40 set, so the focus adds 12. The heroes whose
+    // weapons §20.1 does not name sit at the profession base of 30. That gap
+    // is T1.4.1 §10.1's open question, and this test pins the current answer
+    // so that filling the gap is a visible change.
+    let core = core();
+    let data = data();
+    assert_eq!(energy(&assemble(&SLOTS[0]), &data, &core).max, 42);
+    assert_eq!(energy(&assemble(&SLOTS[2]), &data, &core).max, 30);
+}
+
+#[test]
+fn hero_six_spends_exactly_the_whole_budget() {
+    let build = assemble(&SLOTS[4]);
+    assert_eq!(points_spent(&build), MAX_POINTS);
+}
+
+#[test]
+fn every_slot_decodes_to_the_profession_its_label_says() {
+    let expected = [
+        Profession::Mesmer,
+        Profession::Mesmer,
+        Profession::Necromancer,
+        Profession::Necromancer,
+        Profession::Ritualist,
+        Profession::Ritualist,
+    ];
+    for (slot, profession) in SLOTS.iter().zip(expected) {
+        assert_eq!(assemble(slot).primary, profession, "{}", slot.label);
+    }
+}
+
+#[test]
+fn a_build_round_trips_back_to_its_published_skill_code() {
+    // T1.4.9's done criterion: decode, build, and encode again.
+    let data = data();
+    for slot in SLOTS {
+        let build = assemble(slot);
+        let (skill, _equipment) = build.to_templates(&data);
+        assert_eq!(
+            skill.encode(),
+            slot.code,
+            "{} did not round-trip",
+            slot.label
+        );
+    }
+}

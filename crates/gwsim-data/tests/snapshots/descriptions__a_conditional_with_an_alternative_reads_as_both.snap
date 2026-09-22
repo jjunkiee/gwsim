@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "render(r#\"Control(If(\n            condition: BelowHealth(percent: 50.0),\n            of: Some(TargetFoe),\n            then: [GainEnergy(to: Self, amount: Fixed(7))],\n            otherwise: [Damage(to: TargetFoe, amount: Fixed(10))],\n        ))\"#)"
+---
+If target foe is below 50% health, you gain 7 energy. Otherwise, target foe takes 10 damage.

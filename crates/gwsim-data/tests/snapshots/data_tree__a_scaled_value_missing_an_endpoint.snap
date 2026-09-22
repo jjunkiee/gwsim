@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+skills/mesmer/energy-surge.ron:
+  17:50 error: extracted.scaled[0]: the field `r12` is required but missing
+
+1 error, 1 warning in 2 files

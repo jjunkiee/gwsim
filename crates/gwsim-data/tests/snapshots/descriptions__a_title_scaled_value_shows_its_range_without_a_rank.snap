@@ -1,0 +1,5 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "render(\"Damage(to: TargetFoe, amount: TitleScaled(Asura, 10, 50))\")"
+---
+Target foe takes 10…50 damage.

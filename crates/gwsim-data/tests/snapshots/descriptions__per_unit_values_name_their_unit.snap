@@ -1,0 +1,7 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"Damage(to: TargetFoe, amount: PerUnit(value: Fixed(7), of: EnergyLost))\"),\nrender(\"Heal(to: TargetAlly, amount: PerUnit(value: Fixed(5), of: HealthLost))\"),\nrender(\"GainEnergy(to: Self, amount: PerUnit(value: Fixed(4), of: CreaturesControlled))\"),].join(\"\\n\")"
+---
+Target foe takes 7 damage per point of energy lost.
+Target ally gains 5 health per point of health lost.
+You gain 4 energy per creature you control.

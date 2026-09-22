@@ -1,0 +1,8 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(r#\"Summon(creature: \"bone-fiend\", level: Scaled(1, 17))\"#),\nrender(r#\"CreateSpirit(spirit: \"recuperation\", level: Scaled(1, 14), duration: Scaled(15, 45))\"#),\nrender(r#\"HoldBundle(bundle: \"kaolais-ashes\", duration: Scaled(15, 60))\"#),\nrender(\"DropBundle\"),].join(\"\\n\")"
+---
+Create a level 1…17 bone fiend.
+Create a level 1…14 recuperation spirit, which dies after 15…45 seconds.
+Hold kaolais ashes for up to 15…60 seconds.
+Drop what you are holding.

@@ -1,0 +1,127 @@
+// The ten professions.
+//
+// Numbers are the level-20 baseline in maximum-rating armor, before
+// insignias, runes and weapons. Armor energy, regeneration and health are
+// recorded per piece rather than as totals, because the placement is what
+// decides a partial armor set's bonuses and the totals are derivable.
+//
+// Two identities hold for every row, and are asserted in the tests:
+//   max energy          = base_energy + sum(armor_energy)
+//   energy regen pips   = base_energy_regen_pips + sum(armor_regen_pips)
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Profession",
+            "https://wiki.guildwars.com/wiki/Basic_armor",
+            "https://wiki.guildwars.com/wiki/Energy",
+            "https://wiki.guildwars.com/wiki/Skill_template_format",
+        ],
+        crawled: "2026-09-22",
+        review: Reviewed,
+        reviewed_by: Some("Jake Mansell"),
+        assumptions: [],
+        notes: "Values from T1.1.1. Foe energy is DESIGN 10.4's list, taken from the Energy page. Starter-armor exceptions (Recruit's and Istani Warrior armor at +10, the Prophecies Chainmail Helm at +0) are not modelled, because gwsim only ever uses maximum-rating armor.",
+    ),
+
+    // Every character starts here, whatever the profession.
+    base_energy: 20,
+    base_energy_regen_pips: 2,
+    // Foes regenerate one pip faster than players do.
+    foe_extra_energy_regen_pips: 1,
+
+    professions: [
+        (
+            key: Warrior,
+            base_armor: 80,
+            armor_bonus: Some((against: Physical, amount: 20)),
+            armor_energy: [],
+            armor_regen_pips: [],
+            armor_health: [],
+            foe_energy: 20,
+        ),
+        (
+            key: Ranger,
+            base_armor: 70,
+            armor_bonus: Some((against: Elemental, amount: 30)),
+            armor_energy: [(Chest, 5)],
+            armor_regen_pips: [(Legs, 1)],
+            armor_health: [],
+            foe_energy: 30,
+        ),
+        (
+            key: Monk,
+            base_armor: 60,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5), (Hands, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [],
+            foe_energy: 40,
+        ),
+        (
+            key: Necromancer,
+            base_armor: 60,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5), (Hands, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [],
+            foe_energy: 40,
+        ),
+        (
+            key: Mesmer,
+            base_armor: 60,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5), (Hands, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [],
+            foe_energy: 40,
+        ),
+        (
+            key: Elementalist,
+            base_armor: 60,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5), (Hands, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [],
+            foe_energy: 40,
+        ),
+        (
+            key: Assassin,
+            base_armor: 70,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [],
+            foe_energy: 30,
+        ),
+        (
+            key: Ritualist,
+            base_armor: 60,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5), (Hands, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [],
+            foe_energy: 40,
+        ),
+        (
+            key: Paragon,
+            base_armor: 80,
+            armor_bonus: None,
+            armor_energy: [(Chest, 5), (Hands, 5)],
+            armor_regen_pips: [],
+            armor_health: [],
+            foe_energy: 30,
+        ),
+        (
+            // The only profession whose armor grants health. It is why a
+            // Dervish tops out at 635 maximum health where everyone else
+            // reaches 610.
+            key: Dervish,
+            base_armor: 70,
+            armor_bonus: None,
+            armor_energy: [(Hands, 5)],
+            armor_regen_pips: [(Legs, 1), (Feet, 1)],
+            armor_health: [(Chest, 25)],
+            foe_energy: 30,
+        ),
+    ],
+)

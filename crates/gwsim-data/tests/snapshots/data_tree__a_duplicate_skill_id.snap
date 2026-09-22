@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+skills/mesmer/power-spike.ron:
+  error: skill id #1234 is already used by skills/mesmer/energy-surge.ron; template ids are unique, so one of the two is wrong
+
+1 error, 1 warning in 2 files

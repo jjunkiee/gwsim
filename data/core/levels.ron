@@ -1,0 +1,92 @@
+// Level formulas and the hard-mode level mappings.
+//
+// Characters and foes share one health formula:
+//   health = health_at_level_1 + health_per_level * (level - 1)
+// which is 100 + 20 * (level - 1), the same as 20 * level + 80, and gives 480
+// at level 20. It is stored once here and read by both the character and the
+// foe code paths.
+//
+// The skill damage multiplier is
+//   base ^ ((level_coefficient * level - offset) / divisor)
+// that is 2 ^ ((3 * level - 60) / 40), which is 1.0 at level 20. Damage that
+// ignores armor always uses a multiplier of 1, whatever the level.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Level",
+            "https://wiki.guildwars.com/wiki/Health",
+            "https://wiki.guildwars.com/wiki/Hard_mode",
+        ],
+        crawled: "2026-09-22",
+        review: Reviewed,
+        reviewed_by: Some("Jake Mansell"),
+        assumptions: [],
+        notes: "Values from T1.1.1, checked against the Level page's own table at levels 1, 5, 10, 15, 20, 26 and 42. The Level page gives NPC base armor as exactly 3 per level with no profession term; a foe's profession bonus is the same damage-type bonus players get and comes from professions.ron, not from a separate number here.",
+    ),
+
+    health_at_level_1: 100,
+    health_per_level: 20,
+
+    // Hard mode adds health only above level 20.
+    hm_bonus_health_per_level: 20,
+    hm_bonus_from_level: 20,
+
+    // A foe's core armor. Profession damage-type bonuses apply on top.
+    foe_armor_per_level: 3,
+
+    damage_multiplier: (
+        base: 2.0,
+        level_coefficient: 3.0,
+        offset: 60.0,
+        divisor: 40.0,
+    ),
+
+    // The wiki's bands overlap: normal levels 3 and 4 fall in both the 0-4 and
+    // the 3-9 non-boss rows, and bosses 14 and 15 fall in two rows. Rows are
+    // therefore resolved first-match-wins, in the order written here, which is
+    // the order the wiki lists them. A map keyed by level could not hold both.
+    hm_levels: (
+        non_boss: [
+            (nm_min: 0,  nm_max: 0,  hm_min: 20, hm_max: 20),
+            (nm_min: 0,  nm_max: 4,  hm_min: 22, hm_max: 22),
+            (nm_min: 3,  nm_max: 9,  hm_min: 23, hm_max: 23),
+            (nm_min: 10, nm_max: 14, hm_min: 24, hm_max: 24),
+            (nm_min: 15, nm_max: 19, hm_min: 25, hm_max: 25),
+            (nm_min: 20, nm_max: 24, hm_min: 26, hm_max: 26),
+            (nm_min: 26, nm_max: 26, hm_min: 29, hm_max: 29),
+            (nm_min: 26, nm_max: 28, hm_min: 30, hm_max: 30),
+            (nm_min: 29, nm_max: 30, hm_min: 32, hm_max: 32),
+            (nm_min: 31, nm_max: 31, hm_min: 33, hm_max: 33),
+            // The wiki gives this one as a range. There is no single right
+            // answer, so a foe at normal level 34 must state its hard-mode
+            // level in its own file rather than take one from here.
+            (nm_min: 34, nm_max: 34, hm_min: 36, hm_max: 40),
+        ],
+        boss: [
+            (nm_min: 5,  nm_max: 8,  hm_min: 26, hm_max: 26),
+            (nm_min: 9,  nm_max: 15, hm_min: 27, hm_max: 27),
+            (nm_min: 14, nm_max: 18, hm_min: 28, hm_max: 28),
+            (nm_min: 19, nm_max: 22, hm_min: 29, hm_max: 29),
+            (nm_min: 24, nm_max: 28, hm_min: 30, hm_max: 30),
+            (nm_min: 30, nm_max: 30, hm_min: 32, hm_max: 32),
+            (nm_min: 34, nm_max: 34, hm_min: 36, hm_max: 36),
+            (nm_min: 38, nm_max: 38, hm_min: 40, hm_max: 40),
+        ],
+        // Allies at 0 to 20 become 20; 20 to 30 are unchanged. Charmable
+        // animal levels are unchanged too, which the engine handles by not
+        // consulting this table for them.
+        ally: [
+            (nm_min: 0,  nm_max: 20, hm_min: 20, hm_max: 20),
+            (nm_min: 21, nm_max: 21, hm_min: 21, hm_max: 21),
+            (nm_min: 22, nm_max: 22, hm_min: 22, hm_max: 22),
+            (nm_min: 23, nm_max: 23, hm_min: 23, hm_max: 23),
+            (nm_min: 24, nm_max: 24, hm_min: 24, hm_max: 24),
+            (nm_min: 25, nm_max: 25, hm_min: 25, hm_max: 25),
+            (nm_min: 26, nm_max: 26, hm_min: 26, hm_max: 26),
+            (nm_min: 27, nm_max: 27, hm_min: 27, hm_max: 27),
+            (nm_min: 28, nm_max: 28, hm_min: 28, hm_max: 28),
+            (nm_min: 29, nm_max: 29, hm_min: 29, hm_max: 29),
+            (nm_min: 30, nm_max: 30, hm_min: 30, hm_max: 30),
+        ],
+    ),
+)

@@ -1491,7 +1491,7 @@ PvX sources:
 
 | Slot | Kind | Build | Attributes (points + rune + headgear) | Equipment | PvX template (regular) |
 | --- | --- | --- | --- | --- | --- |
-| Player | Human | **Me/—** Arcane Echo, **Energy Surge**, Mistrust, Unnatural Signet, Cry of Frustration, Spiritual Pain, Power Drain, Air of Superiority | Domination 12+1+3, Fast Casting 10+1, Inspiration 8+1 | 5× Prodigy's insignia; 40/40 Domination set; runes inferred as superior Domination, minor Fast Casting, minor Inspiration (A-033) | `OQBTAUBPQaJ4EY6x0BAAAAAAuE` (optional slots empty on PvX) |
+| Player | Human | **Me/—** Arcane Echo, **Energy Surge**, Mistrust, Unnatural Signet, Cry of Frustration, Spiritual Pain, Power Drain, Air of Superiority | Domination 12+1+3, Fast Casting 10+1, **Inspiration 8** | 5× Prodigy's insignia; 40/40 Domination set; superior Domination Magic (head), minor Fast Casting, superior Vigor, 2× Vitae (A-033, confirmed) | `OQBTAUBPQaJ4EY6x0BAAAAAAuE` (optional slots empty on PvX) |
 | Hero 1 | Hero (Mesmer) | **Dom Mesmer:** **Panic**, Cry of Frustration, Mistrust, Unnatural Signet, Shatter Hex, Spiritual Pain, Power Drain, Drain Enchantment | Domination 12+1+3, Fast Casting 11+2, Inspiration 6+1 | 5× Prodigy's; Superior Vigor, Vitae; 40/40 Domination set | `OQBTAWBPsBAkDmemuhAONDAAA` (encodes one choice of the alternatives; the benchmark file records the exact bar) |
 | Hero 2 | Hero (Mesmer) | **Dom Mesmer (Me/Rt):** **Energy Surge**, Cry of Frustration, Mistrust, Unnatural Signet, Shatter Hex, Spiritual Pain, Power Drain, **Flesh of My Flesh** [Proposed pick] | as Hero 1 | as Hero 1 | as Hero 1 |
 | Hero 3 | Hero (Mesmer) | **Dom Mesmer (Me/Mo):** **Energy Surge**, …, **Resurrection Chant** [Proposed pick] | as Hero 1 | as Hero 1 | as Hero 1 |
@@ -1500,6 +1500,7 @@ PvX sources:
 | Hero 6 | Hero (Ritualist) | **Signet of Spirits Rt:** **Signet of Spirits**, Ancestors' Rage, Spirit Siphon, **Splinter Weapon** [Proposed pick over Lamentation: Splinter Weapon's hero AI was fixed on 2026-08-26], Mend Body and Soul, Spirit Light, Protective Was Kaolai, Life | Channeling 12+1+3, Restoration 12+2, Spawning Power 3+1 | 5× Shaman's; Superior Vigor, Vitae | `OACjEyiM5MXTvJzEAINncDzxJ` |
 | Hero 7 | Hero (Ritualist) | **Soul Twisting Rt/Mo:** **Soul Twisting**, Shelter, Union, Displacement, Armor of Unfeeling, Boon of Creation, Signet of Creation, **Remove Hex** [Proposed pick: Strength of Honor is for melee players, and the player is a caster] | Communing 12+1+3, Spawning Power 12+3 | 5× Shaman's; Superior Vigor, Vitae | `OACiAyk8gNtePuwJ00ZaNBAA` |
 
+- **The player's Inspiration is 8, not the 9 the PvX attribute line implies.** A character has five armor slots and so five runes. The confirmed loadout (A-033) spends them on superior Domination Magic, minor Fast Casting, superior Vigor and two of Vitae, which leaves no slot for the minor Inspiration rune the published 8+1 would need. This is a deliberate trade of one Inspiration rank for 70 health.
 - **Tactics notes from PvX:** backline on Guard, midline on Fight or Guard; pre-cast Shelter → Union → Displacement → Armor of Unfeeling before hard fights; flag heroes apart against AoE. The tactics generator must produce these (§11.6).
 - **Heroes:** three Mesmer heroes are possible because of Ghost of Althea (Reforged Mode). Identity doesn't affect the simulation (D17).
 
@@ -1628,7 +1629,7 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-030 | Fight timeout | 180 s, counted as a loss | Modelling choice |
 | A-031 | Armor bug with net bonus ≥ 26 (reductions ignored) | Modelled as documented | Documented bug |
 | A-032 | HM recharge reduction for foes | Amount to be found on the wiki; otherwise a default, flagged | "Shorter recharges" isn't quantified in the research |
-| A-033 | Player rune choice | Superior Domination, minor Fast Casting, minor Inspiration (inferred from the attribute numbers) | PvX page doesn't name the runes |
+| A-033 | Player rune choice | Superior Domination Magic (head), minor Fast Casting, superior Vigor, 2× Vitae — **confirmed by the owner 2026-09-22** | PvX page doesn't name the runes; this is a decision, not a recovered fact |
 
 ---
 

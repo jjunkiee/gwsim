@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+situations/kournan-patrol-hm.ron:
+  error: this situation uses the encounter `kournan-patroll`, but there is no encounters/**/kournan-patroll.ron
+
+1 error, 1 warning in 2 files

@@ -1,0 +1,6 @@
+---
+source: crates/gwsim-data/tests/descriptions.rs
+expression: "[render(\"Heal(to: TargetAlly, amount: Min(PerUnit(value: Fixed(1), of: HealthLost), Scaled(15, 80)))\"),\nrender(\"GainEnergy(to: Self, amount: Max(Fixed(1), Scaled(3, 12)))\"),].join(\"\\n\")"
+---
+Target ally gains 1 health per point of health lost, up to 15…80.
+You gain 1 energy, at least 3…12.
