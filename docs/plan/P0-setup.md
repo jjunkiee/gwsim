@@ -19,12 +19,12 @@
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 0.1 | README Getting Started | A newcomer can go from a bare Windows 11 machine to a passing build using only the README. | Todo |
-| 0.2 | Toolchain on the dev machine | Rust (MSVC) works on the development machine, installed exactly as the README says. | Todo |
-| 0.3 | Workspace skeleton | The six-crate workspace builds, tests and runs `gwsim --version`. | Todo |
-| 0.4 | `.gitignore` | Local-only and generated files can't be committed by accident. | Todo |
-| 0.5 | Licences | Code and data licensing are unambiguous and match C2 and Q38. | Todo |
-| 0.6 | CONTRIBUTING and CI | Contributors know the rules, and CI is ready for when a remote exists. | Todo |
+| 0.1 | README Getting Started | A newcomer can go from a bare Windows 11 machine to a passing build using only the README. | In progress |
+| 0.2 | Toolchain on the dev machine | Rust (MSVC) works on the development machine, installed exactly as the README says. | Done |
+| 0.3 | Workspace skeleton | The six-crate workspace builds, tests and runs `gwsim --version`. | Done |
+| 0.4 | `.gitignore` | Local-only and generated files can't be committed by accident. | Done |
+| 0.5 | Licences | Code and data licensing are unambiguous and match C2 and Q38. | Done |
+| 0.6 | CONTRIBUTING and CI | Contributors know the rules, and CI is ready for when a remote exists. | Done |
 
 ---
 
@@ -38,8 +38,8 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T0.1.1 | Confirm current Windows install steps | Research | — | Todo |
-| T0.1.2 | Write the README | Docs | T0.1.1 | Todo |
+| T0.1.1 | Confirm current Windows install steps | Research | — | Done |
+| T0.1.2 | Write the README | Docs | T0.1.1 | Done |
 | T0.1.3 | Owner reads the README | Review | T0.1.2 | Todo |
 
 ### T0.1.1 Confirm current Windows install steps
@@ -118,12 +118,12 @@ Replace the two-line README with these sections:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T0.2.1 | Get approval to install | Decision | T0.1.3 | Todo |
-| T0.2.2 | Check what is already installed | Setup | T0.2.1 | Todo |
-| T0.2.3 | Install the Build Tools | Setup | T0.2.2 | Todo |
-| T0.2.4 | Install rustup and the stable MSVC toolchain | Setup | T0.2.3 | Todo |
-| T0.2.5 | Prove the linker with a throwaway project | Test | T0.2.4 | Todo |
-| T0.2.6 | Fold what was learned back into the README | Docs | T0.2.5 | Todo |
+| T0.2.1 | Get approval to install | Decision | T0.1.3 | Done |
+| T0.2.2 | Check what is already installed | Setup | T0.2.1 | Done |
+| T0.2.3 | Install the Build Tools | Setup | T0.2.2 | Done |
+| T0.2.4 | Install rustup and the stable MSVC toolchain | Setup | T0.2.3 | Done |
+| T0.2.5 | Prove the linker with a throwaway project | Test | T0.2.4 | Done |
+| T0.2.6 | Fold what was learned back into the README | Docs | T0.2.5 | Done |
 
 ### T0.2.1 Get approval to install
 
@@ -201,12 +201,12 @@ Replace the two-line README with these sections:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T0.3.1 | Root manifest and toolchain files | Build | WP0.2, T0.5.1 | Todo |
-| T0.3.2 | Create the six crates | Build | T0.3.1 | Todo |
-| T0.3.3 | `gwsim --version` and stub binaries | Build | T0.3.2 | Todo |
-| T0.3.4 | Integration test for `--version` | Test | T0.3.3 | Todo |
-| T0.3.5 | Full local check | Test | T0.3.4 | Todo |
-| T0.3.6 | Update docs for the skeleton | Docs | T0.3.5 | Todo |
+| T0.3.1 | Root manifest and toolchain files | Build | WP0.2, T0.5.1 | Done |
+| T0.3.2 | Create the six crates | Build | T0.3.1 | Done |
+| T0.3.3 | `gwsim --version` and stub binaries | Build | T0.3.2 | Done |
+| T0.3.4 | Integration test for `--version` | Test | T0.3.3 | Done |
+| T0.3.5 | Full local check | Test | T0.3.4 | Done |
+| T0.3.6 | Update docs for the skeleton | Docs | T0.3.5 | Done |
 
 ### T0.3.1 Root manifest and toolchain files
 
@@ -328,10 +328,10 @@ Replace the two-line README with these sections:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T0.4.1 | Inspect the current state | Setup | — | Todo |
-| T0.4.2 | Replace `.gitignore` | Build | T0.4.1 | Todo |
-| T0.4.3 | Verify the rules | Test | T0.4.2 | Todo |
-| T0.4.4 | First commits on a setup branch | Setup | T0.4.3 | Todo |
+| T0.4.1 | Inspect the current state | Setup | — | Done |
+| T0.4.2 | Replace `.gitignore` | Build | T0.4.1 | Done |
+| T0.4.3 | Verify the rules | Test | T0.4.2 | Done |
+| T0.4.4 | First commits on a setup branch | Setup | T0.4.3 | Done |
 
 ### T0.4.1 Inspect the current state
 
@@ -411,11 +411,11 @@ Replace the two-line README with these sections:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T0.5.1 | Choose the code licence identifier | Decision | — | Todo |
-| T0.5.2 | Confirm the data licence details | Research | — | Todo |
-| T0.5.3 | Add `data/LICENSE` | Docs | T0.5.2 | Todo |
-| T0.5.4 | Add `data/ATTRIBUTION.md` | Docs | T0.5.2 | Todo |
-| T0.5.5 | State the licences in the README and manifests | Docs | T0.5.1, T0.5.3 | Todo |
+| T0.5.1 | Choose the code licence identifier | Decision | — | Done |
+| T0.5.2 | Confirm the data licence details | Research | — | Done |
+| T0.5.3 | Add `data/LICENSE` | Docs | T0.5.2 | Done |
+| T0.5.4 | Add `data/ATTRIBUTION.md` | Docs | T0.5.2 | Done |
+| T0.5.5 | State the licences in the README and manifests | Docs | T0.5.1, T0.5.3 | Done |
 
 ### T0.5.1 Choose the code licence identifier
 
@@ -491,11 +491,11 @@ Write these sections:
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T0.6.1 | Write the CONTRIBUTING skeleton | Docs | WP0.5 | Todo |
-| T0.6.2 | Confirm current CI practice | Research | — | Todo |
-| T0.6.3 | Write the CI workflow | Build | T0.6.2, WP0.3 | Todo |
-| T0.6.4 | Add a pull request template | Docs | T0.6.1 | Todo |
-| T0.6.5 | Check the workflow | Test | T0.6.3 | Todo |
+| T0.6.1 | Write the CONTRIBUTING skeleton | Docs | WP0.5 | Done |
+| T0.6.2 | Confirm current CI practice | Research | — | Done |
+| T0.6.3 | Write the CI workflow | Build | T0.6.2, WP0.3 | Done |
+| T0.6.4 | Add a pull request template | Docs | T0.6.1 | Done |
+| T0.6.5 | Check the workflow | Test | T0.6.3 | Done |
 
 ### T0.6.1 Write the CONTRIBUTING skeleton
 

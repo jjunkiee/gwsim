@@ -1241,25 +1241,40 @@ The desktop app is built with **egui (eframe)** [Decided Q39] and arrives **afte
 
 ```text
 gwsim/
-├── Cargo.toml                    # workspace
+├── Cargo.toml                    # virtual workspace manifest
+├── rust-toolchain.toml           # channel = "stable" + rustfmt, clippy [Proposed]
 ├── crates/
 │   ├── gwsim-data/  gwsim-engine/  gwsim-opt/  gwsim-cli/  gwsim-desktop/  gwsim-extractor/
+│   │   └── each with its own src/, tests/ and benches/ [Proposed]
 ├── data/                         # CC BY-SA 4.0 (§8)
+│   ├── LICENSE                   # CC BY-SA 4.0 legal code
+│   └── ATTRIBUTION.md            # source of the facts; what is excluded (§8.10)
 ├── docs/
 │   ├── DESIGN.md                 # this document
+│   ├── plan/                     # phase > work package > task plan (§19) [Proposed]
+│   ├── findings/                 # research task outputs [Proposed]
 │   ├── effect-dsl.md             # DSL reference (generated from types + examples) [Proposed]
 │   └── data-authoring.md         # contributor guide for skills, foes, encounters [Proposed]
-├── tests/                        # integration tests, relative checks
-├── benches/                      # performance benchmarks
-├── .github/workflows/ci.yml      # once the repo has a GitHub remote
-├── LICENSE                       # GPL-3.0 (code)
+├── .github/
+│   ├── workflows/ci.yml          # once the repo has a GitHub remote
+│   └── pull_request_template.md  # incl. the licensing checklist [Proposed]
+├── LICENSE                       # GPL-3.0-or-later (code) [D32]
 ├── README.md                     # incl. Getting Started from zero [D21]
 ├── CONTRIBUTING.md
 └── .gitignore                    # Rust template + research/ + .cache/ [D9, Q42]
 ```
 
-- `research/` stays local and must be git-ignored [Decided Q42].
+- `research/` stays local and must be git-ignored [Decided Q42]. This is a licensing
+  requirement as well as a tidiness one: the corpus contains wiki prose under the GFDL,
+  which is not compatible with the CC BY-SA 4.0 licence on `data/` (T0.5.2).
 - `.cache/` (the extractor's cache, holding raw wiki HTML) must be git-ignored (§8.10).
+- **Tests and benchmarks are per-crate, not at the root** [Proposed, T0.3.1]. A virtual
+  manifest has no package of its own, so it cannot host root `tests/` or `benches/`
+  directories. Cross-crate integration tests and the relative checks (§17.4) therefore live
+  in `crates/gwsim-cli`.
+- **`gwsim-cli` has a library target** (`src/lib.rs`) alongside `src/main.rs` [Proposed,
+  T0.3.1], so that `gwsim check` and `cargo test` run the same check code rather than two
+  copies of it. This keeps the six-crate decision of §6.1 intact.
 
 ### 18.2 README "Getting Started" (content outline) [Default D21]
 
