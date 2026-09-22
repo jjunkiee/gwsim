@@ -8,7 +8,7 @@ The phase files say what a phase set out to do. This file says what it left
 behind. An item leaves when it is done, or when it is absorbed into a real
 task in a phase file.
 
-- **Status:** 2026-09-23, after P1. **Section 1 is empty — nothing is waiting on the owner.** O1–O7 all closed; switching to the caster variants (O6) left E6–E8.
+- **Status:** 2026-09-23, after P1. **Section 1 is empty and nothing left is P1 work.** O1–O7, G1–G3 and P4 are closed; G4, G5 and every E item wait on P2 or WP4.3, and §6's three remaining items are standing notes rather than tasks.
 - **Format:** each item says what it is, why it was left, and where it goes.
 
 ---
@@ -30,13 +30,19 @@ rather than left as a silently incomplete tick.
 
 | # | Item | Where |
 | --- | --- | --- |
-| G1 | **`gwsim template encode` does not accept a build file.** T1.4.9 action 3 asked for it. `Build::to_templates` exists and is tested; the CLI only reads a `SkillTemplate` or `EquipmentTemplate`. | `crates/gwsim-cli/src/template.rs` |
-| G2 | **`data describe --all` is declared but never read.** The flag parses and does nothing. Either wire it up or remove it — a flag that silently does nothing is worse than no flag. | `crates/gwsim-cli/src/describe.rs` |
-| G3 | **Benchmark skill ids are not validated.** T1.2.8 item 1 deferred this until WP1.3 existed. WP1.3 now exists, so a benchmark's `skill_code` can be decoded and its ids checked against the skill files. | `crates/gwsim-data/src/checks.rs` |
 | G4 | **`armor_profile` never returns conditional bonuses.** The `conditional` field exists and is always empty, because insignia conditions are DSL values and nothing evaluates them yet. Four of the five M1 insignias are conditional, so a build's real armor can be up to 15 higher than reported. | `crates/gwsim-data/src/derived.rs`, needs WP4.3 |
 | G5 | **Part of the 136 Elementalist energy vector is asserted as a constant.** 98 is computed through `energy()`; the remaining 38 comes from insignia and inscription *effects*, which have no typed form. The test documents the split. | `crates/gwsim-data/tests/wiki_examples.rs` |
 
 ---
+
+**A note on G3.** The obvious reading of T1.2.8 was "warn when a benchmark
+names a skill we do not have". Implemented that way it broke 27 snapshots at
+once, which was the useful signal: `data/skills/` is empty until P2 and stays
+incomplete until P7, so that warning would sit on every benchmark on every run
+for the length of the project. A warning that is always on teaches people to
+ignore warnings. The decode check stayed in `validate`, where a failure is
+unambiguous; the missing-skill count went to `gwsim data coverage`, which
+already reports exactly this shape for foes.
 
 ## 3. Encodings that are deliberately incomplete
 
@@ -103,7 +109,6 @@ Recorded in findings files, repeated here so they are not lost in them.
 | P1 | **The CI workflow has never been machine-validated.** `actionlint` would do it but needs installing, which needs your go-ahead. It was reviewed by eye, which T0.6.5 allows. | |
 | P2 | **No property testing.** T1.3.5 asked for `proptest`; the template suite sweeps every width boundary, attribute, slot and profession pair instead, plus a no-panic pass over malformed input. Add `proptest` if a real bug ever escapes that. | |
 | P3 | **Debug builds load the data ten times slower than release** — 348 ms against 36 ms at full coverage. Fine today. If a developer workflow starts loading repeatedly (a watch mode), caching becomes worth it. | T1.7.1 §8 |
-| P4 | **`cargo install --path crates/gwsim-cli`** gives a bare `gwsim` command instead of `cargo run -p gwsim-cli --`. Worth mentioning in the README's getting-started rather than only in troubleshooting. | |
 
 ---
 
@@ -119,4 +124,8 @@ Items move here briefly when closed, then leave.
 | O5 | **Merge `setup/p0` and push.** | **Closed 2026-09-23.** P0 and P1 each merge into `main` through their own branch (`setup/p0`, `data/p1`), all pushed to `jjunkiee/gwsim`. |
 | O6 | **Three hero slots ran the melee-player variant.** | **Closed 2026-09-23: switched to the caster variants.** Hero 2 Flesh of My Flesh → Resurrection Chant (and Me/Rt → Me/Mo), hero 4 Withering Aura → Blood of the Master, hero 6 Splinter Weapon → Lamentation. The roster drops from 72 skills to 71. Left behind as E6, E7 and E8. |
 | O7 | **The PvX team page carries an update warning.** | **Closed 2026-09-23: ignored by the owner.** §20.1 keeps the page's Great / Meta rating. |
+| G1 | **`gwsim template encode` did not accept a build file.** | **Closed 2026-09-23.** It now tries `Build`, then `SkillTemplate`, then `EquipmentTemplate`. A build prints both codes, with the equipment one labelled as the partial copy it is. |
+| G2 | **`data describe --all` was declared but never read.** | **Closed 2026-09-23.** `--all` now means every skill and clap rejects it alongside a filter; a bare `describe` asks what you want rather than dumping the tree. |
+| G3 | **Benchmark skill ids were not validated.** | **Closed 2026-09-23.** `validate` reports codes that do not decode, naming the slot. Whether gwsim *has* the skills moved to `coverage` — see the note below. |
+| P4 | **`cargo install --path` was only in troubleshooting.** | **Closed 2026-09-23.** It is now in the README's first-run section, where someone tired of typing `cargo run -p gwsim-cli --` will find it. |
 | O1 | **T1.5.9 — review the effect DSL's shape.** | **Closed 2026-09-22: approved as it stands**, to be evolved during implementation rather than reviewed up front. The packet was never built, so no M1 skill has been encoded in the real types and rendered. The shape questions it would have raised are now Q9. |

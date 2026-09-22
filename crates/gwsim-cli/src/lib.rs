@@ -77,8 +77,14 @@ pub struct DecodeArgs {
 /// `gwsim template encode`.
 #[derive(Debug, Args)]
 pub struct EncodeArgs {
-    /// A RON file holding a `SkillTemplate` or an `EquipmentTemplate`.
+    /// A RON file holding a `Build`, a `SkillTemplate` or an
+    /// `EquipmentTemplate`.
     pub file: PathBuf,
+
+    /// The data directory to read, for the rune and insignia template ids a
+    /// build's equipment code needs. Defaults to `./data`.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
 }
 
 /// `gwsim data`.
@@ -162,8 +168,9 @@ pub struct DescribeSkillArgs {
     #[arg(long, value_name = "STATUS")]
     pub status: Option<String>,
 
-    /// Every skill, ignoring the other filters.
-    #[arg(long)]
+    /// Every skill. Required to print the whole tree, so that a bare
+    /// `describe` asks for what you want rather than dumping everything.
+    #[arg(long, conflicts_with_all = ["skill", "profession", "status"])]
     pub all: bool,
 
     /// Print as JSON.

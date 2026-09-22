@@ -3,6 +3,7 @@
 use std::io::{self, Write};
 use std::path::Path;
 
+use gwsim_data::build::Build;
 use gwsim_data::core::Attribute;
 use gwsim_data::dataset::DataSet;
 use gwsim_data::source::DirSource;
@@ -49,6 +50,12 @@ pub fn decode(args: &DecodeArgs, out: &mut impl Write) -> io::Result<i32> {
 }
 
 /// Runs `gwsim template encode`.
+///
+/// A file may hold any of three things, and they are tried in order of how
+/// often a person has one to hand: a `Build`, which is gwsim's own shape and
+/// produces both codes; a `SkillTemplate`; or an `EquipmentTemplate`. The
+/// error reported when none of them fits is the `Build` one, because that is
+/// the shape a contributor is most likely to have been aiming at.
 pub fn encode(args: &EncodeArgs, out: &mut impl Write) -> io::Result<i32> {
     let text = match std::fs::read_to_string(&args.file) {
         Ok(text) => text,
@@ -58,28 +65,64 @@ pub fn encode(args: &EncodeArgs, out: &mut impl Write) -> io::Result<i32> {
         }
     };
 
-    // A file may hold either kind. Skill templates are far more common, so
-    // that is tried first and its error is the one reported.
-    match ron::from_str::<SkillTemplate>(&text) {
-        Ok(template) => {
-            writeln!(out, "{}", template.encode())?;
-            Ok(OK)
-        }
-        Err(skill_error) => match ron::from_str::<EquipmentTemplate>(&text) {
-            Ok(template) => {
-                writeln!(out, "{}", template.encode())?;
-                Ok(OK)
-            }
-            Err(_) => {
-                writeln!(
-                    out,
-                    "{}: this is not a SkillTemplate: {skill_error}",
-                    args.file.display()
-                )?;
-                Ok(FAILED)
-            }
-        },
+    let build_error = match ron::from_str::<Build>(&text) {
+        Ok(build) => return encode_build(&build, args, out),
+        Err(error) => error,
+    };
+
+    if let Ok(template) = ron::from_str::<SkillTemplate>(&text) {
+        writeln!(out, "{}", template.encode())?;
+        return Ok(OK);
     }
+
+    if let Ok(template) = ron::from_str::<EquipmentTemplate>(&text) {
+        writeln!(out, "{}", template.encode())?;
+        return Ok(OK);
+    }
+
+    writeln!(
+        out,
+        "{}: this is not a Build, a SkillTemplate or an EquipmentTemplate.",
+        args.file.display()
+    )?;
+    writeln!(out, "  as a Build: {build_error}")?;
+    Ok(FAILED)
+}
+
+/// Encodes a build, which yields both a skill code and an equipment code.
+fn encode_build(build: &Build, args: &EncodeArgs, out: &mut impl Write) -> io::Result<i32> {
+    // The equipment code carries rune and insignia template ids, which are
+    // looked up in the item data. Without it the skill code is still exact,
+    // so a missing data directory is reported rather than treated as fatal.
+    let Some(data) = load_data(args.data_dir.as_deref()) else {
+        writeln!(
+            out,
+            "could not read the data directory, which holds the rune and insignia \
+             ids an equipment code needs; pass --data-dir"
+        )?;
+        return Ok(FAILED);
+    };
+
+    let (skill, equipment) = build.to_templates(&data);
+
+    writeln!(out, "skill:     {}", skill.encode())?;
+    if equipment.items.is_empty() {
+        writeln!(
+            out,
+            "equipment: (none: this build has no runes or insignias)"
+        )?;
+    } else {
+        writeln!(out, "equipment: {}", equipment.encode())?;
+        // Said plainly because someone will otherwise paste this into the
+        // game and wonder why it does nothing.
+        writeln!(
+            out,
+            "  note: equipment templates describe PvP items, so this code carries \
+             only the runes and insignias whose ids are known. It is not a faithful \
+             copy of a PvE character's gear."
+        )?;
+    }
+    Ok(OK)
 }
 
 fn load_data(data_dir: Option<&Path>) -> Option<DataSet> {
@@ -254,8 +297,18 @@ pub type TemplateAttribute = Attribute;
 mod tests {
     use super::*;
     use crate::{DecodeArgs, EncodeArgs};
+    use std::path::PathBuf;
 
     const PLAYER: &str = "OQBTAUBPQaJ4EY6x0BAAAAAAuE";
+
+    fn encode_args(file: &Path) -> EncodeArgs {
+        EncodeArgs {
+            file: file.to_path_buf(),
+            // The repository's own data, which holds the rune and insignia
+            // template ids a build's equipment code needs.
+            data_dir: Some(PathBuf::from("../../data")),
+        }
+    }
 
     fn decode_args(code: &str, json: bool) -> DecodeArgs {
         DecodeArgs {
@@ -359,7 +412,7 @@ mod tests {
         std::fs::write(&path, ron_text).unwrap();
 
         let mut out = Vec::new();
-        let status = super::encode(&EncodeArgs { file: path.clone() }, &mut out).unwrap();
+        let status = super::encode(&encode_args(&path), &mut out).unwrap();
         assert_eq!(status, OK);
         assert_eq!(String::from_utf8(out).unwrap().trim(), PLAYER);
 
@@ -372,7 +425,7 @@ mod tests {
         std::fs::write(&path, "(not: \"a template\")").unwrap();
 
         let mut out = Vec::new();
-        let status = super::encode(&EncodeArgs { file: path.clone() }, &mut out).unwrap();
+        let status = super::encode(&encode_args(&path), &mut out).unwrap();
         assert_eq!(status, FAILED);
         assert!(
             String::from_utf8(out).unwrap().contains("SkillTemplate"),
@@ -385,13 +438,69 @@ mod tests {
     #[test]
     fn encoding_a_missing_file_fails_clearly() {
         let mut out = Vec::new();
-        let status = super::encode(
-            &EncodeArgs {
-                file: "no/such/file.ron".into(),
-            },
-            &mut out,
-        )
-        .unwrap();
+        let status = super::encode(&encode_args(Path::new("no/such/file.ron")), &mut out).unwrap();
         assert_eq!(status, FAILED);
+    }
+
+    #[test]
+    fn a_build_file_encodes_to_both_codes() {
+        // T1.4.9 action 3. A contributor has a Build, not a SkillTemplate,
+        // so this is the shape the command has to accept.
+        // Note the tuples: a fixed-size Rust array is a RON tuple, not a
+        // list, so `skills` and `armor` use `(...)` rather than `[...]`.
+        let build_ron = r#"(
+    primary: Mesmer,
+    attribute_points: {FastCasting: 10, DominationMagic: 12, InspirationMagic: 8},
+    headgear_attribute: Some(DominationMagic),
+    skills: (Some(75), Some(39), Some(979), Some(934), None, None, None, None),
+    armor: (
+        (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+        (slot: Chest, insignia: Some("prodigys"), rune: Some("minor-fast-casting")),
+        (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+        (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+        (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+    ),
+)"#;
+        let path = std::env::temp_dir().join("gwsim-build-test.ron");
+        std::fs::write(&path, build_ron).unwrap();
+
+        let mut out = Vec::new();
+        let status = super::encode(&encode_args(&path), &mut out).unwrap();
+        let report = String::from_utf8(out).unwrap();
+        assert_eq!(status, OK, "{report}");
+
+        assert!(report.contains("skill:"), "{report}");
+        assert!(report.contains("equipment:"), "{report}");
+        // The equipment code is not a faithful copy of PvE gear, and saying
+        // so is the difference between a useful code and a misleading one.
+        assert!(report.contains("not a faithful copy"), "{report}");
+
+        // The skill code must decode back to what went in.
+        let code = report
+            .lines()
+            .find_map(|line| line.strip_prefix("skill:"))
+            .expect("a skill code")
+            .trim();
+        let decoded = SkillTemplate::decode(code).expect("the code we just wrote");
+        assert_eq!(decoded.primary, gwsim_data::core::Profession::Mesmer);
+        assert_eq!(decoded.skills[0], Some(gwsim_data::ids::SkillId(75)));
+        assert_eq!(decoded.attributes.len(), 3);
+
+        std::fs::remove_file(&path).ok();
+    }
+
+    #[test]
+    fn a_file_that_is_no_recognised_shape_names_all_three() {
+        let path = std::env::temp_dir().join("gwsim-encode-unknown.ron");
+        std::fs::write(&path, "(not: \"anything we know\")").unwrap();
+
+        let mut out = Vec::new();
+        let status = super::encode(&encode_args(&path), &mut out).unwrap();
+        let report = String::from_utf8(out).unwrap();
+
+        assert_eq!(status, FAILED);
+        assert!(report.contains("Build"), "{report}");
+        assert!(report.contains("SkillTemplate"), "{report}");
+        assert!(report.contains("EquipmentTemplate"), "{report}");
     }
 }

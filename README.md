@@ -90,6 +90,14 @@ Later builds are much faster.
 cargo run --release -p gwsim-cli -- --version
 ```
 
+Every command below is written this way, because `gwsim` is a workspace binary
+rather than something on your `PATH`. If you would rather type `gwsim` directly:
+
+```powershell
+cargo install --path crates/gwsim-cli
+gwsim --version
+```
+
 From milestone M1 onwards, this is where the interesting command lives:
 
 ```powershell

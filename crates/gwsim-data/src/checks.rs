@@ -46,6 +46,7 @@ pub fn run(data: &DataSet, problems: &mut DataErrors) {
     check_skills(data, problems);
     crate::checks_dsl::check_encodings(data, problems);
     check_foes(data, problems);
+    check_benchmarks(data, problems);
     check_provenance(data, problems);
     check_assumptions(data, problems);
     check_warnings(data, problems);
@@ -401,6 +402,40 @@ fn check_foes(data: &DataSet, problems: &mut DataErrors) {
                 "this foe is marked both Spirit and Fleshy; spirits are not fleshy, and \
                  the two give opposite condition immunities",
             ));
+        }
+    }
+}
+
+// -------------------------------------------------------------- benchmarks
+
+/// Checks that a benchmark's published template codes decode (T1.2.8).
+///
+/// Only decoding is checked here. Whether gwsim *has* the skills a benchmark
+/// names is a question about coverage, not about whether this file is valid,
+/// and it lives in [`crate::coverage`] — `data/skills/` is empty until P2 and
+/// stays incomplete until P7, so asking it here would attach a warning to
+/// every benchmark on every run for the length of the project. A warning that
+/// is always on teaches people to ignore warnings.
+fn check_benchmarks(data: &DataSet, problems: &mut DataErrors) {
+    for entry in data.benchmarks.values() {
+        for (index, slot) in entry.value.slots.iter().enumerate() {
+            let slot_number = index + 1;
+
+            if let Err(error) = crate::template::SkillTemplate::decode(&slot.skill_code) {
+                problems.0.push(DataError::consistency(
+                    &entry.path,
+                    format!("slot {slot_number}'s skill_code does not decode: {error}"),
+                ));
+            }
+
+            if let Some(code) = &slot.equipment_code
+                && let Err(error) = crate::template::EquipmentTemplate::decode(code)
+            {
+                problems.0.push(DataError::consistency(
+                    &entry.path,
+                    format!("slot {slot_number}'s equipment_code does not decode: {error}"),
+                ));
+            }
         }
     }
 }

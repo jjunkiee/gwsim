@@ -1,0 +1,11 @@
+---
+source: crates/gwsim-data/tests/data_tree.rs
+expression: report(&source)
+---
+benchmarks/7-hero-mesmerway.ron:
+  error: slot 1's equipment_code does not decode: this has template type 7, not 15
+
+creatures/foes/kournan/kournan-seer.ron:
+  warning: A-004 has no value yet, so anything depending on this file is uncalibrated
+
+1 error, 1 warning in 2 files
