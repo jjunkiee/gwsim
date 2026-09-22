@@ -65,7 +65,7 @@ fn data_validate_works_with_no_data_directory() {
 #[test]
 fn the_embedded_data_holds_the_assumptions_register() {
     // Proof that the pack carries real contents rather than being empty: the
-    // register has 33 entries and none of them come from the file system here.
+    // register has 34 entries and none of them come from the file system here.
     let dir = empty_dir("contents");
 
     let output = gwsim()
@@ -80,7 +80,7 @@ fn the_embedded_data_holds_the_assumptions_register() {
     let text = String::from_utf8(output).expect("output should be UTF-8");
     let value: serde_json::Value = serde_json::from_str(&text).expect("output should be JSON");
 
-    assert_eq!(value["counts"]["assumptions"], 33);
+    assert_eq!(value["counts"]["assumptions"], 34);
     assert!(
         value["embedded_bytes"].as_u64().unwrap_or(0) > 10_000,
         "the pack should hold the real data, not an empty stub"
