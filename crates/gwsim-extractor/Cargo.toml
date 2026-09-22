@@ -1,0 +1,18 @@
+[package]
+name = "gwsim-extractor"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+gwsim-data = { path = "../gwsim-data" }
+clap.workspace = true
+
+[[bin]]
+name = "gwsim-extract"
+path = "src/main.rs"
+
+[lints]
+workspace = true

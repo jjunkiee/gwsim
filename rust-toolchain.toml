@@ -1,0 +1,4 @@
+[toolchain]
+# DESIGN 18.5: track the latest stable rather than pinning a version.
+channel = "stable"
+components = ["rustfmt", "clippy"]

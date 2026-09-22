@@ -1,0 +1,23 @@
+[package]
+name = "gwsim-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+gwsim-opt = { path = "../gwsim-opt" }
+gwsim-engine = { path = "../gwsim-engine" }
+gwsim-data = { path = "../gwsim-data" }
+clap.workspace = true
+
+[dev-dependencies]
+assert_cmd.workspace = true
+
+[[bin]]
+name = "gwsim"
+path = "src/main.rs"
+
+[lints]
+workspace = true
