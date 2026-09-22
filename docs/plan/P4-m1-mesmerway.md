@@ -129,23 +129,21 @@ Every batch task below follows these steps.
 **Type:** Data / Build · **Depends on:** T4.1.3, T4.3.9, T4.3.10
 
 1. **Skills:**
-   - Flesh of My Flesh (handler);
    - Spirit Transfer;
    - Mend Body and Soul;
    - Spirit Light;
    - Protective Was Kaolai (elite; handler);
    - Ancestors' Rage;
    - Spirit Siphon;
-   - Splinter Weapon (handler).
+   - Lamentation.
 2. **Research focus:**
    - the "near a spirit" and "if you control a spirit" conditions;
    - Protective Was Kaolai's 2026-08-26 armor and healing values and its trigger;
    - Spirit Siphon's 2026 energy change;
-   - Splinter Weapon's one-per-target weapon-spell rule, its armor-ignoring physical damage (§10.7), and its fixed hero targeting (§11.2);
-   - Flesh of My Flesh's resurrection with health sacrifice.
-3. **Handlers:** `flesh_of_my_flesh`, `protective_was_kaolai`, `splinter_weapon`.
+   - **Lamentation, which no P1 research covered** — it replaced Splinter Weapon on 2026-09-23 when the party moved to PvX's caster column, so it needs its skill id, its values and a DSL classification before it can be encoded.
+3. **Handlers:** `protective_was_kaolai`.
 
-- **Done when:** the eight skills are `Reviewed`.
+- **Done when:** the seven skills are `Reviewed`.
 
 ### T4.1.5 Necromancer batch
 
@@ -158,7 +156,7 @@ Every batch task below follows these steps.
    - Animate Bone Fiend (handler);
    - Putrid Bile (handler);
    - Masochism;
-   - Withering Aura.
+   - Blood of the Master.
 2. **Research focus:**
    - Blood is Power's sacrifice and energy regeneration (and the hero battery rule, AI-H6);
    - Animate Bone Fiend's 2026 cost and activation, corpse exploitation and minion level;
@@ -484,7 +482,7 @@ Every batch task below follows these steps.
 **Type:** Build · **Depends on:** —
 
 1. Finish the death rules (§10.11): which effects clear (T3.6.1); corpses stay until used.
-2. Resurrection restores a percentage of health and energy (Resurrection Chant, Flesh of My Flesh). Its sacrifice is handled by the skill.
+2. Resurrection restores a percentage of health and energy (Resurrection Chant, which two heroes now carry). Its sacrifice is handled by the skill.
 3. Death Penalty is −15% per death, down to −60%, and reduces maximum health and energy. Morale boost goes up to +10%.
 4. Starting DP and morale come from the situation.
 5. The Dhuum's Covenant switch records "covenant broken" on any party death. The run continues [Proposed].
@@ -742,7 +740,7 @@ Every batch task below follows these steps.
 1. Melee heroes stick to their previous target.
 2. Heroes tolerate AoE down to 65% health before escaping.
 3. Melee heroes give auto-attacks lower priority until low on energy.
-4. Add the per-skill rules from the T4.5.1 table to the M1 skills' `ai` blocks (e.g. Splinter Weapon targets allies again). Rules that don't fit the hint vocabulary go in small per-skill hero overrides.
+4. Add the per-skill rules from the T4.5.1 table to the M1 skills' `ai` blocks (e.g. Protective Was Kaolai's bundle handling). Rules that don't fit the hint vocabulary go in small per-skill hero overrides.
 
 - **Done when:** the per-skill table is fully reflected in the data or the overrides, and each has a test.
 

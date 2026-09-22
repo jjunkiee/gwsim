@@ -525,7 +525,7 @@ The DSL is a Rust enum tree, serialised as RON. It must express the formulaic (~
   - unit tests;
   - a `describe` implementation for generated descriptions (§8.6);
   - listed AI hints.
-- M1 examples: Panic, Mistrust, Blood Bond, Putrid Bile, Animate Bone Fiend, Soul Twisting, Shelter, Union, Displacement, Life, Protective Was Kaolai, Splinter Weapon, Flesh of My Flesh, Resurrection Chant, Arcane Echo, Air of Superiority. The classification is a judgement made during research; confirm it while encoding.
+- M1 examples: Panic, Mistrust, Blood Bond, Putrid Bile, Animate Bone Fiend, Soul Twisting, Shelter, Union, Displacement, Life, Protective Was Kaolai, Resurrection Chant, Arcane Echo, Air of Superiority. **This was a research-time guess and T1.5.1 has measured it: four of the party's skills need handlers, not sixteen.** Twelve of the sixteen are ordinary data once a hex or enchantment can carry a trigger.
 
 ### 8.6 Generated descriptions [Decided Q25]
 
@@ -1493,15 +1493,16 @@ PvX sources:
 | --- | --- | --- | --- | --- | --- |
 | Player | Human | **Me/—** Arcane Echo, **Energy Surge**, Mistrust, Unnatural Signet, Cry of Frustration, Spiritual Pain, Power Drain, Air of Superiority | Domination 12+1+3, Fast Casting 10+1, Inspiration 8+1 | 5× Prodigy's insignia; 40/40 Domination set; superior Domination Magic (head), minor Fast Casting, minor Inspiration Magic, superior Vigor, Vitae (A-033) | `OQBTAUBPQaJ4EY6x0BAAAAAAuE` (optional slots empty on PvX) |
 | Hero 1 | Hero (Mesmer) | **Dom Mesmer:** **Panic**, Cry of Frustration, Mistrust, Unnatural Signet, Shatter Hex, Spiritual Pain, Power Drain, Drain Enchantment | Domination 12+1+3, Fast Casting 11+2, Inspiration 6+1 | 5× Prodigy's; superior Domination Magic, major Fast Casting, minor Inspiration Magic, Superior Vigor, Vitae; 40/40 Domination set | `OQBTAWBPsBAkDmemuhAONDAAA` (encodes one choice of the alternatives; the benchmark file records the exact bar) |
-| Hero 2 | Hero (Mesmer) | **Dom Mesmer (Me/Rt):** **Energy Surge**, Cry of Frustration, Mistrust, Unnatural Signet, Shatter Hex, Spiritual Pain, Power Drain, **Flesh of My Flesh** [Proposed pick] | as Hero 1 | as Hero 1 | as Hero 1 |
-| Hero 3 | Hero (Mesmer) | **Dom Mesmer (Me/Mo):** **Energy Surge**, …, **Resurrection Chant** [Proposed pick] | as Hero 1 | as Hero 1 | as Hero 1 |
-| Hero 4 | Hero (Necromancer) | **Minion Master N/P:** **"Incoming!"**, "Fall Back!", "Stand Your Ground!", Signet of Lost Souls, Animate Bone Fiend, Putrid Bile, Masochism, **Withering Aura** [Proposed pick over Blood of the Master: no Blood Magic points; Dark Aura is only for a Soul Taker player] | Death 12+1+3, Soul Reaping 9+2, Command 9 | Bloodstained + 4× Minion Master's insignia; superior Death Magic, major Soul Reaping, Superior Vigor, 2× Vitae; 40/40 Death set | `OAljUwGpZS8Y7Y1YVVUBKgbhAAA` |
+| Hero 2 | Hero (Mesmer) | **Dom Mesmer (Me/Mo):** **Energy Surge**, Cry of Frustration, Mistrust, Unnatural Signet, Shatter Hex, Spiritual Pain, Power Drain, **Resurrection Chant** [PvX caster column; Healing Prayers 2] | as Hero 1 | as Hero 1 | as Hero 1 |
+| Hero 3 | Hero (Mesmer) | **Dom Mesmer (Me/Mo):** **Energy Surge**, …, **Resurrection Chant** [PvX caster column; Healing Prayers 2] | as Hero 1 | as Hero 1 | as Hero 1 |
+| Hero 4 | Hero (Necromancer) | **Minion Master N/P:** **"Incoming!"**, "Fall Back!", "Stand Your Ground!", Signet of Lost Souls, Animate Bone Fiend, Putrid Bile, Masochism, **Blood of the Master** [PvX caster column. Note it is a Blood Magic skill and this hero spends no Blood Magic points, so it works at rank 0] | Death 12+1+3, Soul Reaping 9+2, Command 9 | Bloodstained + 4× Minion Master's insignia; superior Death Magic, major Soul Reaping, Superior Vigor, 2× Vitae; 40/40 Death set | `OAljUwGpZS8Y7Y1YVVUBKgbhAAA` |
 | Hero 5 | Hero (Necromancer) | **Blood is Power N/Rt:** **Blood is Power**, Blood Bond, Spirit Transfer, Signet of Lost Souls, Mend Body and Soul, Spirit Light, Protective Was Kaolai, **Recuperation** (Dual Resto) | Restoration 12, Blood 9+1+3, Soul Reaping 9+2 | 5× Tormentor's; superior Blood Magic, major Soul Reaping, Superior Vigor, 2× Vitae; 40/40 Restoration set | `OAhjQkGZIP3hhmwrqKNncDzqH` |
-| Hero 6 | Hero (Ritualist) | **Signet of Spirits Rt:** **Signet of Spirits**, Ancestors' Rage, Spirit Siphon, **Splinter Weapon** [Proposed pick over Lamentation: Splinter Weapon's hero AI was fixed on 2026-08-26], Mend Body and Soul, Spirit Light, Protective Was Kaolai, Life | Channeling 12+1+3, Restoration 12+2, Spawning Power 3+1 | 5× Shaman's; superior Channeling, major Restoration, minor Spawning Power, Superior Vigor, Vitae; 40/40 Restoration set | `OACjEyiM5MXTvJzEAINncDzxJ` |
+| Hero 6 | Hero (Ritualist) | **Signet of Spirits Rt:** **Signet of Spirits**, Ancestors' Rage, Spirit Siphon, **Lamentation** [PvX caster column. Splinter Weapon is the melee-column pick; its hero AI was fixed on 2026-08-26, but the player is a caster], Mend Body and Soul, Spirit Light, Protective Was Kaolai, Life | Channeling 12+1+3, Restoration 12+2, Spawning Power 3+1 | 5× Shaman's; superior Channeling, major Restoration, minor Spawning Power, Superior Vigor, Vitae; 40/40 Restoration set | `OACjEyiM5MXTvJzEAINncDzxJ` |
 | Hero 7 | Hero (Ritualist) | **Soul Twisting Rt/Mo:** **Soul Twisting**, Shelter, Union, Displacement, Armor of Unfeeling, Boon of Creation, Signet of Creation, **Remove Hex** [Proposed pick: Strength of Honor is for melee players, and the player is a caster] | Communing 12+1+3, Spawning Power 12+3 | 5× Shaman's; superior Communing, superior Spawning Power, Superior Vigor, 2× Vitae; **Spawning Power staff**, not a 40/40 set (A-034) | `OACiAyk8gNtePuwJ00ZaNBAA` |
 
 - **Every slot fills all five rune slots**, which is the check that found the missing runes. A character has five armor pieces and so five runes; a published build never leaves one empty. Slots needing three attribute runes carry one Vitae, and slots needing two carry two. The M1 test asserts this directly.
 - **Hero 7 is the only slot without a 40/40 set.** It carries a Spawning Power staff, whose +10 energy is two less than a focus's +12, so it rests at 40 energy where every other slot rests at 42. The staff's two health modifiers are **not yet encoded** — the item data has no health-granting weapon upgrades — so hero 7's real maximum health is above the 400 gwsim reports (A-034).
+- **Three published template codes no longer match their bars.** The PvX codes encode the melee column's optional skill, so heroes 4 and 6 carry codes for Withering Aura and Splinter Weapon rather than Blood of the Master and Lamentation, and the heroes 1–3 code was always one choice of three. The codes are kept because they are what the source published and they still carry the professions and attributes correctly; **read the skill column, not the code, for what the party runs.** Re-encoding needs skill ids for Blood of the Master and Lamentation, which were not among the 72 read in T1.3.1.
 - **Tactics notes from PvX:** backline on Guard, midline on Fight or Guard; pre-cast Shelter → Union → Displacement → Armor of Unfeeling before hard fights; flag heroes apart against AoE. The tactics generator must produce these (§11.6).
 - **Heroes:** three Mesmer heroes are possible because of Ghost of Althea (Reforged Mode). Identity doesn't affect the simulation (D17).
 
@@ -1529,18 +1530,19 @@ PvX sources:
 | Group | Skills | Count |
 | --- | --- | --- |
 | Mesmer (party) | Panic, Energy Surge, Cry of Frustration, Mistrust, Unnatural Signet, Shatter Hex, Spiritual Pain, Power Drain, Drain Enchantment, Arcane Echo | 10 |
-| Ritualist (party) | Flesh of My Flesh, Spirit Transfer, Mend Body and Soul, Spirit Light, Protective Was Kaolai, Recuperation, Signet of Spirits, Ancestors' Rage, Spirit Siphon, Splinter Weapon, Life, Soul Twisting, Shelter, Union, Displacement, Armor of Unfeeling, Boon of Creation, Signet of Creation | 18 |
-| Necromancer (party) | Blood is Power, Blood Bond, Signet of Lost Souls, Animate Bone Fiend, Putrid Bile, Masochism, Withering Aura | 7 |
+| Ritualist (party) | Spirit Transfer, Mend Body and Soul, Spirit Light, Protective Was Kaolai, Recuperation, Signet of Spirits, Ancestors' Rage, Spirit Siphon, Lamentation, Life, Soul Twisting, Shelter, Union, Displacement, Armor of Unfeeling, Boon of Creation, Signet of Creation | 17 |
+| Necromancer (party) | Blood is Power, Blood Bond, Signet of Lost Souls, Animate Bone Fiend, Putrid Bile, Masochism, Blood of the Master | 7 |
 | Paragon (party) | "Incoming!", "Fall Back!", "Stand Your Ground!" | 3 |
 | Monk (party) | Resurrection Chant, Remove Hex | 2 |
 | PvE-only (party) | Air of Superiority (Asura title) | 1 |
 | Kournan skills not already listed | Disrupting Chop, Executioner's Strike, Magehunter Strike, Sprint, Armor of Sanctity, Eremite's Attack, Pious Renewal, Veil of Thorns, "Never Surrender!", Cautery Signet, Mighty Throw, Wild Throw, Crossfire, Infuriating Heat, Precision Shot, Troll Unguent, Whirling Defense, Aftershock, Aura of Restoration, Fireball, Master of Magic, Meteor, Enchanter's Conundrum, Power Spike, Shatter Enchantment, Life Siphon, Strip Enchantment, Convert Hexes, Reversal of Fortune, Shielding Hands, Zealous Benediction | 31 |
-| **Total** | | **72** |
+| **Total** | | **71** |
 
 - **Complexity** (research-time judgement, to confirm while encoding):
   - **Formulaic:** Energy Surge, Blood is Power, Recuperation, Signet of Creation, Ancestors' Rage, Remove Hex.
-  - **One-of-a-kind (handlers):** Panic, Mistrust, Blood Bond, Putrid Bile, Animate Bone Fiend, Soul Twisting, Shelter, Union, Displacement, Life, Protective Was Kaolai, Splinter Weapon, Flesh of My Flesh, Resurrection Chant, Arcane Echo, Air of Superiority (random Asura benefit on kills that give XP).
-  - **Conditional:** everything else in the party. The Kournan skills haven't been classified yet.
+  - **One-of-a-kind (handlers):** Panic, Mistrust, Blood Bond, Putrid Bile, Animate Bone Fiend, Soul Twisting, Shelter, Union, Displacement, Life, Protective Was Kaolai, Resurrection Chant, Arcane Echo, Air of Superiority (random Asura benefit on kills that give XP). **These were design-time guesses and T1.5.1 has since superseded them: four of the party's skills need handlers, not sixteen.**
+  - **Conditional:** everything else in the party. The Kournan skills are classified in T1.5.1.
+- **The roster changed on 2026-09-23**, when the party moved to PvX's caster column: Flesh of My Flesh, Splinter Weapon and Withering Aura left; Blood of the Master and Lamentation arrived. **The two arrivals have not been studied** — T1.3.1 and T1.5.1 both read the earlier 72, so 69 of the current 71 are covered.
 
 ### 20.4 2026 balance changes touching M1 (from the wiki's update notes)
 
@@ -1561,8 +1563,8 @@ PvX sources:
 - **Area effects:** range bands and area damage with 75% to secondary targets; the summoned-creature tag.
 - **Spirits:** binding-ritual spirits with party auras (damage cap, damage reduction, redistribution, block); spirit health scaling with Spawning Power; one spirit per type; the foe nature ritual (Infuriating Heat), which replaces allied and enemy spirits of the same type.
 - **Minions and corpses:** Bone Fiends from corpses; minion degeneration; the control cap.
-- **Weapon spells:** one per target (Splinter Weapon).
-- **Resurrection:** Resurrection Chant, Flesh of My Flesh; Life.
+- **Weapon spells:** one per target. **M1 no longer exercises this**: Splinter Weapon left the party on 2026-09-23 and nothing replaced it, so the rule is implemented against no M1 skill and needs a test fixture of its own.
+- **Resurrection:** Resurrection Chant, carried by two heroes; Life.
 - **Shouts and chants:** "Incoming!", "Fall Back!", "Stand Your Ground!", "Never Surrender!"; speed boosts.
 - **Conditions and movement:** conditions (from foe skills), movement state, snares and speed modifiers.
 - **Knockdown:** Meteor, Aftershock [confirm], and others from foe skills.
