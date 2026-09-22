@@ -8,7 +8,7 @@ The phase files say what a phase set out to do. This file says what it left
 behind. An item leaves when it is done, or when it is absorbed into a real
 task in a phase file.
 
-- **Status:** 2026-09-22, after P1.
+- **Status:** 2026-09-22, after P1. O1, O2 and O3 closed.
 - **Format:** each item says what it is, why it was left, and where it goes.
 
 ---
@@ -19,10 +19,7 @@ Things I cannot decide or do.
 
 | # | Item | Why it needs you |
 | --- | --- | --- |
-| O1 | **T1.5.9 — review the effect DSL's shape.** The one P1 task still formally `Todo`. See [effect-dsl.md](../effect-dsl.md); the five M1 encodings to judge it against are in [T1.5.1](../findings/T1.5.1-dsl-coverage.md). | P3 builds an interpreter on these types. Changing them after that is expensive. |
-| O2 | **Promote `data/core/*.ron` from `Draft` to `Reviewed`.** T1.1.4 asked for `Reviewed`; I set `Draft` because §8.7 defines `Reviewed` as "reviewed by the owner or a second contributor" and I am neither. | Self-certifying a review defeats the point of having one. The values are cross-checked against the wiki's own worked tables in T1.1.5. |
-| O3 | **Confirm A-033, the player's runes.** PvX gives effective ranks but names no runes. A-033 infers three, which leaves two armor slots empty and is the *only* reason the player has 405 maximum health where every hero has 430. | A 25-health difference that comes from an inference, not a source. Worth a second opinion before it shows up in a result. |
-| O4 | **Decide the hero weapon assumption.** §20.1 names weapons for the player and heroes 1–3 only. Heroes 4–7 compute to 30 energy rather than 42. | Inventing gear for four party members is a bigger call than I should make alone. Wants an assumption in A-033's spirit. |
+| O4 | **Decide the hero weapon assumption.** [DESIGN.md §20.1](../DESIGN.md#201-party) is the M1 party table — the eight slots (player plus seven heroes) that milestone M1 simulates. Its Equipment column names a weapon set for the player and heroes 1–3 ("40/40 Domination set") but gives heroes 4–7 insignias and runes only, no weapons. A caster without a wand and focus computes to 30 energy rather than 42. | Inventing gear for four party members is a bigger call than I should make alone. Wants an assumption in A-033's spirit. |
 | O5 | **Merge `setup/p0` and push.** Both P0 and P1 live on that branch. A remote now exists (`jjunkiee/gwsim`). | Committing and pushing is yours (C5). |
 
 ---
@@ -92,6 +89,7 @@ Recorded in findings files, repeated here so they are not lost in them.
 | Q5 | **No test vector has a full bar of 8 real skills.** Every published code has at least one empty slot, so nothing proves the skill width behaves at 8. | T1.3.1 §9 |
 | Q6 | **"Adjacent to target" has no published gwinch value.** It is the scythe and melee-AoE radius. M1 has no scythe user, so it waits for WP4.2. | [T1.1.1](../findings/T1.1.1-core-values.md) §4 |
 | Q7 | **The hard-mode level mapping has gaps** at normal levels 32 and 35+, and one row (34) maps to a *range*. The loader returns nothing rather than guessing, so a foe at those levels must state its own hard-mode level. | T1.1.1 §5 |
+| Q9 | **Four DSL shape questions went unasked.** T1.5.9 was closed without the review packet, so these are open against the first real encodings rather than settled: (a) is `Control::Triggered` one abstraction or four mechanisms in a trenchcoat — it is what took the handler estimate from 16 to 4; (b) is the `Selector`/`Filter` split real, or an invented distinction; (c) does `Value` carry too much through `Quantity`; (d) are the missing item-relative and per-piece scopes (E1–E3) additions or type changes. | T1.5.9 |
 | Q8 | **Is 2,400 files the right full-coverage scale?** The data pack decision rests on a 36 ms release load at that size. If the real tree lands far above it, revisit. `crates/gwsim-data/tests/pack_scale.rs` re-runs the measurement. | [T1.7.1](../findings/T1.7.1-data-pack.md) §8 |
 
 ---
@@ -109,4 +107,10 @@ Recorded in findings files, repeated here so they are not lost in them.
 
 ## 7. Done and removable
 
-Nothing yet. Items move here briefly when closed, then leave.
+Items move here briefly when closed, then leave.
+
+| # | Item | Outcome |
+| --- | --- | --- |
+| O2 | **Promote `data/core/*.ron` to `Reviewed`.** | **Closed 2026-09-22: reviewed by the owner.** All seven files now carry `review: Reviewed, reviewed_by: Some("Jake Mansell")`. |
+| O3 | **Confirm A-033, the player's runes.** | **Closed 2026-09-22: specified by the owner** as superior Domination Magic (head), minor Fast Casting, superior Vigor and two of Vitae. A-033 is now `Confirmed`. Player health moves 405 → 475, and Inspiration Magic drops 9 → 8 because no slot is left for its minor rune — see DESIGN §20.1. |
+| O1 | **T1.5.9 — review the effect DSL's shape.** | **Closed 2026-09-22: approved as it stands**, to be evolved during implementation rather than reviewed up front. The packet was never built, so no M1 skill has been encoded in the real types and rendered. The shape questions it would have raised are now Q9. |
