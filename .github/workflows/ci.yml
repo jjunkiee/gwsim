@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: fmt, clippy, test
+    # Windows is gwsim's only supported platform (DESIGN 18.2), so it is the
+    # platform that has to be green. windows-latest is Windows Server 2025 and
+    # ships MSVC and Rust 1.98.1 preinstalled (see docs/findings/T0.6.2-ci.md).
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Rust is preinstalled on the runner, but pinning it explicitly keeps the
+      # log honest and survives a future image dropping it. rust-toolchain.toml
+      # also names stable, so there is no conflict.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      # Formatting first: it is the cheapest way to fail.
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Test
+        run: cargo test --workspace
+
+      # --- Steps below are enabled by later tasks. ---
+
+      # Enabled by T1.2.12 (data schema validation).
+      # - name: Validate data
+      #   run: cargo run --release -p gwsim-cli -- data validate
+
+      # Enabled by T4.10.6 (reduced relative checks RC1/RC2/RC6).
+      # Runs a reduced seed count so CI stays under a few minutes.
+      # - name: Relative checks
+      #   run: cargo run --release -p gwsim-cli -- check --reduced
+
+      # Enabled by T4.11.5 (performance smoke test).
+      # Guards the 8-v-8 fight budget; a regression here is a real failure.
+      # - name: Performance smoke test
+      #   run: cargo test --release -p gwsim-engine --test perf_smoke
