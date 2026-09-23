@@ -107,9 +107,9 @@ impl Sim {
             if self.now < u.next_decision_at {
                 // Heroes interrupt without a reaction delay (A-011): they
                 // look again the moment a foe starts a skill.
-                let just_cast = self
-                    .foe_cast_started
-                    .is_some_and(|at| self.now.ms().saturating_sub(at.ms()) < crate::time::TICK_MS);
+                let just_cast = self.foe_cast_started.is_some_and(|at| {
+                    self.now.ms().saturating_sub(at.ms()) <= crate::time::TICK_MS
+                });
                 if controller == Controller::Hero
                     && just_cast
                     && let Some(order) = hero::interrupt_now(self, unit)

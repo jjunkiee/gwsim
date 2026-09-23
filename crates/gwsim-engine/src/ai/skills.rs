@@ -273,7 +273,13 @@ impl Sim {
         if profile.interrupts && profile.requirement.is_some() {
             score = score.max(INTERRUPT);
         }
-        if profile.gains_energy && !profile.damages {
+        // Energy is the point only of a skill that does nothing else: a
+        // heal that refunds energy (Zealous Benediction) is still a heal.
+        if profile.gains_energy
+            && !profile.damages
+            && !profile.heals_target
+            && profile.removes.is_none()
+        {
             let me = &self.units[unit.index()];
             let energy = f64::from(me.energy_points()) / f64::from(self.max_energy(unit).max(1));
             if energy > ENERGY_BELOW {
