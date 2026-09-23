@@ -11,6 +11,7 @@ use std::path::PathBuf;
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 pub mod check;
+pub mod check_opt;
 pub mod compare;
 pub mod coverage;
 pub mod data;
@@ -19,7 +20,9 @@ pub mod evaluate;
 pub mod info;
 pub mod loading;
 pub mod log;
+pub mod optimise;
 pub mod plan;
+pub mod profile;
 pub mod report;
 pub mod results;
 pub mod template;
@@ -54,8 +57,178 @@ pub enum Command {
     Log(LogArgs),
     /// Run two parties on the same seeds and compare them.
     Compare(CompareArgs),
-    /// Run the relative checks of DESIGN §17.4 (RC1, RC2, RC6).
+    /// Run the relative checks of DESIGN §17.4 (RC1, RC2, RC4, RC5, RC6).
     Check(CheckArgs),
+    /// Search for the best builds for a party's free slots.
+    Optimise(Box<OptimiseArgs>),
+    /// Manage account profiles: unlocked skills, heroes and title ranks.
+    Profile(ProfileArgs),
+}
+
+/// `gwsim optimise` (T5.8.1).
+#[derive(Debug, Args)]
+pub struct OptimiseArgs {
+    /// A party file, or the slug of a party in the data.
+    #[arg(long)]
+    pub party: String,
+
+    /// The slots the search may change, by name. Repeatable.
+    #[arg(long, value_name = "SLOT", required = true)]
+    pub free: Vec<String>,
+
+    /// A situation set's slug, or one situation (slug or file).
+    #[arg(long, value_name = "ID")]
+    pub situations: String,
+
+    /// What the ranked list is sorted by: an objective, or a weighted sum
+    /// such as `clear-time:1,deaths:20`. Default: clear-time.
+    #[arg(long)]
+    pub goal: Option<String>,
+
+    /// The objectives of the trade-off frontier, comma-separated, from
+    /// clear-time, deaths, damage-taken, energy-left and dp. Default:
+    /// clear-time,deaths.
+    #[arg(long)]
+    pub objectives: Option<String>,
+
+    /// The win rate every situation must reach.
+    #[arg(long, default_value_t = 0.95)]
+    pub threshold: f64,
+
+    /// Judge the threshold on the weighted mean win rate rather than in
+    /// every situation.
+    #[arg(long)]
+    pub aggregate_threshold: bool,
+
+    /// Stop after this long: 90s, 5m, 1h. Default 5m unless --generations.
+    #[arg(long)]
+    pub budget: Option<String>,
+
+    /// Stop after this many generations; with a fixed seed the run is then
+    /// exactly reproducible.
+    #[arg(long, value_name = "N")]
+    pub generations: Option<usize>,
+
+    /// Candidates per generation.
+    #[arg(long, default_value_t = 64)]
+    pub population: usize,
+
+    /// Runs per situation at each evaluation stage, like 16,64,256.
+    #[arg(long, value_name = "A,B,C")]
+    pub stages: Option<String>,
+
+    /// `evolutionary`, or `exhaustive` over a --pool file.
+    #[arg(long, default_value = "evolutionary")]
+    pub mode: String,
+
+    /// The pool file for exhaustive mode.
+    #[arg(long, value_name = "FILE")]
+    pub pool: Option<PathBuf>,
+
+    /// The most combinations exhaustive mode will run.
+    #[arg(long, default_value_t = gwsim_opt::exhaustive::DEFAULT_LIMIT)]
+    pub limit: usize,
+
+    /// Parts of a free slot that stay fixed: `slot=1,2,gear,attributes,secondary`
+    /// (bar positions counted from 1). Repeatable.
+    #[arg(long, value_name = "SLOT=PARTS")]
+    pub lock: Vec<String>,
+
+    /// A free slot's role, instead of the inferred one: `slot=healer`.
+    #[arg(long, value_name = "SLOT=ROLE")]
+    pub role: Vec<String>,
+
+    /// Only Reviewed skills are candidates.
+    #[arg(long)]
+    pub reviewed_only: bool,
+
+    /// An account profile's name, from the user directory.
+    #[arg(long)]
+    pub profile: Option<String>,
+
+    /// Where profiles live. Defaults to the platform's data directory.
+    #[arg(long, value_name = "PATH")]
+    pub user_dir: Option<PathBuf>,
+
+    /// The master seed of the search and of every evaluation.
+    #[arg(long, value_name = "S")]
+    pub seed: Option<u64>,
+
+    /// How many ranked builds to report.
+    #[arg(long, default_value_t = 10)]
+    pub top: usize,
+
+    /// Write report 3 (JSON) here.
+    #[arg(long, value_name = "PATH")]
+    pub json: Option<PathBuf>,
+
+    /// No progress lines on stderr.
+    #[arg(long)]
+    pub quiet: bool,
+
+    /// Worker threads. The result does not depend on this.
+    #[arg(long, value_name = "N")]
+    pub threads: Option<usize>,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
+}
+
+/// `gwsim profile` (T5.7.4).
+#[derive(Debug, Args)]
+pub struct ProfileArgs {
+    #[command(subcommand)]
+    pub command: ProfileCommand,
+
+    /// Where profiles live. Defaults to the platform's data directory, or
+    /// `GWSIM_USER_DIR`.
+    #[arg(long, value_name = "PATH", global = true)]
+    pub user_dir: Option<PathBuf>,
+
+    /// The data directory, for skill and hero names.
+    #[arg(long, value_name = "PATH", global = true)]
+    pub data_dir: Option<PathBuf>,
+}
+
+/// The subcommands of `gwsim profile`.
+#[derive(Debug, Subcommand)]
+pub enum ProfileCommand {
+    /// List the profiles.
+    List,
+    /// Print a profile.
+    Show { name: String },
+    /// Create a profile with everything unlocked and every title maxed.
+    New { name: String },
+    /// Print a profile's file path, for editing by hand.
+    Path { name: String },
+    /// `set <name> title <track> <rank>`.
+    Set {
+        name: String,
+        what: String,
+        track: String,
+        rank: u8,
+    },
+    /// `unlock <name> skill <slug…>`.
+    Unlock {
+        name: String,
+        what: String,
+        #[arg(required = true)]
+        skills: Vec<String>,
+    },
+    /// `lock <name> skill <slug…>`.
+    Lock {
+        name: String,
+        what: String,
+        #[arg(required = true)]
+        skills: Vec<String>,
+    },
+    /// `hero <name> add|remove <hero>`.
+    Hero {
+        name: String,
+        action: String,
+        hero: String,
+    },
 }
 
 /// Which checks `gwsim check` runs.

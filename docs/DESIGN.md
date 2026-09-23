@@ -1051,7 +1051,7 @@ Encounter(
 
 ### 13.6 Objectives and ranking [Decided Q17]
 
-- **Success threshold:** default **≥ 95%** wins, judged per situation [Proposed: per situation; option: weighted aggregate].
+- **Success threshold:** default **≥ 95%** wins, judged per situation [Proposed: per situation; option: weighted aggregate]. P5 implements both: per situation is the default, and `--aggregate-threshold` judges the weighted mean instead. Infeasible builds are ordered by the summed shortfall (T5.2.1). The owner still has to confirm this (T5.6.2, fallout F5.8).
 - **Goals the user can pick:**
   - fastest clear;
   - fewest deaths;

@@ -1,0 +1,54 @@
+// Wandering Eye — seeded from https://wiki.guildwars.com/wiki/Wandering_Eye
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 2056,
+    name: "Wandering Eye",
+    wiki: "Wandering Eye",
+    profession: Some(Mesmer),
+    attribute: Some(IllusionMagic),
+    kind: HexSpell,
+    elite: false,
+    pve_only: false,
+    campaign: EyeOfTheNorth,
+    cost: (energy: 5),
+    activation: 2.0,
+    recharge: 12.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Nearby)),
+    extracted: (
+        scaled: [
+            (label: "damage", r0: 30, r12: 94, r15: 110),
+        ],
+        description_hash: Some("blake3:b1de23848f9e087749fbb9fb94e484a9"),
+    ),
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: TargetFoe, effect: "wandering-eye", duration: Fixed(4)),
+        ],
+        effect_defs: [
+            (
+                id: "wandering-eye",
+                kind: Hex,
+                triggers: [
+                    Triggered(
+                        event: OnAttack,
+                        actions: [
+                            Interrupt(to: Target),
+                            Damage(to: Nearby(Target), amount: Scaled(30, 110)),
+                            EndEffect,
+                        ],
+                        charges: Some(1),
+                    ),
+                ],
+            ),
+        ],
+        roles: [Hex, Interrupt, Damage, Aoe],
+    )),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Wandering_Eye"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

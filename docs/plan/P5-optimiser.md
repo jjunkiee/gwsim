@@ -8,6 +8,7 @@
 - **Design refs:** §5.2 (UC2–UC5, UC8, UC12), §13, §14 #1 and #3, §15 (`optimise`, `profile`), §17.4 (RC4, RC5), OPT-1 to OPT-5, Q16, Q17, Q20, Q27, D30.
 - **Starts when:** M1 is done.
 - **Ends when:** the M2 criteria hold (see "M2 acceptance" at the end): O1 runs within the default time budget, RC4 and RC5 pass, and the frontier and ranked output are correct and reproducible.
+- **Status:** 2026-09-23, **Done** in the unattended session, except for the owner's steps. `gwsim optimise` runs evolutionary and exhaustive searches. O1 ran within the 5-minute budget: 21 generations and 1,408 candidates. Its best player bar clears the M1 set about 19% faster than the PvX bar (36.8 s against 45.6 s), with no losses ([T5.9.5](../findings/T5.9.5-o1.md)). RC4 and RC5 pass. The frontier and ranked outputs are tested, and they reproduce from a seed under a generation cap. Waiting on the owner: the threshold rule (F5.8), reviews of the new data and encodings (F5.10, F5.11, F5.16, F5.17), and O1's finding (F5.25). Decisions taken without the owner are in [fallout-tasks.md](fallout-tasks.md) §7 (F5.1–F5.25).
 - **Crate:** `gwsim-opt` [Proposed split, §6.1]. It depends on `gwsim-engine` and `gwsim-data`, and has no I/O except progress callbacks.
 - **Suggested order:**
   1. WP5.1;
@@ -21,16 +22,16 @@
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 5.1 | Genome, constraints, repair | Every candidate is a legal build that respects locks, coverage and the profile. | Todo |
-| 5.2 | NSGA-II | Multi-objective evolutionary search with constrained domination, seeding and an anytime frontier. | Todo |
-| 5.3 | Adaptive evaluation | Evaluations are cheap where possible and precise where it matters, paired by CRN, cached and parallel. | Todo |
-| 5.4 | Role tags and narrowing | Mutation draws role-compatible skills, and heuristic builds seed the search. | Todo |
-| 5.5 | Exhaustive mode | Every combination from a small pool is enumerated and ranked. | Todo |
-| 5.6 | Situation sets and objectives | Objectives, thresholds and weighted sets are defined and aggregated correctly. | Todo |
-| 5.7 | Account profile | Searches respect unlocked skills, heroes, upgrades, title ranks and Melandru's Accord. | Todo |
-| 5.8 | `optimise` command | The optimiser is exposed on the command line with report 3 as JSON. | Todo |
-| 5.9 | O1, RC4 and RC5 | The best player build for Mesmerway is found and checked against the PvX bar. | Todo |
-| 5.10 | O2: Solo Resto | The second benchmark, with its extra skills encoded. | Todo |
+| 5.1 | Genome, constraints, repair | Every candidate is a legal build that respects locks, coverage and the profile. | Done |
+| 5.2 | NSGA-II | Multi-objective evolutionary search with constrained domination, seeding and an anytime frontier. | Done |
+| 5.3 | Adaptive evaluation | Evaluations are cheap where possible and precise where it matters, paired by CRN, cached and parallel. | Done |
+| 5.4 | Role tags and narrowing | Mutation draws role-compatible skills, and heuristic builds seed the search. | Done |
+| 5.5 | Exhaustive mode | Every combination from a small pool is enumerated and ranked. | Done |
+| 5.6 | Situation sets and objectives | Objectives, thresholds and weighted sets are defined and aggregated correctly. | Done (threshold rule: Owner) |
+| 5.7 | Account profile | Searches respect unlocked skills, heroes, upgrades, title ranks and Melandru's Accord. | Done |
+| 5.8 | `optimise` command | The optimiser is exposed on the command line with report 3 as JSON. | Done |
+| 5.9 | O1, RC4 and RC5 | The best player build for Mesmerway is found and checked against the PvX bar. | Done |
+| 5.10 | O2: Solo Resto | The second benchmark, with its extra skills encoded. | Done (reviews: Owner) |
 
 ---
 
@@ -44,13 +45,13 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.1.1 | Genome representation | Build | — | Todo |
-| T5.1.2 | Candidate pools per slot | Build | T5.1.1 | Todo |
-| T5.1.3 | Legality with non-stacking runes | Build | T5.1.1 | Todo |
-| T5.1.4 | Repair operators | Build | T5.1.2, T5.1.3 | Todo |
-| T5.1.5 | Attribute allocation heuristic | Build | T5.1.1 | Todo |
-| T5.1.6 | Canonical form and hashing | Build | T5.1.1 | Todo |
-| T5.1.7 | Genome tests | Test | T5.1.2–T5.1.6 | Todo |
+| T5.1.1 | Genome representation | Build | — | Done |
+| T5.1.2 | Candidate pools per slot | Build | T5.1.1 | Done |
+| T5.1.3 | Legality with non-stacking runes | Build | T5.1.1 | Done |
+| T5.1.4 | Repair operators | Build | T5.1.2, T5.1.3 | Done |
+| T5.1.5 | Attribute allocation heuristic | Build | T5.1.1 | Done |
+| T5.1.6 | Canonical form and hashing | Build | T5.1.1 | Done |
+| T5.1.7 | Genome tests | Test | T5.1.2–T5.1.6 | Done |
 
 ### T5.1.1 Genome representation
 
@@ -153,13 +154,13 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.2.1 | NSGA-II and constraint handling | Research | — | Todo |
-| T5.2.2 | Sorting, crowding and constrained domination | Build | T5.2.1 | Todo |
-| T5.2.3 | Mutation operators | Build | WP5.1 | Todo |
-| T5.2.4 | Crossover operators | Build | WP5.1 | Todo |
-| T5.2.5 | Main loop, budget, stopping and anytime frontier | Build | T5.2.2–T5.2.4 | Todo |
-| T5.2.6 | Seeding | Build | T5.2.5 | Todo |
-| T5.2.7 | Synthetic-problem tests | Test | T5.2.5 | Todo |
+| T5.2.1 | NSGA-II and constraint handling | Research | — | Done |
+| T5.2.2 | Sorting, crowding and constrained domination | Build | T5.2.1 | Done |
+| T5.2.3 | Mutation operators | Build | WP5.1 | Done |
+| T5.2.4 | Crossover operators | Build | WP5.1 | Done |
+| T5.2.5 | Main loop, budget, stopping and anytime frontier | Build | T5.2.2–T5.2.4 | Done |
+| T5.2.6 | Seeding | Build | T5.2.5 | Done |
+| T5.2.7 | Synthetic-problem tests | Test | T5.2.5 | Done |
 
 ### T5.2.1 NSGA-II and constraint handling
 
@@ -255,10 +256,10 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.3.1 | Successive halving | Build | — | Todo |
-| T5.3.2 | Evaluation cache | Build | T5.1.6 | Todo |
-| T5.3.3 | Scheduling, progress and ETA | Build | T5.3.1 | Todo |
-| T5.3.4 | Evaluation tests | Test | T5.3.1–T5.3.3 | Todo |
+| T5.3.1 | Successive halving | Build | — | Done |
+| T5.3.2 | Evaluation cache | Build | T5.1.6 | Done |
+| T5.3.3 | Scheduling, progress and ETA | Build | T5.3.1 | Done |
+| T5.3.4 | Evaluation tests | Test | T5.3.1–T5.3.3 | Done |
 
 ### T5.3.1 Successive halving
 
@@ -312,11 +313,11 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.4.1 | Automatic role tags | Build | — | Todo |
-| T5.4.2 | Slot roles: inferred and user-set | Build | T5.4.1 | Todo |
-| T5.4.3 | Role-weighted sampling with exploration | Build | T5.4.2 | Todo |
-| T5.4.4 | Skill ratings and heuristic seed builds | Build | T5.4.3 | Todo |
-| T5.4.5 | Role tests | Test | T5.4.1–T5.4.4 | Todo |
+| T5.4.1 | Automatic role tags | Build | — | Done |
+| T5.4.2 | Slot roles: inferred and user-set | Build | T5.4.1 | Done |
+| T5.4.3 | Role-weighted sampling with exploration | Build | T5.4.2 | Done |
+| T5.4.4 | Skill ratings and heuristic seed builds | Build | T5.4.3 | Done |
+| T5.4.5 | Role tests | Test | T5.4.1–T5.4.4 | Done |
 
 ### T5.4.1 Automatic role tags
 
@@ -388,9 +389,9 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.5.1 | Pool file and counting | Build | — | Todo |
-| T5.5.2 | Enumeration and evaluation | Build | T5.5.1 | Todo |
-| T5.5.3 | Exhaustive tests | Test | T5.5.2 | Todo |
+| T5.5.1 | Pool file and counting | Build | — | Done |
+| T5.5.2 | Enumeration and evaluation | Build | T5.5.1 | Done |
+| T5.5.3 | Exhaustive tests | Test | T5.5.2 | Done |
 
 ### T5.5.1 Pool file and counting
 
@@ -433,11 +434,11 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.6.1 | Objectives | Build | — | Todo |
-| T5.6.2 | Threshold rule | Decision | — | Todo |
-| T5.6.3 | Set aggregation | Build | T5.6.1, T5.6.2 | Todo |
-| T5.6.4 | Frontier and ranked outputs | Build | T5.6.3 | Todo |
-| T5.6.5 | Objective tests | Test | T5.6.4 | Todo |
+| T5.6.1 | Objectives | Build | — | Done |
+| T5.6.2 | Threshold rule | Decision | — | Owner (F5.8) |
+| T5.6.3 | Set aggregation | Build | T5.6.1, T5.6.2 | Done |
+| T5.6.4 | Frontier and ranked outputs | Build | T5.6.3 | Done |
+| T5.6.5 | Objective tests | Test | T5.6.4 | Done |
 
 ### T5.6.1 Objectives
 
@@ -506,12 +507,12 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.7.1 | Account profile contents | Research | — | Todo |
-| T5.7.2 | Hero roster and title tracks | Data | T5.7.1 | Todo |
-| T5.7.3 | `AccountProfile` type and storage | Build | T5.7.1 | Todo |
-| T5.7.4 | `gwsim profile` commands | Build | T5.7.3 | Todo |
-| T5.7.5 | Constraints in pools, and Melandru's Accord | Build | T5.7.3, T5.1.2 | Todo |
-| T5.7.6 | Profile tests | Test | T5.7.4, T5.7.5 | Todo |
+| T5.7.1 | Account profile contents | Research | — | Done |
+| T5.7.2 | Hero roster and title tracks | Data | T5.7.1 | Done (review: Owner, F5.10, F5.11) |
+| T5.7.3 | `AccountProfile` type and storage | Build | T5.7.1 | Done |
+| T5.7.4 | `gwsim profile` commands | Build | T5.7.3 | Done |
+| T5.7.5 | Constraints in pools, and Melandru's Accord | Build | T5.7.3, T5.1.2 | Done |
+| T5.7.6 | Profile tests | Test | T5.7.4, T5.7.5 | Done |
 
 ### T5.7.1 Account profile contents
 
@@ -585,10 +586,10 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.8.1 | Command and options | Build | — | Todo |
-| T5.8.2 | Output: ranked text and report 3 JSON | Build | T5.8.1 | Todo |
-| T5.8.3 | Progress and interruption | Build | T5.8.1 | Todo |
-| T5.8.4 | Command tests | Test | T5.8.2, T5.8.3 | Todo |
+| T5.8.1 | Command and options | Build | — | Done |
+| T5.8.2 | Output: ranked text and report 3 JSON | Build | T5.8.1 | Done |
+| T5.8.3 | Progress and interruption | Build | T5.8.1 | Done |
+| T5.8.4 | Command tests | Test | T5.8.2, T5.8.3 | Done |
 
 ### T5.8.1 Command and options
 
@@ -640,11 +641,11 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.9.1 | Random legal build sampler | Build | — | Todo |
-| T5.9.2 | RC4 | Build | T5.9.1 | Todo |
-| T5.9.3 | Run O1 | Run | — | Todo |
-| T5.9.4 | RC5 | Build | T5.9.3 | Todo |
-| T5.9.5 | Triage and record | Run | T5.9.2–T5.9.4 | Todo |
+| T5.9.1 | Random legal build sampler | Build | — | Done |
+| T5.9.2 | RC4 | Build | T5.9.1 | Done |
+| T5.9.3 | Run O1 | Run | — | Done |
+| T5.9.4 | RC5 | Build | T5.9.3 | Done |
+| T5.9.5 | Triage and record | Run | T5.9.2–T5.9.4 | Done (finding: Owner, F5.25) |
 
 ### T5.9.1 Random legal build sampler
 
@@ -705,10 +706,10 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T5.10.1 | The Solo Resto bars | Research | — | Todo |
-| T5.10.2 | Encode the extra skills | Data / Build | T5.10.1 | Todo |
-| T5.10.3 | Benchmark file | Data | T5.10.1 | Todo |
-| T5.10.4 | Run O2 and record | Run | T5.10.2, T5.10.3 | Todo |
+| T5.10.1 | The Solo Resto bars | Research | — | Done |
+| T5.10.2 | Encode the extra skills | Data / Build | T5.10.1 | Done (review: Owner, F5.17) |
+| T5.10.3 | Benchmark file | Data | T5.10.1 | Done |
+| T5.10.4 | Run O2 and record | Run | T5.10.2, T5.10.3 | Done |
 
 ### T5.10.1 The Solo Resto bars
 

@@ -1,0 +1,188 @@
+// 7 Hero Mesmerway, Solo Resto variant (DESIGN §13.7 O2, T5.10.3): the
+// caster-player bars from the same Wayback snapshot as §20.1. Heroes 1 to 3
+// and 7 are the Dual Resto bars; hero 4 is the Ineptitude Mesmer, hero 6 the
+// Splinter Support Ritualist, and hero 5, the BiP resto, runs Life instead
+// of Recuperation.
+(
+    name: "Mesmerway solo resto",
+    notes: "O2's party (T5.10.3). Bars and attributes from the PvX page's Solo Resto section; see data/benchmarks/mesmerway-solo-resto.ron.",
+    sources: [
+        "https://web.archive.org/web/20260727151256/https://gwpvx.fandom.com/wiki/Build:Team_-_7_Hero_Mesmerway",
+    ],
+    benchmarks: ["mesmerway-solo-resto", "me-any-pve-energy-surge"],
+    slots: [
+        (
+            name: "player",
+            kind: Human,
+            build: (
+                primary: Mesmer,
+                secondary: None,
+                attribute_points: {FastCasting: 10, DominationMagic: 12, InspirationMagic: 8},
+                headgear_attribute: Some(DominationMagic),
+                skills: (Some(75), Some(39), Some(979), Some(934), Some(57), Some(1336), Some(25), Some(2416)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("minor-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(DominationMagic)),
+            ),
+            locked: true,
+            published_code: Some("OQBTAUBPQaJ4EY6x0BAAAAAAuE"),
+        ),
+        (
+            name: "hero 1",
+            kind: Hero,
+            build: (
+                primary: Mesmer,
+                secondary: None,
+                attribute_points: {FastCasting: 11, DominationMagic: 12, InspirationMagic: 6},
+                headgear_attribute: Some(DominationMagic),
+                skills: (Some(52), Some(57), Some(979), Some(934), Some(67), Some(1336), Some(25), Some(68)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("major-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(DominationMagic)),
+            ),
+            locked: false,
+            published_code: Some("OQBTAWBPsBAkDmemuhAONDAAA"),
+        ),
+        (
+            name: "hero 2",
+            kind: Hero,
+            build: (
+                primary: Mesmer,
+                secondary: Some(Monk),
+                attribute_points: {FastCasting: 11, DominationMagic: 12, InspirationMagic: 6, HealingPrayers: 2},
+                headgear_attribute: Some(DominationMagic),
+                skills: (Some(39), Some(57), Some(979), Some(934), Some(67), Some(1336), Some(25), Some(1128)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("major-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(DominationMagic)),
+            ),
+            locked: false,
+            published_code: Some("OQBTAWBPsBAkDmemuhAONDAAA"),
+        ),
+        (
+            name: "hero 3",
+            kind: Hero,
+            build: (
+                primary: Mesmer,
+                secondary: Some(Monk),
+                attribute_points: {FastCasting: 11, DominationMagic: 12, InspirationMagic: 6, HealingPrayers: 2},
+                headgear_attribute: Some(DominationMagic),
+                skills: (Some(39), Some(57), Some(979), Some(934), Some(67), Some(1336), Some(25), Some(1128)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("major-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(DominationMagic)),
+            ),
+            locked: false,
+            published_code: Some("OQBTAWBPsBAkDmemuhAONDAAA"),
+        ),
+        (
+            // Solo Resto: the Ineptitude Mesmer (caster-player version, with
+            // Resurrection Chant and Healing Prayers 2). Gear mirrors the
+            // Domination heroes with Illusion in Domination's place; the page
+            // gives the bar and attributes but no gear for this hero.
+            name: "hero 4",
+            kind: Hero,
+            build: (
+                primary: Mesmer,
+                secondary: Some(Monk),
+                attribute_points: {FastCasting: 11, IllusionMagic: 12, InspirationMagic: 6, HealingPrayers: 2},
+                headgear_attribute: Some(IllusionMagic),
+                skills: (Some(47), Some(2056), Some(1052), Some(1657), Some(36), Some(68), Some(25), Some(1128)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-illusion-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("major-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(IllusionMagic)),
+            ),
+            published_code: Some("OQBTA2APM6FABkDKPjEgIIDAAA"),
+        ),
+        (
+            name: "hero 5",
+            kind: Hero,
+            build: (
+                primary: Necromancer,
+                secondary: Some(Ritualist),
+                attribute_points: {RestorationMagic: 12, BloodMagic: 9, SoulReaping: 9},
+                headgear_attribute: Some(BloodMagic),
+                skills: (Some(119), Some(835), Some(962), Some(1365), Some(1234), Some(915), Some(1219), Some(1251)),
+                armor: (
+                    (slot: Head, insignia: Some("tormentors"), rune: Some("superior-blood-magic")),
+                    (slot: Chest, insignia: Some("tormentors"), rune: Some("major-soul-reaping")),
+                    (slot: Hands, insignia: Some("tormentors"), rune: Some("superior-vigor")),
+                    (slot: Legs, insignia: Some("tormentors"), rune: Some("vitae")),
+                    (slot: Feet, insignia: Some("tormentors"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(RestorationMagic)),
+            ),
+            locked: false,
+            published_code: Some("OAhjQkGZIP3hhmwrqKNncDzxJ"),
+        ),
+        (
+            // Solo Resto: the Splinter Support Ritualist / Paragon (position
+            // 5 variant). Equipment from the page: superior Vigor, three
+            // Attunement runes, five Stalwart insignias, 40/40 Channeling.
+            name: "hero 6",
+            kind: Hero,
+            build: (
+                primary: Ritualist,
+                secondary: Some(Paragon),
+                attribute_points: {ChannelingMagic: 12, Command: 12, SpawningPower: 3},
+                headgear_attribute: Some(ChannelingMagic),
+                skills: (Some(1596), Some(1595), Some(1589), Some(1781), Some(1228), Some(792), Some(1246), Some(916)),
+                armor: (
+                    (slot: Head, insignia: Some("stalwart"), rune: Some("superior-channeling-magic")),
+                    (slot: Chest, insignia: Some("stalwart"), rune: Some("superior-vigor")),
+                    (slot: Hands, insignia: Some("stalwart"), rune: Some("attunement")),
+                    (slot: Legs, insignia: Some("stalwart"), rune: Some("attunement")),
+                    (slot: Feet, insignia: Some("stalwart"), rune: Some("attunement")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(ChannelingMagic)),
+            ),
+            published_code: Some("OAmjIykjJP84dcNuezMxYeTKH"),
+        ),
+        (
+            name: "hero 7",
+            kind: Hero,
+            build: (
+                primary: Ritualist,
+                secondary: Some(Monk),
+                attribute_points: {Communing: 12, SpawningPower: 12},
+                headgear_attribute: Some(Communing),
+                skills: (Some(1240), Some(982), Some(911), Some(1249), Some(1232), Some(1230), Some(1238), Some(301)),
+                armor: (
+                    (slot: Head, insignia: Some("shamans"), rune: Some("superior-communing")),
+                    (slot: Chest, insignia: Some("shamans"), rune: Some("superior-spawning-power")),
+                    (slot: Hands, insignia: Some("shamans"), rune: Some("superior-vigor")),
+                    (slot: Legs, insignia: Some("shamans"), rune: Some("vitae")),
+                    (slot: Feet, insignia: Some("shamans"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("staff"), attribute: Some(SpawningPower)),
+            ),
+            locked: false,
+            published_code: Some("OACiAyk8gNtePuwJ00ZaNBAA"),
+        ),
+    ],
+)

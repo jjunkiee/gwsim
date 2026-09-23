@@ -1,0 +1,48 @@
+// Every hero, with its profession and how it is obtained (D17, T5.7.2).
+// Profession and availability are all the simulation uses. Razah can change
+// profession; it is listed at its starting Ritualist, and a party may give it
+// any primary.
+(
+    provenance: (
+        sources: [
+            "https://wiki.guildwars.com/wiki/Hero",
+            "https://wiki.guildwars.com/wiki/Mercenary_Hero",
+        ],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "Professions from the Hero page's navigation box. Campaigns follow the page's recruitment table; Olias and Zenmai are cross-campaign and are recorded as Core. Devona, Ghost of Althea and M.O.X. come with Guild Wars Reforged. Mercenary heroes are copies of the player's own characters and are added per profile, not listed here.",
+    ),
+    heroes: [
+        (slug: "acolyte-jin", name: "Acolyte Jin", profession: Ranger, availability: Campaign(Nightfall)),
+        (slug: "acolyte-sousuke", name: "Acolyte Sousuke", profession: Elementalist, availability: Campaign(Nightfall)),
+        (slug: "anton", name: "Anton", profession: Assassin, availability: Campaign(EyeOfTheNorth)),
+        (slug: "devona", name: "Devona", profession: Warrior, availability: Reforged),
+        (slug: "dunkoro", name: "Dunkoro", profession: Monk, availability: Campaign(Nightfall)),
+        (slug: "general-morgahn", name: "General Morgahn", profession: Paragon, availability: Campaign(Nightfall)),
+        (slug: "ghost-of-althea", name: "Ghost of Althea", profession: Mesmer, availability: Reforged),
+        (slug: "goren", name: "Goren", profession: Warrior, availability: Campaign(Nightfall)),
+        (slug: "gwen", name: "Gwen", profession: Mesmer, availability: Campaign(EyeOfTheNorth)),
+        (slug: "hayda", name: "Hayda", profession: Paragon, availability: Campaign(EyeOfTheNorth)),
+        (slug: "jora", name: "Jora", profession: Warrior, availability: Campaign(EyeOfTheNorth)),
+        (slug: "kahmu", name: "Kahmu", profession: Dervish, availability: Campaign(EyeOfTheNorth)),
+        (slug: "keiran-thackeray", name: "Keiran Thackeray", profession: Paragon, availability: Campaign(EyeOfTheNorth)),
+        (slug: "koss", name: "Koss", profession: Warrior, availability: Campaign(Nightfall)),
+        (slug: "livia", name: "Livia", profession: Necromancer, availability: Campaign(EyeOfTheNorth)),
+        (slug: "margrid-the-sly", name: "Margrid the Sly", profession: Ranger, availability: Campaign(Nightfall)),
+        (slug: "master-of-whispers", name: "Master of Whispers", profession: Necromancer, availability: Campaign(Nightfall)),
+        (slug: "melonni", name: "Melonni", profession: Dervish, availability: Campaign(Nightfall)),
+        (slug: "miku", name: "Miku", profession: Assassin, availability: Campaign(Factions)),
+        (slug: "mox", name: "M.O.X.", profession: Dervish, availability: Reforged),
+        (slug: "norgu", name: "Norgu", profession: Mesmer, availability: Campaign(Nightfall)),
+        (slug: "ogden-stonehealer", name: "Ogden Stonehealer", profession: Monk, availability: Campaign(EyeOfTheNorth)),
+        (slug: "olias", name: "Olias", profession: Necromancer, availability: Campaign(Core)),
+        (slug: "pyre-fierceshot", name: "Pyre Fierceshot", profession: Ranger, availability: Campaign(EyeOfTheNorth)),
+        (slug: "razah", name: "Razah", profession: Ritualist, availability: Campaign(Nightfall)),
+        (slug: "tahlkora", name: "Tahlkora", profession: Monk, availability: Campaign(Nightfall)),
+        (slug: "vekk", name: "Vekk", profession: Elementalist, availability: Campaign(EyeOfTheNorth)),
+        (slug: "xandra", name: "Xandra", profession: Ritualist, availability: Campaign(EyeOfTheNorth)),
+        (slug: "zei-ri", name: "Zei Ri", profession: Ritualist, availability: Campaign(Factions)),
+        (slug: "zenmai", name: "Zenmai", profession: Assassin, availability: Campaign(Core)),
+        (slug: "zhed-shadowhoof", name: "Zhed Shadowhoof", profession: Elementalist, availability: Campaign(Nightfall)),
+    ],
+)

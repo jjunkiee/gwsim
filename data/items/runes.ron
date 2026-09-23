@@ -40,6 +40,11 @@
         (slug: "major-domination-magic", name: "Major Rune of Domination Magic", kind: Attribute(attribute: DominationMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:DominationMagic", template_modifier_id: Some(49)),
         (slug: "superior-domination-magic", name: "Superior Rune of Domination Magic", kind: Attribute(attribute: DominationMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:DominationMagic", template_modifier_id: Some(75)),
 
+        // Illusion Magic (the Solo Resto Ineptitude hero, T5.10.3)
+        (slug: "minor-illusion-magic", name: "Minor Rune of Illusion Magic", kind: Attribute(attribute: IllusionMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:IllusionMagic", template_modifier_id: Some(24)),
+        (slug: "major-illusion-magic", name: "Major Rune of Illusion Magic", kind: Attribute(attribute: IllusionMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:IllusionMagic", template_modifier_id: Some(50)),
+        (slug: "superior-illusion-magic", name: "Superior Rune of Illusion Magic", kind: Attribute(attribute: IllusionMagic, tier: Superior), bonus: Some(AttributeRank(3)), health_penalty: 75, non_stacking_key: "attribute:IllusionMagic", template_modifier_id: Some(76)),
+
         // Inspiration Magic
         (slug: "minor-inspiration-magic", name: "Minor Rune of Inspiration Magic", kind: Attribute(attribute: InspirationMagic, tier: Minor), bonus: Some(AttributeRank(1)), health_penalty: 0, non_stacking_key: "attribute:InspirationMagic", template_modifier_id: Some(25)),
         (slug: "major-inspiration-magic", name: "Major Rune of Inspiration Magic", kind: Attribute(attribute: InspirationMagic, tier: Major), bonus: Some(AttributeRank(2)), health_penalty: 35, non_stacking_key: "attribute:InspirationMagic", template_modifier_id: Some(51)),

@@ -1,0 +1,43 @@
+// Accumulated Pain — seeded from https://wiki.guildwars.com/wiki/Accumulated_Pain
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1052,
+    name: "Accumulated Pain",
+    wiki: "Accumulated Pain",
+    profession: Some(Mesmer),
+    attribute: Some(IllusionMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 5),
+    activation: 2.0,
+    recharge: 12.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "damage", r0: 15, r12: 63, r15: 75),
+            (label: "deep wound duration", r0: 5, r12: 17, r15: 20),
+        ],
+        description_hash: Some("blake3:3018b2008c68d8bfb1a3fb17ac834347"),
+    ),
+    encoding: Some((
+        effects: [
+            Damage(to: TargetFoe, amount: Scaled(15, 75)),
+            Control(If(
+                condition: Hexed,
+                of: Some(TargetFoe),
+                then: [ApplyCondition(to: TargetFoe, condition: DeepWound, duration: Scaled(5, 20))],
+            )),
+        ],
+        roles: [Damage],
+    )),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Accumulated_Pain"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "PvE version of a split skill (D3) The Deep Wound needs two or more hexes on the target; the DSL can test only for any hex, so one hex is enough here (fallout F5.14).",
+    ),
+)

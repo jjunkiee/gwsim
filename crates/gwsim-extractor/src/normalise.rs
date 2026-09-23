@@ -561,7 +561,16 @@ mod tests {
     #[test]
     fn title_tracks_are_recognised_from_the_rank_label() {
         assert_eq!(parse_title_track("Asura rank"), Some(TitleTrack::Asura));
-        assert_eq!(parse_title_track("Norn rank"), None, "not modelled yet");
+        assert_eq!(parse_title_track("Norn rank"), Some(TitleTrack::Norn));
+        assert_eq!(
+            parse_title_track("Ebon Vanguard rank"),
+            Some(TitleTrack::EbonVanguard)
+        );
+        assert_eq!(
+            parse_title_track("Hero rank"),
+            None,
+            "not a PvE skill track"
+        );
         assert_eq!(parse_title_track("Domination Magic"), None);
     }
 }

@@ -1,0 +1,56 @@
+// "Find Their Weakness!" — seeded from https://wiki.guildwars.com/wiki/%22Find_Their_Weakness!%22
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1781,
+    name: "\"Find Their Weakness!\"",
+    wiki: "\"Find Their Weakness!\"",
+    profession: Some(Paragon),
+    attribute: Some(Command),
+    kind: Shout,
+    elite: false,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 10),
+    activation: 0.0,
+    recharge: 15.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 5, r12: 17, r15: 20),
+            (label: "+ damage", r0: 5, r12: 41, r15: 50),
+            (label: "deep wound", r0: 5, r12: 17, r15: 20),
+        ],
+        description_hash: Some("blake3:56bb7ac7a58d5fa6b0056aa484b40ed6"),
+    ),
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: TargetAlly, effect: "find-their-weakness", duration: Scaled(5, 20)),
+        ],
+        effect_defs: [
+            (
+                id: "find-their-weakness",
+                kind: ShoutOrChant,
+                triggers: [
+                    Triggered(
+                        event: OnHit,
+                        actions: [
+                            Damage(to: Other, amount: Scaled(5, 50)),
+                            ApplyCondition(to: Other, condition: DeepWound, duration: Scaled(5, 20)),
+                            EndEffect,
+                        ],
+                        charges: Some(1),
+                    ),
+                ],
+            ),
+        ],
+        roles: [Damage, PartyBuff],
+    )),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/%22Find_Their_Weakness!%22"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

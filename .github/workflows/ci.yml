@@ -50,10 +50,10 @@ jobs:
       - name: Validate data
         run: cargo run -p gwsim-cli -- data validate
 
-      # Reduced relative checks (T4.10.6): SELF, DET, RC2 and RC6 must pass.
-      # About a minute on a runner at the reduced run counts.
+      # Reduced relative checks (T4.10.6, T5.9): SELF, DET, RC2, RC4, RC5 and RC6 must pass.
+      # A few minutes on a runner at the reduced run counts.
       - name: Relative checks
-        run: cargo run --release -p gwsim-cli -- check --level reduced --only SELF --only DET --only RC2 --only RC6
+        run: cargo run --release -p gwsim-cli -- check --level reduced --only SELF --only DET --only RC2 --only RC4 --only RC5 --only RC6
 
       # RC1 fails on the current model (docs/findings/T4.10.7-m1-relative-checks.md)
       # and waits on the owner's decision (fallout F4.40), so it reports

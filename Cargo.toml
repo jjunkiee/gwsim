@@ -42,6 +42,8 @@ rand_core = "0.10"
 rayon = "1"
 smallvec = "1"
 proptest = "1"
+# Clean Ctrl-C for gwsim optimise (T5.8.3).
+ctrlc = "3"
 
 [profile.release]
 # Keeps release profiles readable for profiling without the cost of full
