@@ -31,6 +31,9 @@ insta = "1"
 serde_json = "1"
 blake3 = "1"
 dirs = "6"
+# The extractor only (T2.2.1, T2.4.1). Neither is used by anything shipped.
+ureq = "3"
+scraper = "0.27"
 
 [profile.release]
 # Keeps release profiles readable for the performance work in WP4.11
