@@ -85,6 +85,19 @@ pub struct Sim {
     pub foe_cast_started: Option<SimTime>,
     /// Spirits carrying an aura, so stat queries need not scan every unit.
     pub aura_spirits: Vec<UnitId>,
+    /// The next pre-fight cast (T4.7.3), and when it started waiting.
+    pub prefight_step: usize,
+    pub prefight_since: SimTime,
+    /// The next chain fight to spawn (T4.8.4), and the rest before it.
+    pub chain_step: usize,
+    pub resting_until: Option<SimTime>,
+    /// When the current fight began, for its timeout (A-030).
+    pub fight_started_at: SimTime,
+    /// When the current fight's foes first engaged.
+    pub segment_engaged: Option<SimTime>,
+    /// Fights finished so far, and party deaths at the start of this one.
+    pub segments: Vec<crate::result::Segment>,
+    pub deaths_before: u32,
     /// Effects whose definition gives its caster a modifier (Life Siphon's
     /// regeneration), as (bearer, effect id), so stat queries need not scan
     /// every effect in the fight.
@@ -122,6 +135,14 @@ impl Sim {
             called_target: None,
             foe_cast_started: None,
             aura_spirits: Vec::new(),
+            prefight_step: 0,
+            prefight_since: SimTime::ZERO,
+            chain_step: 0,
+            resting_until: None,
+            fight_started_at: SimTime::ZERO,
+            segment_engaged: None,
+            segments: Vec::new(),
+            deaths_before: 0,
             caster_effects: Vec::new(),
             trigger_depth: 0,
         }
@@ -220,6 +241,11 @@ impl Sim {
 
     /// The continuous processes, once per tick.
     fn tick(&mut self) {
+        if let Some(until) = self.resting_until
+            && self.now >= until
+        {
+            self.spawn_next_fight();
+        }
         self.move_units();
         self.regenerate();
         self.drive_attacks();
@@ -232,6 +258,11 @@ impl Sim {
     /// Ends the fight if a stop condition holds.
     pub fn check_outcome(&mut self) {
         if self.outcome.is_some() {
+            return;
+        }
+        if self.resting_until.is_some() {
+            // Between fights of a chain; only a wipe could end it, and
+            // nothing fights during a rest.
             return;
         }
         let alive = |team: Team| {
@@ -249,19 +280,80 @@ impl Sim {
         let outcome = if party_alive == 0 {
             Some(Outcome::Wipe)
         } else if has_foes && foes_alive == 0 {
+            if self.chain_step < self.fight.chain.len() {
+                // A chain goes on: this fight is won; rest, then the next.
+                self.end_segment(Outcome::Win);
+                let rest = self.fight.chain[self.chain_step].rest_ms;
+                self.resting_until = Some(self.now.plus(rest));
+                self.log_event(
+                    LogEvent::new(self.now, LogKind::FightEnded)
+                        .detail(&format!("fight {} won; resting", self.segments.len())),
+                );
+                return;
+            }
             Some(Outcome::Win)
-        } else if self.now.ms() >= self.fight.timeout_ms {
+        } else if self.now.ms().saturating_sub(self.fight_started_at.ms()) >= self.fight.timeout_ms
+        {
             self.touch(30);
             Some(Outcome::Timeout)
         } else {
             None
         };
         if let Some(outcome) = outcome {
+            self.end_segment(outcome);
             self.outcome = Some((outcome, self.now));
             self.log_event(
                 LogEvent::new(self.now, LogKind::FightEnded).detail(&format!("{outcome:?}")),
             );
         }
+    }
+
+    /// Records the fight just ended as a segment of the run.
+    fn end_segment(&mut self, outcome: Outcome) {
+        let deaths: u32 = self.stats.slots.iter().map(|s| s.deaths).sum();
+        let clear_time_ms = (outcome == Outcome::Win).then(|| {
+            let engaged = self
+                .segment_engaged
+                .or(self.engaged_at)
+                .unwrap_or(self.fight_started_at);
+            self.now.ms().saturating_sub(engaged.ms())
+        });
+        self.segments.push(crate::result::Segment {
+            outcome,
+            clear_time_ms,
+            deaths: deaths - self.deaths_before,
+        });
+        self.deaths_before = deaths;
+    }
+
+    /// Spawns a chain's next fight ahead of the party's leader, after the
+    /// rest (T4.8.4). Health, energy, recharges, effects, minions, spirits
+    /// and death penalty all carry over, since nothing resets them.
+    fn spawn_next_fight(&mut self) {
+        self.resting_until = None;
+        let Some(step) = self.fight.chain.get(self.chain_step).cloned() else {
+            return;
+        };
+        self.chain_step += 1;
+        let anchor = self
+            .party_leader()
+            .map(|l| self.units[l.index()].pos)
+            .unwrap_or(crate::geom::Vec2::ZERO);
+        for (mut foe, controller) in step.foes.into_iter().zip(step.controllers) {
+            foe.id = UnitId(self.units.len() as u16);
+            foe.pos = anchor + foe.pos;
+            foe.home = foe.pos;
+            foe.foe_index = Some(self.stats.foe_ttk_ms.len());
+            self.stats.foe_ttk_ms.push(None);
+            self.units.push(foe);
+            self.controllers.push(controller);
+        }
+        self.fight_started_at = self.now;
+        self.segment_engaged = None;
+        self.log_event(
+            LogEvent::new(self.now, LogKind::FightEnded)
+                .detail(&format!("fight {} begins", self.segments.len() + 1)),
+        );
     }
 
     /// Called whenever a unit's action finishes and it is free again.

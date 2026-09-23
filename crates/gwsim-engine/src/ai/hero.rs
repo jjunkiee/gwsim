@@ -134,7 +134,8 @@ impl Sim {
     /// previous target, then the weakest foe engaging the party.
     pub fn hero_focus(&mut self, unit: UnitId, in_combat: bool) -> Option<UnitId> {
         let alive = |sim: &Sim, id: Option<UnitId>| id.filter(|t| sim.units[t.index()].alive());
-        let chosen = alive(self, self.called_target)
+        let chosen = alive(self, self.units[unit.index()].locked_target)
+            .or_else(|| alive(self, self.called_target))
             .or_else(|| {
                 let leader = self.party_leader()?;
                 alive(self, self.units[leader.index()].focus)

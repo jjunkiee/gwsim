@@ -451,6 +451,9 @@ impl Sim {
         if self.engaged_at.is_none() {
             self.engaged_at = Some(self.now);
         }
+        if self.segment_engaged.is_none() && self.resting_until.is_none() {
+            self.segment_engaged = Some(self.now);
+        }
     }
 
     /// Kills a unit (T3.5.8). Its activation stops (not an interrupt), most

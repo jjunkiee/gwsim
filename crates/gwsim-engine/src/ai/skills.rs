@@ -66,6 +66,11 @@ impl Sim {
             let Some(skill) = self.slot_skill(unit, slot) else {
                 continue;
             };
+            // Skills the tactics plan disables are never used on the AI's
+            // own initiative (AI-H9).
+            if self.units[unit.index()].disabled_slots & (1 << slot) != 0 {
+                continue;
+            }
             // What does not depend on the target first: recharge, energy,
             // adrenaline, a busy caster.
             if !self.ready(unit, slot) {
@@ -277,7 +282,7 @@ impl Sim {
             score = score.max(ENERGY);
         }
         if profile.damages {
-            if !situation.in_combat && !hostile_target {
+            if !situation.in_combat {
                 return None;
             }
             let bonus = if Some(t) == situation.focus { 5.0 } else { 0.0 };

@@ -16,6 +16,7 @@ pub mod describe;
 pub mod evaluate;
 pub mod info;
 pub mod loading;
+pub mod plan;
 pub mod template;
 
 /// Guild Wars Reforged PvE build simulator.
@@ -42,6 +43,24 @@ pub enum Command {
     Template(TemplateArgs),
     /// Run a party in a situation many times and report the results.
     Evaluate(EvaluateArgs),
+    /// Print the priority plan a human slot would follow, as editable RON.
+    Plan(PlanArgs),
+}
+
+/// `gwsim plan` (T4.6.2).
+#[derive(Debug, Args)]
+pub struct PlanArgs {
+    /// A party file, or the slug of a party in the data.
+    #[arg(long)]
+    pub party: String,
+
+    /// The slot, by name. Defaults to the first human slot.
+    #[arg(long)]
+    pub slot: Option<String>,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
 }
 
 /// `gwsim evaluate` (T3.10.6).

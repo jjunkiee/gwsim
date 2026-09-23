@@ -67,7 +67,17 @@ pub fn run(args: &EvaluateArgs, out: &mut impl Write) -> io::Result<i32> {
         let events = result.log.as_deref().unwrap_or_default();
         let text = match format.as_str() {
             "json" => log::to_json_lines(events),
-            _ => log::to_text(events, |id| setup.unit_name(id), |id| setup.skill_name(id)),
+            _ => log::to_text(
+                events,
+                |id| {
+                    result
+                        .unit_names
+                        .get(usize::from(id))
+                        .cloned()
+                        .unwrap_or_else(|| setup.unit_name(id))
+                },
+                |id| setup.skill_name(id),
+            ),
         };
         write!(out, "{text}")?;
         return Ok(OK);
@@ -109,7 +119,7 @@ pub fn run(args: &EvaluateArgs, out: &mut impl Write) -> io::Result<i32> {
 }
 
 /// A party by file path, or by slug in the data.
-fn find_party(data: &DataSet, name: &str) -> Result<PartyFile, String> {
+pub fn find_party(data: &DataSet, name: &str) -> Result<PartyFile, String> {
     let path = Path::new(name);
     if path.is_file() {
         let text =

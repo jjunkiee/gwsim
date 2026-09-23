@@ -60,6 +60,14 @@ impl Sim {
                     .collect()
             },
             draft_skills_used: draft,
+            first_failed: self.segments.iter().position(|s| s.outcome != Outcome::Win),
+            segments: std::mem::take(&mut self.segments),
+            covenant_broken: self.covenant_broken,
+            unit_names: if self.log.is_some() {
+                self.units.iter().map(|u| u.name.clone()).collect()
+            } else {
+                Vec::new()
+            },
             log: self.log,
             stats,
         }

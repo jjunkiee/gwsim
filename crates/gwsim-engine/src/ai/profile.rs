@@ -148,6 +148,21 @@ impl SkillProfile {
         for action in walk(&encoding.effects) {
             visit(action, &mut profile);
         }
+        // Damage an effect deals when it ends or triggers makes the skill
+        // offensive too (Ancestors' Rage, Putrid Bile).
+        let deferred_damage = defs.iter().any(|d| {
+            let triggered: Vec<Action> = d
+                .triggers
+                .iter()
+                .map(|t| Action::Control(Box::new(t.clone())))
+                .collect();
+            walk(&d.on_end)
+                .chain(walk(&triggered))
+                .any(|a| matches!(a, Action::Damage { .. }))
+        });
+        if deferred_damage {
+            profile.damages = true;
+        }
         // A skill whose worth depends on the user's creatures.
         let needs = |action: &Action| {
             let text = format!("{action:?}");

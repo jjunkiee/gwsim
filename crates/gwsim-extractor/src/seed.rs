@@ -579,6 +579,7 @@ pub fn build_foe(
         energy: None,
         weapon: None,
         boss: raw.boss,
+        pre_searing: false,
         ai_tags: Vec::new(),
         provenance: Provenance {
             sources: vec![title.url()],

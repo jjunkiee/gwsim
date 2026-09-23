@@ -23,6 +23,10 @@ pub struct PartyFile {
     #[serde(default)]
     pub sources: Vec<String>,
     pub slots: Vec<PartySlot>,
+    /// Overrides for the tactics plan, for every situation this party runs
+    /// (§11.6). A situation's own overrides win over these.
+    #[serde(default)]
+    pub tactics: Option<crate::tactics::TacticsOverrides>,
 }
 
 /// One party member.

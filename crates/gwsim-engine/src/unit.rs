@@ -287,6 +287,11 @@ pub struct Unit {
     pub home: Vec2,
     /// Backs away from melee (AI-F5).
     pub kiter: bool,
+    /// Bar slots the tactics plan disables for the AI (AI-H9), as a bit per
+    /// slot.
+    pub disabled_slots: u8,
+    /// A target the tactics plan locks this hero onto (AI-H1).
+    pub locked_target: Option<UnitId>,
 }
 
 /// A hero's combat mode (AI-H2, Hero).

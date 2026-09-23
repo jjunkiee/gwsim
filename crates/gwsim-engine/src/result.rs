@@ -110,9 +110,29 @@ pub struct RunResult {
     pub stats: RunStats,
     pub assumptions_touched: Vec<AssumptionId>,
     pub draft_skills_used: Vec<SkillId>,
+    /// Each fight of a chain in turn; one entry for a single fight (T4.8.4).
+    pub segments: Vec<Segment>,
+    /// The fight (from 0) in which a chain first failed, if it did.
+    pub first_failed: Option<usize>,
+    /// Dhuum's Covenant was on and a party member died (T4.3.10).
+    pub covenant_broken: bool,
     /// The combat log, when one was kept.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub log: Option<Vec<crate::log::LogEvent>>,
+    /// Every unit's name by id, when a log was kept, so a log can name the
+    /// creatures and foes that appeared mid-fight.
+    #[serde(skip)]
+    pub unit_names: Vec<String>,
+}
+
+/// One fight of a chain.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Segment {
+    pub outcome: Outcome,
+    /// From this fight's aggro to its last foe's death, for a win.
+    pub clear_time_ms: Option<u32>,
+    /// Party deaths during this fight.
+    pub deaths: u32,
 }
 
 impl RunResult {
@@ -125,6 +145,7 @@ impl RunResult {
     pub fn digest(&self) -> u64 {
         let mut copy = self.clone();
         copy.log = None;
+        copy.unit_names.clear();
         let text = serde_json::to_string(&copy).unwrap_or_default();
         text.bytes().fold(0xcbf2_9ce4_8422_2325u64, |hash, byte| {
             (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)

@@ -89,6 +89,10 @@ pub struct Foe {
 
     #[serde(default)]
     pub boss: bool,
+    /// Lives in pre-Searing Ascalon, where Reforged Mode takes 20% off foes'
+    /// health and armor (Reforged Mode).
+    #[serde(default)]
+    pub pre_searing: bool,
     #[serde(default)]
     pub ai_tags: Vec<AiTag>,
 

@@ -27,6 +27,7 @@ pub mod scenario;
 pub mod skill;
 pub mod skill_index;
 pub mod source;
+pub mod tactics;
 pub mod template;
 pub mod units;
 pub mod user_dir;
