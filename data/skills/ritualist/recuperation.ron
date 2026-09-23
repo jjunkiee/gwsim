@@ -1,0 +1,34 @@
+// Recuperation — seeded from https://wiki.guildwars.com/wiki/Recuperation
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 981,
+    name: "Recuperation",
+    wiki: "Recuperation",
+    profession: Some(Ritualist),
+    attribute: Some(RestorationMagic),
+    kind: BindingRitual,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 25),
+    activation: 0.75,
+    recharge: 45.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(SpiritRange)),
+    extracted: (
+        scaled: [
+            (label: "level", r0: 1, r12: 11, r15: 14),
+            (label: "health regeneration", r0: 1, r12: 3, r15: 3),
+            (label: "duration", r0: 15, r12: 39, r15: 45),
+        ],
+        description_hash: Some("blake3:6066038e963e5c37235633f9e5b67cdf"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Recuperation"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

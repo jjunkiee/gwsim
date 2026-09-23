@@ -44,6 +44,7 @@ impl HandlerRegistry for &[&str] {
 pub fn run(data: &DataSet, problems: &mut DataErrors) {
     check_references(data, problems);
     check_skills(data, problems);
+    check_skill_index(data, problems);
     crate::checks_dsl::check_encodings(data, problems);
     check_foes(data, problems);
     check_benchmarks(data, problems);
@@ -289,6 +290,60 @@ fn check_skills(data: &DataSet, problems: &mut DataErrors) {
 
         check_review_status(entry, problems);
         check_scaled_numbers(entry, problems);
+    }
+}
+
+/// The skill index must be well formed, and every player skill file must be
+/// in it (T2.3.6 step 3).
+///
+/// Monster skills are exempt: the index lists player skills only, because
+/// monster skills are added as encounters need them and have no fixed total.
+fn check_skill_index(data: &DataSet, problems: &mut DataErrors) {
+    let Some(index) = &data.skill_index else {
+        return;
+    };
+
+    for problem in index.value.provenance.problems() {
+        problems
+            .0
+            .push(DataError::consistency(&index.path, problem));
+    }
+    if !index.value.is_sorted() {
+        problems.0.push(DataError::consistency(
+            &index.path,
+            "the index must list skills in strictly increasing id order, with no id twice",
+        ));
+    }
+
+    for entry in data.skills.values() {
+        let skill = &entry.value;
+        if entry.path.split('/').nth(1) == Some("monster") {
+            continue;
+        }
+        match index.value.by_id(skill.id) {
+            None => problems.0.push(DataError::consistency(
+                &entry.path,
+                format!(
+                    "skill id {} is not in skills/index.ron; every player skill file \
+                     must appear in the index, which `gwsim-extract index` \
+                     regenerates from the wiki's skill lists",
+                    skill.id
+                ),
+            )),
+            Some(indexed) if indexed.title != skill.wiki => {
+                problems.0.push(DataError::consistency(
+                    &entry.path,
+                    format!(
+                        "skill id {} is {:?} in skills/index.ron but this file's wiki \
+                         page is {:?}",
+                        skill.id,
+                        indexed.title.as_str(),
+                        skill.wiki.as_str()
+                    ),
+                ))
+            }
+            Some(_) => {}
+        }
     }
 }
 

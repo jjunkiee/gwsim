@@ -9,6 +9,18 @@ publish.workspace = true
 [dependencies]
 gwsim-data = { path = "../gwsim-data" }
 clap.workspace = true
+ureq.workspace = true
+scraper.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+ron.workspace = true
+blake3.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+
+[lib]
+path = "src/lib.rs"
 
 [[bin]]
 name = "gwsim-extract"

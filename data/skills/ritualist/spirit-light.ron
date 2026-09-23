@@ -1,0 +1,31 @@
+// Spirit Light — seeded from https://wiki.guildwars.com/wiki/Spirit_Light
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 915,
+    name: "Spirit Light",
+    wiki: "Spirit Light",
+    profession: Some(Ritualist),
+    attribute: Some(RestorationMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 5, sacrifice_pct: 17),
+    activation: 1.0,
+    recharge: 4.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "healing", r0: 60, r12: 156, r15: 180),
+        ],
+        description_hash: Some("blake3:6bd378cbb67210700002c678c2cbc7c0"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Spirit_Light"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

@@ -1,0 +1,31 @@
+// Troll Unguent — seeded from https://wiki.guildwars.com/wiki/Troll_Unguent
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 446,
+    name: "Troll Unguent",
+    wiki: "Troll Unguent",
+    profession: Some(Ranger),
+    attribute: Some(WildernessSurvival),
+    kind: Skill,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 5),
+    activation: 3.0,
+    recharge: 10.0,
+    target: Self,
+    range: None,
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "health regeneration", r0: 3, r12: 9, r15: 10),
+        ],
+        description_hash: Some("blake3:ef172db8b8ee883feac3b11016db8fcf"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Troll_Unguent"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

@@ -168,8 +168,11 @@ mod tests {
         let mut out = Vec::new();
         validate(&args(repo_data_dir(), OutputFormat::Text), &mut out).unwrap();
         let report = String::from_utf8(out).unwrap();
+        // Since P2 seeded real files the tree carries warnings (A-004 is
+        // still Pending), so a passing run may end "0 errors, N warnings"
+        // rather than "no problems found". Either way it must say so.
         assert!(
-            report.contains("no problems found"),
+            report.contains("no problems found") || report.contains("0 errors"),
             "a silent success is indistinguishable from a broken command: {report}"
         );
     }

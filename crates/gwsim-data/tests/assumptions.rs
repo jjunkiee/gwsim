@@ -273,13 +273,22 @@ fn every_recorded_id_resolves_to_a_statement() {
 // ---------------------------------------------------------------- coverage
 
 #[test]
-fn coverage_of_the_repositorys_data_is_empty_but_well_formed() {
-    // No skills have been written yet, which is the honest answer rather
-    // than an error.
-    let coverage = Coverage::compute(&data());
-    assert!(coverage.is_empty());
-    assert_eq!(coverage.total.total(), 0);
-    assert!(!coverage.denominator_is_complete);
+fn coverage_of_the_repositorys_data_counts_against_the_whole_game() {
+    // Since T2.3.6 the skill index gives every percentage a real
+    // denominator, and every indexed skill is either seeded or not started.
+    let data = data();
+    let coverage = Coverage::compute(&data);
+    assert!(!coverage.is_empty());
+    assert!(coverage.denominator_is_complete);
+    let index = data
+        .skill_index
+        .as_ref()
+        .expect("data/skills/index.ron exists");
+    assert_eq!(coverage.total.total(), index.value.skills.len());
+    assert_eq!(
+        coverage.total.with_files() + coverage.total.not_started,
+        index.value.skills.len()
+    );
 }
 
 #[test]

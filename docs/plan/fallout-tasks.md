@@ -18,7 +18,7 @@ task in a phase file.
 Things I cannot decide or do.
 
 **Nothing, as of 2026-09-23.** Every item that was here has been decided; they
-are in §7 with their outcomes. New ones go here rather than being guessed at.
+are in §8 with their outcomes. New ones go here rather than being guessed at.
 
 ---
 
@@ -112,7 +112,35 @@ Recorded in findings files, repeated here so they are not lost in them.
 
 ---
 
-## 7. Done and removable
+## 7. Raised during P2–P5 (unattended session, 2026-09-23)
+
+P2 to P5 were implemented in one unattended session. The owner gave standing
+permission for every action and asked for no questions, so **every decision
+the plan reserves for the owner was taken here instead, and is logged beside
+the item that needed it** for review. Status is one of: **Done** (handled in
+the phase that raised it), **Deferred → Pn** (logged for a later phase), or
+**Owner** (only the owner can close it, such as a review sign-off).
+
+| # | Item | Decision taken | Status |
+| --- | --- | --- | --- |
+| F2.1 | **T2.1.1, T2.1.2 and T2.1.4 need the owner to approve the fetches and the parsing strategy.** | Fetched 18 pages at ≥ 3 s intervals with the project User-Agent, and fixed the strategy in [T2.1](../findings/T2.1-extractor-spike.md) §5. The main departure from the plan: `Skill_template_format/Skill_list` replaces the game-integration pages as the primary ID source, because it is newer (to 3473) and one page; and the ID is read from the skill page itself, which the design did not expect to be possible. | Done; owner to review the strategy |
+| F2.2 | **The plan names "List of Mesmer skills"; the real title is lower case.** | Discovery uses "List of mesmer skills" and its ten siblings. | Done |
+| F2.3 | **T2.4.5 proposes SHA-256 for the description hash.** | Used BLAKE3, already a workspace dependency for the data pack, rather than adding `sha2`. The stored value is prefixed `blake3:` so a later change of algorithm is visible in the data. Nothing depends on the algorithm beyond equality. | Done |
+| F2.4 | **Q10 says seeding never overwrites; the skill index must be regenerable.** | `gwsim-extract index` replaces `data/skills/index.ron` wholesale. The index is facts only and never hand-edited, so the rule Q10 exists for — protecting hand-written encodings — does not apply; `seed` itself still never overwrites anything. | Done; owner to confirm |
+| F2.5 | **The Kournan Guard and Bowman pages name 12 skills outside M1** (their hammer, sword and Jahai Bluffs loadouts), and validation requires every foe skill reference to resolve. | Seeded those 12 as `NumbersOnly` alongside the 71, so the foe files keep every variant the wiki lists. They are never simulated, and coverage reports them as seeded-not-encoded. | Done |
+| F2.6 | **T2.4.8 and T2.5.7 ask the owner to spot-check the parse tables.** | Every row was checked by machine instead: 69 skills against the independent P1 record (0 differences), 2 against the spike pages, 8 foes against §20.2 (all agree). The owner's spot-check (≥ 10 skill rows including Energy Surge, the only special-rounding row) has not happened. | **Owner** |
+| F2.7 | **The Zealot and Phalanx pages give no attribute ranks at all**, and A-005 only fills hard-mode ranks *from* normal-mode ones. | Seeded with empty ranks and a note. WP4.2 must supply normal-mode ranks by a new rule, recorded as an assumption. | Deferred → P4 (WP4.2) |
+| F2.8 | **PvE-only skills with a profession broke two rules at once**: the layout check wanted them in their profession's folder, the PvE-only check in `common/`. 60-odd skills in the index (the allegiance skills among them) are affected; none is in M1. | Fixed in `DataSet::check_layout`: a PvE-only skill belongs in `common/` whatever its profession. The seeder already wrote them there. | Done |
+| F2.9 | **T2.6.5 says to commit the seeded files once the owner approves.** | Committed on `extractor/p2` and merged without approval, like the rest of the phase. `git revert` of the seeding commit removes them cleanly. | **Owner** to review |
+| F2.10 | **Monster skill ids above 3473 appear on no list page** the extractor may read, and boss pages were never sampled (no M1 foe is a boss). | Recorded as open questions in [T2.1](../findings/T2.1-extractor-spike.md) §7. The boss flag is read from a `Boss` row when present. | Deferred → P7 |
+| F2.11 | **The seeded Kournan Guard keeps only its first armor table.** Its hammer loadout has its own (100 / 80), but `FoeVariant` has no armor field. | The axe/sword table is the foe's armor (A-007 makes it the axe variant), and the note says further tables exist. WP4.2 decides whether variants need their own armor. | Deferred → P4 (WP4.2) |
+
+**Closed by P2:** **E4** (`data/skills/` now holds 83 seeded skills) and **E6**
+(Lamentation is id 916, Blood of the Master id 120, both parsed and checked in
+T2.4.8). **E7** is unblocked by E6 and moves to T4.9.1, where the benchmark
+files are written.
+
+## 8. Done and removable
 
 Items move here briefly when closed, then leave.
 

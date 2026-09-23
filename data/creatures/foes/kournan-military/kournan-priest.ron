@@ -1,0 +1,26 @@
+// Kournan Priest — seeded from https://wiki.guildwars.com/wiki/Kournan_Priest
+// Draft: `gwsim-extract seed` wrote the numbers; gaps carry assumption references.
+(
+    name: "Kournan Priest",
+    wiki: "Kournan Priest",
+    affiliation: "Kournan military",
+    species: "Human",
+    traits: [Fleshy],
+    professions: (Monk,None),
+    level: (nm: 20, hm: Some(26)),
+    attributes: (nm: [(DivineFavor,15),(ProtectionPrayers,15)], hm: None),
+    skills: [
+        (skill: Slug("convert-hexes")),
+        (skill: Slug("reversal-of-fortune")),
+        (skill: Slug("shielding-hands")),
+        (skill: Slug("zealous-benediction")),
+    ],
+    armor: (default: Some(60), level_context: Some(20)),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Kournan_Priest"],
+        crawled: "2026-09-23",
+        review: Draft,
+        assumptions: ["A-004","A-005"],
+        notes: "the page lists 2 level pairs; the highest, 20 (26), is used; some skills are carried only at higher levels; the bar is the full one",
+    ),
+)

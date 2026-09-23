@@ -23,6 +23,7 @@ pub mod pack;
 pub mod provenance;
 pub mod scenario;
 pub mod skill;
+pub mod skill_index;
 pub mod source;
 pub mod template;
 pub mod units;

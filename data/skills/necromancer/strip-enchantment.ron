@@ -1,0 +1,32 @@
+// Strip Enchantment — seeded from https://wiki.guildwars.com/wiki/Strip_Enchantment
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 143,
+    name: "Strip Enchantment",
+    wiki: "Strip Enchantment",
+    profession: Some(Necromancer),
+    attribute: Some(BloodMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 1.0,
+    recharge: 20.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "enchantments removed", r0: 0, r12: 2, r15: 2),
+            (label: "life stealing", r0: 5, r12: 53, r15: 65),
+        ],
+        description_hash: Some("blake3:f5c087b9c311b7329050181a333b3900"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Strip_Enchantment"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

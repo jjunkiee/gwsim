@@ -1,0 +1,33 @@
+// Displacement — seeded from https://wiki.guildwars.com/wiki/Displacement
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1249,
+    name: "Displacement",
+    wiki: "Displacement",
+    profession: Some(Ritualist),
+    attribute: Some(Communing),
+    kind: BindingRitual,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 15),
+    activation: 0.75,
+    recharge: 45.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(SpiritRange)),
+    extracted: (
+        scaled: [
+            (label: "level", r0: 1, r12: 11, r15: 14),
+            (label: "duration", r0: 30, r12: 54, r15: 60),
+        ],
+        description_hash: Some("blake3:ba2b610fb28cc60ae64efb89f7a88aba"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Displacement"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

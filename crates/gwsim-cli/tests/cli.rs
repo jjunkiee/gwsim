@@ -1,6 +1,7 @@
 //! Integration tests for the `gwsim` binary (T0.3.4).
 
 use assert_cmd::Command;
+use predicates::prelude::PredicateBooleanExt;
 
 /// `gwsim --version` prints the workspace version and the data pack's hash.
 ///
@@ -42,7 +43,12 @@ fn data_validate_accepts_the_repositorys_data() {
         .arg(&data_dir)
         .assert()
         .success()
-        .stdout(predicates::str::contains("no problems found"));
+        // Since P2 the tree carries warnings (A-004 is still Pending), so the
+        // summary reads "0 errors, N warnings" rather than "no problems found".
+        .stdout(
+            predicates::str::contains("0 errors")
+                .or(predicates::str::contains("no problems found")),
+        );
 }
 
 /// A tree that cannot be read fails with a non-zero exit code, which is what
@@ -163,7 +169,7 @@ fn data_describe_all_refuses_to_be_combined_with_a_filter() {
     }
 }
 
-/// `--all` is accepted on its own and reports the empty tree honestly.
+/// `--all` is accepted on its own and lists every skill in the tree.
 #[test]
 fn data_describe_all_is_accepted_on_its_own() {
     let data_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data");
@@ -173,7 +179,7 @@ fn data_describe_all_is_accepted_on_its_own() {
         .args(["data", "describe", "--all", "--data-dir"])
         .arg(&data_dir)
         .assert()
-        // data/skills/ is empty until P2, so this is the honest answer
-        // rather than silence.
-        .stdout(predicates::str::contains("no skills"));
+        .success()
+        // P2 seeded the M1 skills, so every one is described.
+        .stdout(predicates::str::contains("Energy Surge (#39)"));
 }

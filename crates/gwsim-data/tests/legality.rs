@@ -50,7 +50,13 @@ fn data() -> DataSet {
     let real = DirSource::new(&repo);
 
     let mut source = MemSource::default().described_as("legality fixtures");
+    // The real items and core files, but not the seeded skills, foes or the
+    // skill index: the test skills below use invented ids that would clash
+    // with real ones.
     for (path, contents) in real_files(&real) {
+        if path.starts_with("skills/") || path.starts_with("creatures/") {
+            continue;
+        }
         source = source.with(path, contents);
     }
 

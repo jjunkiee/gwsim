@@ -1,0 +1,32 @@
+// Whirling Defense — seeded from https://wiki.guildwars.com/wiki/Whirling_Defense
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 450,
+    name: "Whirling Defense",
+    wiki: "Whirling Defense",
+    profession: Some(Ranger),
+    attribute: Some(Expertise),
+    kind: Stance,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 0.0,
+    recharge: 60.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 8, r12: 18, r15: 20),
+            (label: "armor-ignoring damage", r0: 5, r12: 10, r15: 11),
+        ],
+        description_hash: Some("blake3:88bae2195ea60eec9e832b5d8e588e65"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Whirling_Defense"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

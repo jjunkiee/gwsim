@@ -1,0 +1,29 @@
+// Cautery Signet — seeded from https://wiki.guildwars.com/wiki/Cautery_Signet
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1588,
+    name: "Cautery Signet",
+    wiki: "Cautery Signet",
+    profession: Some(Paragon),
+    attribute: None,
+    kind: Signet,
+    elite: true,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (),
+    activation: 2.0,
+    recharge: 15.0,
+    target: Self,
+    range: None,
+    aoe: Some(Band(Party)),
+    extracted: (
+        description_hash: Some("blake3:3f563ef47b8d86048f3101d2b21aa606"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Cautery_Signet"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "no progression table",
+    ),
+)

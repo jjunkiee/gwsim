@@ -1,0 +1,31 @@
+// Reversal of Fortune — seeded from https://wiki.guildwars.com/wiki/Reversal_of_Fortune
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 307,
+    name: "Reversal of Fortune",
+    wiki: "Reversal of Fortune",
+    profession: Some(Monk),
+    attribute: Some(ProtectionPrayers),
+    kind: EnchantmentSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 5),
+    activation: 0.25,
+    recharge: 2.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "maximum healing", r0: 15, r12: 67, r15: 80),
+        ],
+        description_hash: Some("blake3:4f5efd2d0f8faa00ce243e954eb41067"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Reversal_of_Fortune"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

@@ -14,16 +14,17 @@
   - the EXT-1 to EXT-7 tests pass.
 - **Feeds:** T3.10.3 (the 8 M0 skills), WP4.1 and WP4.2 (M1 encoding and foe data), T1.6.4 (coverage denominators), and P7 (all skills).
 - **Suggested order:** WP2.1, WP2.2, WP2.3, then WP2.4 and WP2.5 in parallel, then WP2.6, then WP2.7.
+- **Status:** 2026-09-23, **Done**, in the unattended session. The exit criteria hold: the M1 skill and foe files are seeded (83 skills, 8 foes) and pass `gwsim data validate`; `diff` straight after seeding reports no changes; the EXT tests pass. **The owner steps were not done** — approving the crawls and the strategy, spot-checking the parse tables, and approving the commit. Each is logged in [fallout-tasks.md](fallout-tasks.md) §7 (F2.1, F2.6, F2.9) with what was done instead.
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 2.1 | Spike | Know exactly how each needed field appears in rendered HTML, and fix the parsing and discovery strategy. | Todo |
-| 2.2 | Polite HTTP client | An HTTP layer that can't violate EXT-1 to EXT-7. | Todo |
-| 2.3 | Discovery | Resolve every player skill (ID and title) and the M1 foes through allowed list pages. | Todo |
-| 2.4 | Skill parser and normaliser | Turn a cached skill page into the numbers part of a skill file. | Todo |
-| 2.5 | Foe and area parsers | Turn foe and area pages into foe numbers and area rosters. | Todo |
-| 2.6 | `seed` | Write initial RON files and never overwrite. | Todo |
-| 2.7 | `diff` and change report | Compare re-derived values with committed data, and never write data. | Todo |
+| 2.1 | Spike | Know exactly how each needed field appears in rendered HTML, and fix the parsing and discovery strategy. | Done |
+| 2.2 | Polite HTTP client | An HTTP layer that can't violate EXT-1 to EXT-7. | Done |
+| 2.3 | Discovery | Resolve every player skill (ID and title) and the M1 foes through allowed list pages. | Done |
+| 2.4 | Skill parser and normaliser | Turn a cached skill page into the numbers part of a skill file. | Done |
+| 2.5 | Foe and area parsers | Turn foe and area pages into foe numbers and area rosters. | Done |
+| 2.6 | `seed` | Write initial RON files and never overwrite. | Done |
+| 2.7 | `diff` and change report | Compare re-derived values with committed data, and never write data. | Done |
 
 ---
 
@@ -37,11 +38,11 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.1.1 | Crawl rules and server behaviour | Research | — | Todo |
-| T2.1.2 | Fetch the representative pages | Research | T2.1.1 | Todo |
-| T2.1.3 | Map every field to the HTML | Research | T2.1.2 | Todo |
-| T2.1.4 | Fix the strategy | Decision | T2.1.3 | Todo |
-| T2.1.5 | Synthetic fixtures | Build | T2.1.4 | Todo |
+| T2.1.1 | Crawl rules and server behaviour | Research | — | Done |
+| T2.1.2 | Fetch the representative pages | Research | T2.1.1 | Done |
+| T2.1.3 | Map every field to the HTML | Research | T2.1.2 | Done |
+| T2.1.4 | Fix the strategy | Decision | T2.1.3 | Done |
+| T2.1.5 | Synthetic fixtures | Build | T2.1.4 | Done |
 
 ### T2.1.1 Crawl rules and server behaviour
 
@@ -138,12 +139,12 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.2.1 | Client skeleton, User-Agent and transport | Build | T2.1.4 | Todo |
-| T2.2.2 | URL guard and robots.txt | Build | T2.2.1 | Todo |
-| T2.2.3 | Rate limiter | Build | T2.2.1 | Todo |
-| T2.2.4 | Response handling and stop rules | Build | T2.2.2, T2.2.3 | Todo |
-| T2.2.5 | Page cache and crawl state | Build | T2.2.4 | Todo |
-| T2.2.6 | EXT test suite | Test | T2.2.5 | Todo |
+| T2.2.1 | Client skeleton, User-Agent and transport | Build | T2.1.4 | Done |
+| T2.2.2 | URL guard and robots.txt | Build | T2.2.1 | Done |
+| T2.2.3 | Rate limiter | Build | T2.2.1 | Done |
+| T2.2.4 | Response handling and stop rules | Build | T2.2.2, T2.2.3 | Done |
+| T2.2.5 | Page cache and crawl state | Build | T2.2.4 | Done |
+| T2.2.6 | EXT test suite | Test | T2.2.5 | Done |
 
 ### T2.2.1 Client skeleton, User-Agent and transport
 
@@ -239,12 +240,12 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.3.1 | Game integration list parser | Build | T2.1.5 | Todo |
-| T2.3.2 | Skill list parsers and merge | Build | T2.3.1 | Todo |
-| T2.3.3 | Area foe discovery | Build | T2.1.5 | Todo |
-| T2.3.4 | `crawl` command | Build | T2.3.2, T2.3.3, WP2.2 | Todo |
-| T2.3.5 | Discovery tests | Test | T2.3.4 | Todo |
-| T2.3.6 | Run discovery and write the skill index | Run | T2.3.5 | Todo |
+| T2.3.1 | Game integration list parser | Build | T2.1.5 | Done |
+| T2.3.2 | Skill list parsers and merge | Build | T2.3.1 | Done |
+| T2.3.3 | Area foe discovery | Build | T2.1.5 | Done |
+| T2.3.4 | `crawl` command | Build | T2.3.2, T2.3.3, WP2.2 | Done |
+| T2.3.5 | Discovery tests | Test | T2.3.4 | Done |
+| T2.3.6 | Run discovery and write the skill index | Run | T2.3.5 | Done |
 
 ### T2.3.1 Game integration list parser
 
@@ -325,14 +326,14 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.4.1 | Infobox parser | Build | T2.1.5 | Todo |
-| T2.4.2 | Value normaliser | Build | T2.4.1 | Todo |
-| T2.4.3 | Scaled values | Build | T2.4.1 | Todo |
-| T2.4.4 | Split pages and special cases | Build | T2.4.2 | Todo |
-| T2.4.5 | Skill ID and description hash | Build | T2.4.1 | Todo |
-| T2.4.6 | Parser tests | Test | T2.4.2–T2.4.5 | Todo |
-| T2.4.7 | Crawl the M1 skill pages | Run | T2.4.6 | Todo |
-| T2.4.8 | Hand-check the 72 parses | Review | T2.4.7 | Todo |
+| T2.4.1 | Infobox parser | Build | T2.1.5 | Done |
+| T2.4.2 | Value normaliser | Build | T2.4.1 | Done |
+| T2.4.3 | Scaled values | Build | T2.4.1 | Done |
+| T2.4.4 | Split pages and special cases | Build | T2.4.2 | Done |
+| T2.4.5 | Skill ID and description hash | Build | T2.4.1 | Done |
+| T2.4.6 | Parser tests | Test | T2.4.2–T2.4.5 | Done |
+| T2.4.7 | Crawl the M1 skill pages | Run | T2.4.6 | Done |
+| T2.4.8 | Hand-check the 72 parses | Review | T2.4.7 | Done |
 
 ### T2.4.1 Infobox parser
 
@@ -439,13 +440,13 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.5.1 | NPC infobox | Build | T2.1.5 | Todo |
-| T2.5.2 | Skills section and attributes | Build | T2.5.1 | Todo |
-| T2.5.3 | Armor ratings table | Build | T2.5.1 | Todo |
-| T2.5.4 | Area roster | Build | T2.3.3 | Todo |
-| T2.5.5 | Foe and area tests | Test | T2.5.2–T2.5.4 | Todo |
-| T2.5.6 | Crawl the Kournan and area pages | Run | T2.5.5 | Todo |
-| T2.5.7 | Hand-check against §20.2 | Review | T2.5.6 | Todo |
+| T2.5.1 | NPC infobox | Build | T2.1.5 | Done |
+| T2.5.2 | Skills section and attributes | Build | T2.5.1 | Done |
+| T2.5.3 | Armor ratings table | Build | T2.5.1 | Done |
+| T2.5.4 | Area roster | Build | T2.3.3 | Done |
+| T2.5.5 | Foe and area tests | Test | T2.5.2–T2.5.4 | Done |
+| T2.5.6 | Crawl the Kournan and area pages | Run | T2.5.5 | Done |
+| T2.5.7 | Hand-check against §20.2 | Review | T2.5.6 | Done |
 
 ### T2.5.1 NPC infobox
 
@@ -528,11 +529,11 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.6.1 | Skill file writer | Build | WP2.4 | Todo |
-| T2.6.2 | Foe file writer | Build | WP2.5 | Todo |
-| T2.6.3 | No-overwrite guarantee and dry run | Build | T2.6.1, T2.6.2 | Todo |
-| T2.6.4 | Seed tests | Test | T2.6.3 | Todo |
-| T2.6.5 | Seed the M1 files | Run | T2.6.4, T2.4.8, T2.5.7 | Todo |
+| T2.6.1 | Skill file writer | Build | WP2.4 | Done |
+| T2.6.2 | Foe file writer | Build | WP2.5 | Done |
+| T2.6.3 | No-overwrite guarantee and dry run | Build | T2.6.1, T2.6.2 | Done |
+| T2.6.4 | Seed tests | Test | T2.6.3 | Done |
+| T2.6.5 | Seed the M1 files | Run | T2.6.4, T2.4.8, T2.5.7 | Done |
 
 ### T2.6.1 Skill file writer
 
@@ -609,13 +610,13 @@ It never writes to `data/`.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T2.7.1 | Comparison model | Build | WP2.6 | Todo |
-| T2.7.2 | Report writers | Build | T2.7.1 | Todo |
-| T2.7.3 | `diff` command (read-only) | Build | T2.7.2 | Todo |
-| T2.7.4 | Game update context (optional) | Build | T2.7.3 | Todo |
-| T2.7.5 | Diff tests | Test | T2.7.3 | Todo |
-| T2.7.6 | Extractor docs in the README | Docs | T2.7.3 | Todo |
-| T2.7.7 | Verify no changes after seeding | Run | T2.7.5, T2.6.5 | Todo |
+| T2.7.1 | Comparison model | Build | WP2.6 | Done |
+| T2.7.2 | Report writers | Build | T2.7.1 | Done |
+| T2.7.3 | `diff` command (read-only) | Build | T2.7.2 | Done |
+| T2.7.4 | Game update context (optional) | Build | T2.7.3 | Done |
+| T2.7.5 | Diff tests | Test | T2.7.3 | Done |
+| T2.7.6 | Extractor docs in the README | Docs | T2.7.3 | Done |
+| T2.7.7 | Verify no changes after seeding | Run | T2.7.5, T2.6.5 | Done |
 
 ### T2.7.1 Comparison model
 
