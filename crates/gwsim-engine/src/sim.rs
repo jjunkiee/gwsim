@@ -70,6 +70,9 @@ pub struct Sim {
     /// The combat log, when one was asked for (WP3.9).
     pub log: Option<Vec<LogEvent>>,
     pub stats: RunStats,
+    /// Events dispatched so far: a deterministic measure of the work a
+    /// fight took, which the performance smoke test guards (T4.11.5).
+    pub events_processed: u64,
     /// Assumptions this fight relied on, as a bit per id.
     pub assumptions: u64,
     pub outcome: Option<(Outcome, SimTime)>,
@@ -127,6 +130,7 @@ impl Sim {
             projectiles: Vec::new(),
             log: None,
             stats,
+            events_processed: 0,
             assumptions: 0,
             outcome: None,
             engaged_at: None,
@@ -186,6 +190,7 @@ impl Sim {
             let horizon = next_tick.min(until);
             while let Some(event) = self.queue.pop_due(horizon) {
                 self.now = event.at;
+                self.events_processed += 1;
                 self.dispatch(event.kind);
                 if self.outcome.is_some() {
                     return;

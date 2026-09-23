@@ -161,6 +161,8 @@ pub struct Tunables {
     pub attack_hit_fraction: f64,
     /// A-036.
     pub experience_range: f32,
+    /// A-044: the share of maximum health an AI keeps after a sacrifice.
+    pub sacrifice_floor: f64,
 }
 
 impl Tunables {
@@ -231,6 +233,7 @@ impl Tunables {
             hard_mode_recharge_reduction: optional("A-032"),
             attack_hit_fraction: number("A-035", &mut problems) / 100.0,
             experience_range: number("A-036", &mut problems) as f32,
+            sacrifice_floor: number("A-044", &mut problems) / 100.0,
         };
         if problems.is_empty() {
             Ok(tunables)

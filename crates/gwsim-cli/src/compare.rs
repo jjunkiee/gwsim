@@ -116,13 +116,19 @@ fn paired(
 pub fn differences(a: &Evaluation, b: &Evaluation) -> Vec<MetricDiff> {
     type Getter = fn(&RunResult) -> Option<f64>;
     let metrics: [(&str, Better, Getter); 5] = [
-        ("win rate", Better::Higher, |r| Some(if r.won() { 1.0 } else { 0.0 })),
+        ("win rate", Better::Higher, |r| {
+            Some(if r.won() { 1.0 } else { 0.0 })
+        }),
         ("clear time (s)", Better::Lower, |r| {
             r.clear_time_ms.map(|ms| f64::from(ms) / 1000.0)
         }),
         ("deaths", Better::Lower, |r| Some(f64::from(r.deaths))),
-        ("damage taken", Better::Lower, |r| Some(r.damage_taken as f64)),
-        ("DP at end (%)", Better::Lower, |r| Some(f64::from(r.dp_end))),
+        ("damage taken", Better::Lower, |r| {
+            Some(r.damage_taken as f64)
+        }),
+        ("DP at end (%)", Better::Lower, |r| {
+            Some(f64::from(r.dp_end))
+        }),
     ];
     metrics
         .iter()
@@ -139,7 +145,12 @@ pub fn differences(a: &Evaluation, b: &Evaluation) -> Vec<MetricDiff> {
                 metric: (*name).to_owned(),
                 a: mean(&xs),
                 b: mean(&ys),
-                difference: harness::paired_bootstrap(&xs, &ys, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED),
+                difference: harness::paired_bootstrap(
+                    &xs,
+                    &ys,
+                    BOOTSTRAP_RESAMPLES,
+                    BOOTSTRAP_SEED,
+                ),
                 better: *better,
             }
         })
@@ -238,8 +249,7 @@ fn compare(args: &CompareArgs, out: &mut impl Write) -> Result<i32, Failure> {
     );
     // Both parties share each situation's seeds, so count runs once.
     notes.runs = outcomes.iter().map(|(c, _, _)| c.runs).collect();
-    let comparisons: Vec<SituationComparison> =
-        outcomes.into_iter().map(|(c, _, _)| c).collect();
+    let comparisons: Vec<SituationComparison> = outcomes.into_iter().map(|(c, _, _)| c).collect();
 
     if args.json {
         let value = serde_json::json!({
@@ -301,7 +311,11 @@ pub fn write_comparison(
         writeln!(
             out,
             "  {:<16} {:>10.2} {:>10.2} {:>+10.2}   {:+.2} to {:+.2}{mark}",
-            if scale > 1.0 { "win rate (%)" } else { &m.metric },
+            if scale > 1.0 {
+                "win rate (%)"
+            } else {
+                &m.metric
+            },
             m.a * scale,
             m.b * scale,
             m.difference.mean * scale,

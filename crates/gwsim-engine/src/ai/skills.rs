@@ -76,6 +76,20 @@ impl Sim {
             if !self.ready(unit, slot) {
                 continue;
             }
+            // A sacrifice that would leave the user below its floor waits
+            // (A-044).
+            let sacrifice = f64::from(
+                self.fight.skills[usize::from(skill)]
+                    .skill
+                    .cost
+                    .sacrifice_pct,
+            );
+            if sacrifice > 0.0
+                && self.health_fraction(unit) - sacrifice / 100.0
+                    < self.fight.tunables.sacrifice_floor
+            {
+                continue;
+            }
             for target in self.candidates(unit, skill, situation) {
                 if self.can_use(unit, slot, target).is_err() {
                     continue;

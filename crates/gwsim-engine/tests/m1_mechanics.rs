@@ -828,5 +828,8 @@ fn report_4_credits_shelters_prevented_damage_to_hero_7() {
         rows[0].mitigation,
         sim.stats.skills[usize::from(shelter)].mitigation
     );
-    assert!(rows[0].mitigation > i64::from(taken), "most of the hit was prevented");
+    assert!(
+        rows[0].mitigation > i64::from(taken),
+        "most of the hit was prevented"
+    );
 }

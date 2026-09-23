@@ -88,7 +88,11 @@ pub fn write_footer(out: &mut impl Write, notes: &Notes) -> io::Result<()> {
 pub fn write_builds(out: &mut impl Write, builds: &[BuildReport]) -> io::Result<()> {
     writeln!(out, "Builds")?;
     for build in builds {
-        writeln!(out, "  {} ({}, {})", build.slot, build.kind, build.professions)?;
+        writeln!(
+            out,
+            "  {} ({}, {})",
+            build.slot, build.kind, build.professions
+        )?;
         let skills: Vec<&str> = build
             .skills
             .iter()
@@ -151,7 +155,11 @@ pub fn write_metrics(out: &mut impl Write, situation: &SituationReport) -> io::R
         writeln!(out, "  clear time:    no wins")?;
     }
     writeln!(out, "  deaths:        {}", interval(&m.deaths, 1.0, 2))?;
-    writeln!(out, "  damage taken:  {}", interval(&m.damage_taken, 1.0, 0))?;
+    writeln!(
+        out,
+        "  damage taken:  {}",
+        interval(&m.damage_taken, 1.0, 0)
+    )?;
     writeln!(out, "  energy left:   {}", interval(&m.energy_left, 1.0, 0))?;
     if m.dp_end.mean > 0.0 {
         writeln!(out, "  DP at end:     {} %", interval(&m.dp_end, 1.0, 1))?;

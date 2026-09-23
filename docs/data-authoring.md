@@ -183,33 +183,53 @@ If a file fails to parse, the validator **does not** also complain that
 everything pointing at it is dangling — fix the parse error and the references
 will resolve.
 
-## Placeholders
+## Encoding a skill
 
-These sections arrive with the work packages that define them:
+The extractor seeds a skill as `NumbersOnly`: its costs, times and scaled values come from the wiki, and it has no `encoding`. To make the engine use it, follow these steps:
 
-### The effect DSL
+1. **Write the `encoding`** in the effect DSL. **See [docs/effect-dsl.md](effect-dsl.md)** for every construct and what it means. Set `review: Draft`.
+2. **Read the generated description** next to the wiki page:
 
-**See [docs/effect-dsl.md](effect-dsl.md)** for every construct, what it means,
-and when to reach for a Rust handler instead.
+   ```powershell
+   cargo run -p gwsim-cli -- data describe <skill>
+   ```
 
-```powershell
-cargo run -p gwsim-cli -- data describe <skill>
-```
+   If the two disagree, the encoding is almost always what is wrong. `data describe --profession Mesmer --review-sheet` prints a whole batch as a review table (T4.1.1).
+3. **Run the generated per-skill check**:
 
-prints the sentence your encoding generates. Read it next to the wiki page: if
-the two disagree, the encoding is almost always what is wrong.
+   ```powershell
+   cargo test -p gwsim-engine --test skills
+   ```
 
-### Handlers
+   This test casts every encoded skill in a small arena and fails on anything the engine cannot execute. Examples are selectors that resolve to nothing, effects that never end, and handlers that are not registered.
+4. **Add `roles`.** The AI reads what a skill is for from its encoding (`ai/profile.rs`): heals, hexes, interrupts, removals, spirits, batteries and so on. `roles` add what the encoding alone cannot say, and the optimiser's off-role checks use them. Nobody writes per-skill AI hints.
+5. **Leave `Reviewed` to the owner.** A person marks an encoding `Reviewed` after reading it against the wiki. Results that use `Draft` skills say so.
 
-*Arrives in WP4.1.*
+Constructs added during M1 that are easy to miss:
 
-Some skills are too unusual for the DSL and need Rust. They are referenced by
-name from `encoding.handler`, and the name is checked against the engine's
-registry.
+- **Selectors.** `Other` means everyone but the user. `Around { of, band, side }` covers an area around a unit, on a chosen side. `Reduced { of, factor }` applies a share of a value to what another selector reaches, as in Mistrust's 75%.
+- **Side rule.** An area around a *foe* reaches that foe's team. An area around the *user or an ally* reaches the user's foes (F4.1).
+- **`OnStruck`**, for effects that fire when their bearer is hit.
+- **`ReduceIncomingDamage { limit, heals, cost_to_source }`**, for spirits such as Shelter, Union and Displacement, and for Protective Was Kaolai.
+- **Filters.** `Removed(kind)` means "when a hex or enchantment is removed". `SpiritsInEarshot`, `CorpsesInEarshot` and `NearAllies` count things around the user.
+- **Spirits and minions.** `CreateSpirit { attack_damage }` makes a spirit, and `spirits.ron` gives each spirit its reach (`affects`) and its attack. `minions.ron` gives a minion its `armor_per_level` and `range`.
 
-### Encounters and situations
+## Handlers
 
-*Arrives in WP4.8.*
+Some skills are too unusual for the DSL and need Rust. They are named in `encoding.handler`, and the name is checked against the engine's registry (`crates/gwsim-engine/src/handlers/`). M1 needed only three:
 
-The schemas exist and validate today; what is missing is guidance on choosing
-group composition, positions and timeouts.
+- **Soul Twisting** changes the cost and recharge of a whole skill type (binding rituals) and ends after a number of uses.
+- **Master of Magic** *sets* the elemental attributes rather than adding to them, and returns energy on elemental spells.
+- **Resurrection Chant** raises an ally with up to the caster's *current* health, a quantity the DSL's `Resurrect` cannot name.
+
+Before writing a handler, try the DSL again. Mistrust and Protective Was Kaolai were once listed as handlers, and both turned out to be data (F4.8). A handler implements whichever hooks of `SkillHandler` it needs: `on_use`, `on_event`, `on_effect_end`, `adjust_cost`, `adjust_recharge` and `set_rank`. Every handler needs a test in `crates/gwsim-engine/tests/m1_mechanics.rs` or next to it.
+
+## Encounters and situations
+
+An **encounter** is a group of foes and where they stand, in `data/encounters/curated/<campaign>/<area>/` when it is modelled on a real place, or `data/encounters/generic/` otherwise. A **situation** is an encounter plus conditions: hard mode, the mode switches, starting death penalty, consumables, timeout, and tactics overrides. A **situation set** weights several situations for the optimiser.
+
+- **Composition.** Use the foes the area's wiki page lists at the level the mode gives. Where the wiki gives no group, write down the one you chose in the provenance notes, as A-006 does for the Kournan patrol.
+- **Positions.** Use `Cluster` with a radius about the size of a real group (150 for the patrol). Use `Explicit` only when a test needs exact distances, as the training dummies do. Put the group well outside aggro range of the party's start (1800 for the patrol), so the pre-fight phase can run.
+- **Timeouts.** The default (A-030) suits single fights. For a chain, give each fight its own timeout and a `rest_after` if the party would rest.
+- **Chains.** A chain lists fights in order. Health, energy, death penalty and effects carry over, and the result reports each fight and the first that failed.
+- **Checking.** Run `gwsim evaluate --party data/parties/m1-mesmerway.ron --situation <slug> --runs 16 --breakdown`. Then read one run with `gwsim log` to see that the foes engage and fight as expected.

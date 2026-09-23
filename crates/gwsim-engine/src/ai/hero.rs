@@ -59,7 +59,13 @@ pub fn decide(sim: &mut Sim, unit: UnitId) -> Option<Order> {
     if in_combat
         && mode != HeroMode::AvoidCombat
         && let Some(target) = focus
-        && sim.units[unit.index()].attack_target != Some(target)
+        // Already swinging at it: leave it be. A skill ends a swing but not
+        // the attack target, so the target alone does not say that.
+        && !(sim.units[unit.index()].attack_target == Some(target)
+            && matches!(
+                sim.units[unit.index()].action,
+                crate::unit::Action::Attacking { .. }
+            ))
         && sim.units[unit.index()].weapon.is_some()
     {
         let reach = sim.units[unit.index()]

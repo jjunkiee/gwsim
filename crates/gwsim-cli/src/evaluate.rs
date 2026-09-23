@@ -141,7 +141,11 @@ fn evaluate(args: &EvaluateArgs, out: &mut impl Write) -> Result<i32, Failure> {
 
     match args.json.as_deref() {
         Some(path) if path == Path::new("-") => {
-            writeln!(out, "{}", serde_json::to_string_pretty(&file).map_err(io::Error::other)?)?;
+            writeln!(
+                out,
+                "{}",
+                serde_json::to_string_pretty(&file).map_err(io::Error::other)?
+            )?;
             return Ok(OK);
         }
         Some(path) => {
@@ -233,7 +237,14 @@ pub fn result_file(
         results::set_report(&name, &situations)
     });
     let setup_refs: Vec<&FightSetup> = setups.iter().collect();
-    let notes = Notes::collect(data, pack.clone(), seed, &[&party], evaluations, &setup_refs);
+    let notes = Notes::collect(
+        data,
+        pack.clone(),
+        seed,
+        &[&party],
+        evaluations,
+        &setup_refs,
+    );
     ResultFile {
         schema_version: results::SCHEMA_VERSION,
         builds: party
@@ -317,8 +328,8 @@ fn party_from_codes(data: &DataSet, text: &str) -> Result<Option<PartyFile>, Str
     let mut slots = Vec::new();
     for (index, code) in codes.iter().enumerate() {
         let template = SkillTemplate::decode(code).map_err(|e| format!("{code}: {e}"))?;
-        let (build, _) = Build::from_templates(&template, None, data)
-            .map_err(|e| format!("{code}: {e:?}"))?;
+        let (build, _) =
+            Build::from_templates(&template, None, data).map_err(|e| format!("{code}: {e:?}"))?;
         let (name, kind) = if index == 0 {
             ("player".to_owned(), SlotKind::Human)
         } else {
@@ -409,8 +420,8 @@ pub fn find_situation(data: &DataSet, name: &str) -> Result<Situation, String> {
 pub fn read_result(path: &PathBuf) -> Result<ResultFile, String> {
     let text = std::fs::read_to_string(path)
         .map_err(|e| format!("could not read {}: {e}", path.display()))?;
-    let value: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|e| format!("{} is not JSON: {e}", path.display()))?;
+    let value: serde_json::Value =
+        serde_json::from_str(&text).map_err(|e| format!("{} is not JSON: {e}", path.display()))?;
     let version = value["schema_version"].as_u64();
     if version != Some(u64::from(results::SCHEMA_VERSION)) {
         return Err(format!(

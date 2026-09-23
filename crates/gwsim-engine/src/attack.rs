@@ -139,7 +139,13 @@ impl Sim {
 
     /// A swing reaches its hit.
     pub(crate) fn attack_hit(&mut self, unit: UnitId, generation: u32) {
-        let u = &self.units[unit.index()];
+        // Whatever happens to this swing, it is over: a swing a skill or an
+        // interrupt cut short must not block the next one.
+        let now = self.now;
+        let u = &mut self.units[unit.index()];
+        if u.swing_hits_at.is_some_and(|at| at <= now) {
+            u.swing_hits_at = None;
+        }
         if u.action_generation != generation {
             return;
         }

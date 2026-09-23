@@ -21,13 +21,13 @@ fn the_register_holds_every_entry() {
     let data = data();
     assert_eq!(
         data.assumptions.len(),
-        43,
-        "DESIGN §21 lists 43 assumptions"
+        44,
+        "DESIGN §21 lists 44 assumptions"
     );
 }
 
 #[test]
-fn the_register_runs_from_a_001_to_a_043_with_no_gaps() {
+fn the_register_runs_from_a_001_to_a_044_with_no_gaps() {
     let data = data();
     let ids: Vec<String> = data
         .assumptions
@@ -36,7 +36,7 @@ fn the_register_runs_from_a_001_to_a_043_with_no_gaps() {
         .map(|entry| entry.id.to_string())
         .collect();
 
-    let expected: Vec<String> = (1..=43).map(|n| format!("A-{n:03}")).collect();
+    let expected: Vec<String> = (1..=44).map(|n| format!("A-{n:03}")).collect();
     assert_eq!(
         ids, expected,
         "the register should be complete and in order"

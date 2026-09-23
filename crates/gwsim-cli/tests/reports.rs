@@ -214,7 +214,13 @@ fn evaluate_refuses_unreviewed_skills_when_asked() {
 #[test]
 fn evaluate_reports_bad_inputs() {
     gwsim()
-        .args(["evaluate", "--party", "no-such-party", "--situation", "dummies-hm"])
+        .args([
+            "evaluate",
+            "--party",
+            "no-such-party",
+            "--situation",
+            "dummies-hm",
+        ])
         .assert()
         .failure()
         .stdout(predicate::str::contains("not a party file"));
@@ -286,7 +292,9 @@ fn log_refuses_a_changed_data_pack_unless_forced() {
         .args(["log", "--result", path.to_str().unwrap(), "--force"])
         .assert()
         .success()
-        .stdout(predicate::str::contains("warning: the data pack has changed"));
+        .stdout(predicate::str::contains(
+            "warning: the data pack has changed",
+        ));
 }
 
 #[test]
@@ -345,6 +353,9 @@ fn comparing_with_a_weakened_party_shows_a_significant_difference() {
         .unwrap();
     let text = String::from_utf8_lossy(&output.stdout);
     assert!(output.status.success(), "{text}");
-    assert!(text.contains("verdict: B (M1 Mesmerway) is better"), "{text}");
+    assert!(
+        text.contains("verdict: B (M1 Mesmerway) is better"),
+        "{text}"
+    );
     assert_notes(&text);
 }

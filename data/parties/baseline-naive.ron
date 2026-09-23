@@ -1,0 +1,115 @@
+// RC2's naive baseline team (DESIGN §17.4, T4.10.1): the M1 player with seven
+// heroes on minimal, auto-attack-centred bars and no runes or insignias.
+// Reasoning: five martial heroes carry a weapon and one or two attack skills
+// of their weapon's attribute, so their damage comes mostly from auto-attacks;
+// one Paragon adds a single shout, and one Ritualist heals with two basic
+// Restoration heals. There is no energy management, no interrupts, no
+// hex or enchantment removal and no damage reduction, which is exactly what
+// Mesmerway brings. Only skills gwsim already encodes are used, so every bar
+// is short. Attributes are 12/12 in each hero's two most relevant attributes.
+// [Proposed: the owner approves the baseline, T4.10.1.]
+(
+    name: "Baseline naive",
+    notes: "RC2's naive baseline (T4.10.1). The player is the M1 player; the heroes are minimal martial bars plus one basic healer, with no runes or insignias.",
+    benchmarks: ["baseline-naive"],
+    slots: [
+        (
+            name: "player",
+            kind: Human,
+            build: (
+                primary: Mesmer,
+                secondary: None,
+                attribute_points: {FastCasting: 10, DominationMagic: 12, InspirationMagic: 8},
+                headgear_attribute: Some(DominationMagic),
+                skills: (Some(75), Some(39), Some(979), Some(934), Some(57), Some(1336), Some(25), Some(2416)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("minor-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus"), suffix: Some("of-memory"), inscription: Some("aptitude-not-attitude"), offhand_upgrades: ["forget-me-not", "of-aptitude"], attribute: Some(DominationMagic)),
+            ),
+            locked: true,
+            published_code: Some("OQBTAUBPQaJ4EY6x0BAAAAAAuE"),
+        ),
+        // Axe warrior: two axe attacks and Sprint.
+        (
+            name: "hero 1",
+            kind: Hero,
+            build: (
+                primary: Warrior,
+                attribute_points: {AxeMastery: 12, Strength: 12},
+                skills: (Some(336), Some(340), Some(349), None, None, None, None, None),
+                weapon_set: (main: Some("axe")),
+            ),
+        ),
+        // A second axe warrior.
+        (
+            name: "hero 2",
+            kind: Hero,
+            build: (
+                primary: Warrior,
+                attribute_points: {AxeMastery: 12, Strength: 12},
+                skills: (Some(336), Some(340), Some(349), None, None, None, None, None),
+                weapon_set: (main: Some("axe")),
+            ),
+        ),
+        // Scythe dervish: one scythe attack.
+        (
+            name: "hero 3",
+            kind: Hero,
+            build: (
+                primary: Dervish,
+                attribute_points: {ScytheMastery: 12, Mysticism: 12},
+                skills: (Some(1485), None, None, None, None, None, None, None),
+                weapon_set: (main: Some("scythe")),
+            ),
+        ),
+        // Bow ranger: two bow attacks.
+        (
+            name: "hero 4",
+            kind: Hero,
+            build: (
+                primary: Ranger,
+                attribute_points: {Marksmanship: 12, Expertise: 12},
+                skills: (Some(400), Some(1469), None, None, None, None, None, None),
+                weapon_set: (main: Some("flatbow")),
+            ),
+        ),
+        // A second bow ranger.
+        (
+            name: "hero 5",
+            kind: Hero,
+            build: (
+                primary: Ranger,
+                attribute_points: {Marksmanship: 12, Expertise: 12},
+                skills: (Some(400), Some(1469), None, None, None, None, None, None),
+                weapon_set: (main: Some("flatbow")),
+            ),
+        ),
+        // Spear paragon: one spear attack and one shout.
+        (
+            name: "hero 6",
+            kind: Hero,
+            build: (
+                primary: Paragon,
+                attribute_points: {SpearMastery: 12, Command: 12},
+                skills: (Some(1547), Some(1589), None, None, None, None, None, None),
+                weapon_set: (main: Some("spear")),
+            ),
+        ),
+        // The healer: two basic Restoration heals and a staff.
+        (
+            name: "hero 7",
+            kind: Hero,
+            build: (
+                primary: Ritualist,
+                attribute_points: {RestorationMagic: 12, SpawningPower: 12},
+                skills: (Some(1234), Some(915), None, None, None, None, None, None),
+                weapon_set: (main: Some("staff")),
+            ),
+        ),
+    ],
+)

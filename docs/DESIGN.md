@@ -1651,6 +1651,7 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-041 | When a "next spell" trigger fires | At the start of the spell's activation (added in P3) | Mistrust's wording is ambiguous; activation start matches play |
 | A-042 | Ranks of attributes a foe's page omits | The highest listed rank; with none listed, 14 for martial foes and 15 for casters (added in P4) | Kournan pages list at most the primary attribute, yet other attributes scale their skills |
 | A-043 | A minion's attack damage | The weapon of its type at maximum requirement, striking at three times its level (added in P4) | The Minion page says only that damage depends on level |
+| A-044 | The health an AI keeps after a sacrifice | 25% of maximum health: a sacrifice skill waits until it would leave at least that (added in P4, T4.10.7) | Sacrifice can kill its user, and the Hero behavior page gives no health rule |
 
 ---
 

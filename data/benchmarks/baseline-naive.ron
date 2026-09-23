@@ -1,0 +1,24 @@
+// RC2's naive baseline team (DESIGN §17.4, T4.10.1): seven heroes on minimal,
+// auto-attack-centred bars with no runes or insignias, beside the M1 player.
+// The full builds, with weapons, are data/parties/baseline-naive.ron; the
+// reasoning is at its top. [Proposed: awaiting owner approval, T4.10.1.]
+(
+    name: "Baseline naive",
+    source_url: "docs/DESIGN.md#174-relative-checks",
+    slots: [
+        (kind: Human, skill_code: "OQBTAUBPQaJ4EY6x0JHAnKDAuE", notes: "The M1 player, unchanged."),
+        (kind: Hero(None), skill_code: "OQASEZJHQlqdFAAAAAAAA", notes: "Axe warrior (axe): Executioner's Strike, Disrupting Chop, Sprint."),
+        (kind: Hero(None), skill_code: "OQASEZJHQlqdFAAAAAAAA", notes: "Axe warrior (axe), as above."),
+        (kind: Hero(None), skill_code: "OgCikys80cBAAAAAAAAAAAAA", notes: "Scythe dervish (scythe): Eremite's Attack."),
+        (kind: Hero(None), skill_code: "OgASc5MPQmeLAAAAAAAAAAA", notes: "Bow ranger (flatbow): Precision Shot, Crossfire."),
+        (kind: Hero(None), skill_code: "OgASc5MPQmeLAAAAAAAAAAA", notes: "Bow ranger (flatbow), as above."),
+        (kind: Hero(None), skill_code: "OQCiUym8sgrxAAAAAAAAAAAA", notes: "Spear paragon (spear): Mighty Throw, \"Stand Your Ground!\"."),
+        (kind: Hero(None), skill_code: "OACiEyk8INncAAAAAAAAAAAA", notes: "Healer ritualist (staff): Mend Body and Soul, Spirit Light."),
+    ],
+    provenance: (
+        sources: ["docs/DESIGN.md#174-relative-checks"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "Proposed by the implementer for T4.10.1; the owner approves it (F4 fallout).",
+    ),
+)

@@ -10,6 +10,8 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
+pub mod check;
+pub mod compare;
 pub mod coverage;
 pub mod data;
 pub mod describe;
@@ -17,7 +19,6 @@ pub mod evaluate;
 pub mod info;
 pub mod loading;
 pub mod log;
-pub mod compare;
 pub mod plan;
 pub mod report;
 pub mod results;
@@ -53,6 +54,56 @@ pub enum Command {
     Log(LogArgs),
     /// Run two parties on the same seeds and compare them.
     Compare(CompareArgs),
+    /// Run the relative checks of DESIGN §17.4 (RC1, RC2, RC6).
+    Check(CheckArgs),
+}
+
+/// Which checks `gwsim check` runs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CheckSuite {
+    /// RC1, RC2 and RC6.
+    Relative,
+    /// Quick self-checks of the comparison machinery.
+    Unit,
+    /// Both.
+    All,
+}
+
+/// How many runs each comparison uses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CheckLevel {
+    /// Fewer runs, for CI.
+    Reduced,
+    /// The full run counts.
+    Full,
+}
+
+/// `gwsim check` (T4.10.2).
+#[derive(Debug, Args)]
+pub struct CheckArgs {
+    /// Which suite to run.
+    #[arg(long, value_enum, default_value_t = CheckSuite::All)]
+    pub suite: CheckSuite,
+
+    /// Reduced run counts (CI) or full ones.
+    #[arg(long, value_enum, default_value_t = CheckLevel::Reduced)]
+    pub level: CheckLevel,
+
+    /// Only these checks, by id (RC1, RC2, RC6, SELF, DET). Repeatable.
+    #[arg(long, value_name = "ID")]
+    pub only: Vec<String>,
+
+    /// Where to write the JSON report. Defaults to `gwsim-check.json`.
+    #[arg(long, value_name = "PATH")]
+    pub report: Option<PathBuf>,
+
+    /// Worker threads. The result does not depend on this.
+    #[arg(long, value_name = "N")]
+    pub threads: Option<usize>,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
 }
 
 /// `gwsim log` (T4.9.6).

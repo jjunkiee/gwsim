@@ -400,7 +400,13 @@ mod tests {
         let a = [1.0, 0.0, 1.0, 1.0, 0.0];
         let d = paired_bootstrap(&a, &a, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED);
         assert_eq!(d.mean, 0.0);
-        assert_eq!(d.ci, Interval { low: 0.0, high: 0.0 });
+        assert_eq!(
+            d.ci,
+            Interval {
+                low: 0.0,
+                high: 0.0
+            }
+        );
         assert!(!d.above_zero() && !d.below_zero());
     }
 
@@ -411,7 +417,10 @@ mod tests {
         let d = paired_bootstrap(&a, &b, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED);
         assert_eq!(d.mean, 1.0);
         assert!(d.above_zero());
-        assert_eq!(d, paired_bootstrap(&a, &b, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED));
+        assert_eq!(
+            d,
+            paired_bootstrap(&a, &b, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED)
+        );
     }
 
     #[test]

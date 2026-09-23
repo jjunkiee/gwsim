@@ -20,9 +20,9 @@ use gwsim_data::party::{PartyFile, PartySlot};
 use gwsim_data::provenance::ReviewStatus;
 use gwsim_data::scenario::Situation;
 use gwsim_data::{AssumptionId, SkillId};
+use gwsim_engine::FightSetup;
 use gwsim_engine::harness::{Evaluation, Summary};
 use gwsim_engine::result::RunResult;
-use gwsim_engine::FightSetup;
 use serde::{Deserialize, Serialize};
 
 use crate::loading::Loaded;
@@ -368,7 +368,11 @@ impl Notes {
 /// Coverage limits that bear on these parties and fights: per profession in
 /// the parties, how many skills cannot be used yet, and which foes carry
 /// skills with no encoding.
-pub fn coverage_notes(data: &DataSet, parties: &[&PartyFile], setups: &[&FightSetup]) -> Vec<String> {
+pub fn coverage_notes(
+    data: &DataSet,
+    parties: &[&PartyFile],
+    setups: &[&FightSetup],
+) -> Vec<String> {
     let coverage = Coverage::compute(data);
     let mut professions: BTreeSet<Profession> = BTreeSet::new();
     for party in parties {
@@ -465,9 +469,15 @@ fn equipment_lines(build: &Build) -> Vec<String> {
         .collect();
     let set = &build.weapon_set;
     let mut weapon: Vec<String> = Vec::new();
-    for part in [&set.main, &set.offhand, &set.prefix, &set.suffix, &set.inscription]
-        .into_iter()
-        .flatten()
+    for part in [
+        &set.main,
+        &set.offhand,
+        &set.prefix,
+        &set.suffix,
+        &set.inscription,
+    ]
+    .into_iter()
+    .flatten()
     {
         weapon.push(part.to_string());
     }
@@ -495,7 +505,13 @@ pub fn contributions(evaluation: &Evaluation, setup: &FightSetup) -> Vec<Contrib
             }
         }
     }
-    keys.sort_by_key(|(slot, skill)| (*slot, skill.is_none(), skill_bar_position(setup, *slot, *skill)));
+    keys.sort_by_key(|(slot, skill)| {
+        (
+            *slot,
+            skill.is_none(),
+            skill_bar_position(setup, *slot, *skill),
+        )
+    });
     keys.into_iter()
         .map(|(slot, skill)| {
             let mut row = ContributionRow {
@@ -549,9 +565,10 @@ fn skill_bar_position(setup: &FightSetup, slot: u8, skill: Option<u16>) -> usize
         .iter()
         .find(|u| u.slot_index == Some(usize::from(slot)))
         .and_then(|u| {
-            u.bar
-                .iter()
-                .position(|s| s.as_ref().is_some_and(|s| s.original == skill || s.skill == skill))
+            u.bar.iter().position(|s| {
+                s.as_ref()
+                    .is_some_and(|s| s.original == skill || s.skill == skill)
+            })
         })
         .unwrap_or(usize::MAX - 1)
 }

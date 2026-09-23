@@ -10,9 +10,9 @@
 
 use std::io::{self, Write};
 
-use gwsim_engine::log::{self, LogEvent, LogKind};
 use gwsim_engine::RunSeed;
 use gwsim_engine::harness::{Evaluation, StopReason};
+use gwsim_engine::log::{self, LogEvent, LogKind};
 
 use crate::LogArgs;
 use crate::data::{FAILED, OK};
@@ -58,7 +58,9 @@ fn print_log(args: &LogArgs, out: &mut impl Write) -> Result<i32, Failure> {
             args.run
         );
         if !args.force {
-            return Err(Failure::Message(format!("{message}; pass --force to log it anyway")));
+            return Err(Failure::Message(format!(
+                "{message}; pass --force to log it anyway"
+            )));
         }
         writeln!(out, "warning: {message}")?;
     }

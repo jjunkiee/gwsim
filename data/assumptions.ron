@@ -424,5 +424,14 @@
             sources: ["https://wiki.guildwars.com/wiki/Minion"],
             notes: "Added by T4.3.8.",
         ),
+        (
+            id: "A-044",
+            statement: "An AI-controlled unit uses a skill with a health sacrifice only while the sacrifice leaves it at or above this share of its maximum health.",
+            value: Percent(25),
+            rationale: "The Sacrifice page says a sacrifice can kill its user, and the Hero behavior page gives no health rule for sacrifice skills. Without one, the M1 Blood is Power hero sacrificed itself to death in 12 of 32 patrol fights, which is not how the build is known to play. 25% keeps a sacrifice from ever being lethal on its own. Against it: the Blood of the Master page notes heroes can kill themselves with that skill in a party of several minion masters, which suggests the game has no such floor.",
+            status: Assumed,
+            sources: ["https://wiki.guildwars.com/wiki/Sacrifice", "https://wiki.guildwars.com/wiki/Hero_behavior"],
+            notes: "Added by T4.10.7 (RC1 triage).",
+        ),
     ],
 )
