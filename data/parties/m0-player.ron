@@ -1,0 +1,40 @@
+// The M0 party: the Mesmerway player alone, with a hand-written plan (T3.10.5).
+(
+    name: "M0 player",
+    notes: "The player's bar and equipment from the PvX Mesmerway page (T1.4.1, A-033). Effective ranks: Fast Casting 11, Domination Magic 16, Inspiration Magic 9. The plan follows DESIGN §11.5; plan generation arrives in WP4.6.",
+    sources: ["https://web.archive.org/web/2026/https://gwpvx.fandom.com/wiki/Build:Team_-_7_Hero_Mesmerway"],
+    slots: [
+        (
+            name: "player",
+            kind: Human,
+            build: (
+                primary: Mesmer,
+                attribute_points: {FastCasting: 10, DominationMagic: 12, InspirationMagic: 8},
+                headgear_attribute: Some(DominationMagic),
+                skills: (Some(75), Some(39), Some(979), Some(934), Some(57), Some(1336), Some(25), Some(2416)),
+                armor: (
+                    (slot: Head, insignia: Some("prodigys"), rune: Some("superior-domination-magic")),
+                    (slot: Chest, insignia: Some("prodigys"), rune: Some("minor-fast-casting")),
+                    (slot: Hands, insignia: Some("prodigys"), rune: Some("minor-inspiration-magic")),
+                    (slot: Legs, insignia: Some("prodigys"), rune: Some("superior-vigor")),
+                    (slot: Feet, insignia: Some("prodigys"), rune: Some("vitae")),
+                ),
+                weapon_set: (main: Some("wand"), offhand: Some("focus")),
+            ),
+            locked: true,
+            plan: Some((
+                maintain: [Slug("air-of-superiority")],
+                rules: [
+                    (skill: Slug("arcane-echo"), target: Self),
+                    (skill: Slug("energy-surge"), target: Foe(pick: MostEnergy)),
+                    (skill: Slug("mistrust"), target: Foe(pick: Nearest, filter: Some(HoldingCasterWeapon))),
+                    (skill: Slug("unnatural-signet"), target: Foe(pick: Nearest, filter: Some(Any([Hexed, Enchanted])))),
+                    (skill: Slug("cry-of-frustration"), target: Foe(pick: Nearest, filter: Some(Casting))),
+                    (skill: Slug("power-drain"), target: Foe(pick: Nearest, filter: Some(CastingSpell))),
+                    (skill: Slug("spiritual-pain"), target: Foe(pick: MostFoesNearby)),
+                ],
+                default: Attack,
+            )),
+        ),
+    ],
+)

@@ -52,9 +52,17 @@ fn data() -> DataSet {
     let mut source = MemSource::default().described_as("legality fixtures");
     // The real items and core files, but not the seeded skills, foes or the
     // skill index: the test skills below use invented ids that would clash
-    // with real ones.
+    // with real ones. Parties, encounters and situations go too, since they
+    // name those skills and foes.
+    const SKIPPED: [&str; 5] = [
+        "skills/",
+        "creatures/",
+        "parties/",
+        "encounters/",
+        "situations/",
+    ];
     for (path, contents) in real_files(&real) {
-        if path.starts_with("skills/") || path.starts_with("creatures/") {
+        if SKIPPED.iter().any(|folder| path.starts_with(folder)) {
             continue;
         }
         source = source.with(path, contents);

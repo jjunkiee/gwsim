@@ -112,6 +112,24 @@ Also:
 - **`unsafe` is forbidden** workspace-wide.
 - The engine crate does **no I/O** (ENG-1).
 
+### Determinism
+
+The same seed must give the same fight on every machine, at any thread count. That is
+what makes results reproducible and what lets the optimiser compare two builds on the same
+luck (ENG-42). `crates/gwsim-engine/clippy.toml` and `crates/gwsim-opt/clippy.toml` ban
+the usual ways it breaks:
+
+- **ambient randomness** (`rand::thread_rng`, `rand::random`): draw from a stream in
+  `gwsim_engine::rng`, which is derived from the run seed, a purpose and a unit;
+- **`HashMap` and `HashSet`**: their iteration order changes between runs. Use
+  `BTreeMap` and `BTreeSet`. If a hash map is genuinely needed for speed, it must never be
+  iterated for logic; allow the lint on that one line and say why in a comment;
+- **the wall clock** (`Instant`, `SystemTime`): simulated time is `SimTime`, in whole
+  milliseconds.
+
+Floating point is fine: the engine uses it in a fixed order, and results are compared by
+digest in the determinism tests (`crates/gwsim-engine/tests/determinism.rs`).
+
 ## Commits and pull requests
 
 - A branch per work package, named after it: `setup/p0`, `data/wp1.2`.

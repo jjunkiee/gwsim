@@ -1,0 +1,10 @@
+// The M0 situation: the player alone against training dummies in hard mode.
+(
+    name: "Dummies HM",
+    encounters: Single("training-dummies"),
+    mode: (hard_mode: true),
+    party_size: 1,
+    timeout: Some(180.0),
+    notes: "T3.10.2. Party size 1 for M0; the full party arrives in M1.",
+    assumption_refs: ["A-030"],
+)

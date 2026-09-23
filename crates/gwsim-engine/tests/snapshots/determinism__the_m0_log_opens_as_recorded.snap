@@ -1,0 +1,44 @@
+---
+source: crates/gwsim-engine/tests/determinism.rs
+expression: text
+---
+   0.050s  player                                                Decision (UseSkill { slot: 7, target: Unit(UnitId(0)) })
+   0.050s  player                       Air of Superiority       SkillStarted 0
+   0.050s  player                                                EffectApplied (Air of Superiority)
+   0.050s  player                       Air of Superiority       SkillCompleted 20000
+   1.050s  player                                                Decision (UseSkill { slot: 0, target: Unit(UnitId(0)) })
+   1.050s  player                       Arcane Echo              SkillStarted 1203
+   2.253s  player                                                EffectApplied (Arcane Echo)
+   2.253s  player                       Arcane Echo              SkillCompleted 13000
+   3.300s  player                                                Decision (UseSkill { slot: 1, target: Unit(UnitId(1)) })
+   3.300s  player → Training dummy      Energy Surge             SkillStarted 1203
+   4.503s  player                                                EffectRemoved (Arcane Echo)
+   4.503s  player → Training dummy      Energy Surge             Damage 77
+   4.503s  player → Training dummy      Energy Surge             Damage 58
+   4.503s  player → Training dummy      Energy Surge             Damage 58
+   4.503s  player                       Energy Surge             SkillCompleted 10000
+   5.550s  player                                                Decision (UseSkill { slot: 0, target: Unit(UnitId(2)) })
+   5.550s  player → Training dummy      Energy Surge             SkillStarted 1203
+   6.753s  player → Training dummy      Energy Surge             Damage 77
+   6.753s  player → Training dummy      Energy Surge             Damage 58
+   6.753s  player                       Energy Surge             SkillCompleted 10000
+   7.800s  player                                                Decision (UseSkill { slot: 5, target: Unit(UnitId(1)) })
+   7.800s  player → Training dummy      Spiritual Pain           SkillStarted 602
+   8.402s  player → Training dummy      Spiritual Pain           Damage 79
+   8.402s  player                       Spiritual Pain           SkillCompleted 5000
+   9.450s  player                                                Decision (Attack(UnitId(1)))
+  10.928s  player → Training dummy                               Damage 12 (Chaos)
+  12.678s  player → Training dummy                               Damage 19 (Chaos)
+  13.450s  player                                                Decision (UseSkill { slot: 5, target: Unit(UnitId(1)) })
+  13.450s  player → Training dummy      Spiritual Pain           SkillStarted 602
+  14.052s  player → Training dummy      Spiritual Pain           Damage 79
+  14.052s  player                       Spiritual Pain           SkillCompleted 5000
+  15.100s  player                                                Decision (UseSkill { slot: 1, target: Unit(UnitId(3)) })
+  15.100s  player → Training dummy      Energy Surge             SkillStarted 1203
+  16.303s  player → Training dummy      Energy Surge             Damage 77
+  16.303s  player → Training dummy      Energy Surge             Damage 58
+  16.303s  player                       Energy Surge             SkillCompleted 10000
+  17.350s  player                                                Decision (UseSkill { slot: 0, target: Unit(UnitId(1)) })
+  17.350s  player → Training dummy      Energy Surge             SkillStarted 1203
+  18.553s  player → Training dummy      Energy Surge             Damage 77
+  18.553s  player → Training dummy      Energy Surge             Damage 58

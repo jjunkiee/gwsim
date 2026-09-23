@@ -5,7 +5,6 @@ use std::io::{self, Write};
 use gwsim_data::core::{CoreData, Profession};
 use gwsim_data::dataset::DataSet;
 use gwsim_data::describe::{DescribeContext, describe};
-use gwsim_data::dsl::NoHandlers;
 use gwsim_data::ids::{SkillId, slugify};
 use gwsim_data::provenance::ReviewStatus;
 use gwsim_data::skill::Skill;
@@ -217,12 +216,16 @@ fn write_text(
     Ok(())
 }
 
+/// The engine's handlers, so skills handled in code describe themselves.
+static HANDLERS: std::sync::LazyLock<gwsim_engine::handlers::HandlerRegistry> =
+    std::sync::LazyLock::new(gwsim_engine::handlers::HandlerRegistry::standard);
+
 fn context_for<'a>(args: &DescribeSkillArgs, core: Option<&'a CoreData>) -> DescribeContext<'a> {
     DescribeContext {
         rank: args.rank,
         title_rank: args.title_rank,
         core,
-        handlers: &NoHandlers,
+        handlers: &*HANDLERS,
     }
 }
 

@@ -70,15 +70,35 @@ impl CoreData {
     /// an author everything they need to fix.
     pub fn load(dir: impl AsRef<Path>) -> Result<CoreData, LoadErrors> {
         let dir = dir.as_ref();
+        let files = Files {
+            read: &|name| std::fs::read_to_string(dir.join(name)),
+            path: &|name| Some(dir.join(name)),
+        };
+        CoreData::load_from(&files)
+    }
+
+    /// Reads and checks the core files of a data source, under `core/`.
+    ///
+    /// How the embedded data pack supplies core data, which has no directory
+    /// to read from (F3.2).
+    pub fn from_source(source: &dyn crate::source::DataSource) -> Result<CoreData, LoadErrors> {
+        let files = Files {
+            read: &|name| source.read(&format!("core/{name}")),
+            path: &|_| None,
+        };
+        CoreData::load_from(&files)
+    }
+
+    fn load_from(files: &Files<'_>) -> Result<CoreData, LoadErrors> {
         let mut errors = Vec::new();
 
-        let professions = read_file::<ProfessionsFile>(dir, "professions.ron", &mut errors);
-        let attributes = read_file::<AttributesFile>(dir, "attributes.ron", &mut errors);
-        let conditions = read_file::<ConditionsFile>(dir, "conditions.ron", &mut errors);
-        let ranges = read_file::<RangesFile>(dir, "ranges.ron", &mut errors);
-        let levels = read_file::<LevelsFile>(dir, "levels.ron", &mut errors);
-        let modes = read_file::<ModesFile>(dir, "modes.ron", &mut errors);
-        let titles = read_file::<TitlesFile>(dir, "titles.ron", &mut errors);
+        let professions = read_file::<ProfessionsFile>(files, "professions.ron", &mut errors);
+        let attributes = read_file::<AttributesFile>(files, "attributes.ron", &mut errors);
+        let conditions = read_file::<ConditionsFile>(files, "conditions.ron", &mut errors);
+        let ranges = read_file::<RangesFile>(files, "ranges.ron", &mut errors);
+        let levels = read_file::<LevelsFile>(files, "levels.ron", &mut errors);
+        let modes = read_file::<ModesFile>(files, "modes.ron", &mut errors);
+        let titles = read_file::<TitlesFile>(files, "titles.ron", &mut errors);
 
         let (Some(mut professions), Some(mut attributes), Some(mut conditions)) =
             (professions, attributes, conditions)
@@ -410,18 +430,24 @@ fn canonicalise<Record, Key: Copy + PartialEq + fmt::Debug>(
 }
 
 /// Reads and parses one file, recording any problem and returning [`None`].
+/// How the core loader reads a file, and names it in errors.
+struct Files<'a> {
+    read: &'a dyn Fn(&str) -> std::io::Result<String>,
+    path: &'a dyn Fn(&str) -> Option<std::path::PathBuf>,
+}
+
 fn read_file<T: serde::de::DeserializeOwned>(
-    dir: &Path,
+    files: &Files<'_>,
     name: &'static str,
     errors: &mut Vec<LoadError>,
 ) -> Option<T> {
-    let path = dir.join(name);
-    let text = match std::fs::read_to_string(&path) {
+    let path = (files.path)(name);
+    let text = match (files.read)(name) {
         Ok(text) => text,
         Err(error) => {
             errors.push(LoadError {
                 file: name,
-                path: Some(path),
+                path: path.clone(),
                 message: format!("could not be read: {error}"),
             });
             return None;
@@ -433,7 +459,7 @@ fn read_file<T: serde::de::DeserializeOwned>(
         Err(error) => {
             errors.push(LoadError {
                 file: name,
-                path: Some(path),
+                path: path.clone(),
                 message: error.to_string(),
             });
             None

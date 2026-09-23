@@ -98,12 +98,18 @@ cargo install --path crates/gwsim-cli
 gwsim --version
 ```
 
-From milestone M1 onwards, this is where the interesting command lives:
+This is where the interesting command lives. Since milestone M0 it runs the
+Mesmerway player alone against training dummies:
 
 ```powershell
-# Available from M1 — does not work yet
-gwsim evaluate --party data/parties/mesmerway-dual-resto.ron --situation kournan-patrol-hm
+cargo run --release -p gwsim-cli -- evaluate --party m0-player --situation dummies-hm
 ```
+
+It prints the win rate, the clear time and each skill's uses and damage, with 95%
+confidence intervals, adding runs until the result is stable. `--runs 100` fixes the
+number of runs, `--seed 7` changes the seed list, and `--log text` prints one fight's
+combat log instead. The same seed always gives the same result, on any machine and at
+any thread count. The full Kournan patrol arrives with M1.
 
 ### 5. Tests
 

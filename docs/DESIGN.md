@@ -633,7 +633,9 @@ The DSL is a Rust enum tree, serialised as RON. It must express the formulaic (~
 | ENG-4 | Every non-wiki value comes from the assumptions register, never from a literal in code. |
 | ENG-5 | Performance: one 8-v-8 fight in under 10 ms on one core (D19). Measured with a benchmark suite (§17.6). |
 
-### 10.2 Time model [Proposed; confirm in the M0 spike]
+### 10.2 Time model [confirmed by the M0 spike, T3.1.4]
+
+The hybrid model below was chosen over pure events after the T3.1.3 spike ([findings](findings/T3.1.3-time-model-spike.md)): both were deterministic and far inside the performance budget, and the tick makes movement-cancels-cast, approach-then-cast, body-blocking and periodic AI far simpler.
 
 - Time is an **integer number of milliseconds**.
 - A **priority event queue** schedules discrete events: activation end, aftercast end, recharge end, effect expiry, projectile impact, trigger timers, spawn times.
@@ -805,6 +807,10 @@ The DSL is a Rust enum tree, serialised as RON. It must express the formulaic (~
 | ENG-41 | **Separate RNG streams** per purpose (hits and crits, AI choices, spawn jitter), derived from the run seed, so that changing one build changes as little of the random sequence as possible. |
 | ENG-42 | **Common random numbers:** the optimiser runs all candidates on the same list of seeds at each evaluation stage, so comparisons are paired (§13.4). |
 | ENG-43 | A result is reproduced exactly from (data pack version, party, situation, seed). |
+
+**As built in P3 [confirmed, T3.7.1]:** `rand_chacha::ChaCha8Rng`, pinned exactly. Each stream is keyed by (run seed, purpose, unit) through SplitMix64; purposes are Hits, Crits, SkillChance, Ai, Spawn and Consumables. Seed lists share prefixes, so 16, 64 and 256 runs share their first runs.
+
+**Single-evaluation stop rule [Proposed defaults, T3.8.4]:** `gwsim evaluate` without `--runs` adds batches of 32 runs until the win rate's 95% Wilson interval is within ±2.5 points (or, when every run agrees, at least 64 runs have been made) **and** the clear time's 95% interval is within ±2% of its mean; it stops at 1,024 runs regardless.
 
 ### 10.14 Performance design [Proposed]
 
@@ -1033,6 +1039,7 @@ Encounter(
   - Every candidate is first evaluated with 16 runs on the shared seed list (CRN, ENG-42).
   - The top half is promoted to 64 runs, and the frontier candidates to 256.
   - Success-rate confidence uses Wilson intervals. A candidate is eliminated only when it is significantly worse.
+  - A single evaluation outside the optimiser uses the stop-when-stable rule in §10.13.
 - **Cache:** evaluations are keyed by (canonical build hash, situation, seed list, data pack version).
 - **Parallelism:** runs are spread across all cores. Progress and ETA are reported.
 
@@ -1635,6 +1642,13 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-032 | HM recharge reduction for foes | Amount to be found on the wiki; otherwise a default, flagged | "Shorter recharges" isn't quantified in the research |
 | A-033 | Player rune choice | Superior Domination Magic (head), minor Fast Casting, minor Inspiration Magic, superior Vigor, Vitae — **settled 2026-09-23 from the current PvX page** | No longer an assumption: the page's equipment list names them |
 | A-034 | Hero 7's staff modifiers | The Hale staff head and of Fortitude wrapping are named by PvX but their health values are not in gwsim's item data, so they are unencoded | Hero 7's reported health is a floor, not the true value |
+| A-035 | When an auto-attack hits within its swing | Halfway through the attack interval (added in P3) | The wiki gives intervals, not hit timing |
+| A-036 | Experience range for Air of Superiority | 5,020 gwinches, about the radar's radius (added in P3) | "Earn experience from killing" needs a range; the wiki does not state one |
+| A-037 | Damage type of caster weapons | By profession, as the wiki's wand page lists (added in P3) | The type is not recorded per weapon in gwsim's data |
+| A-038 | Several "chance to" modifiers on one roll | They do not stack; the largest applies (added in P3) | The wiki is silent on combination |
+| A-039 | Hit location of skill damage | The same weights as weapon hits (added in P3) | The wiki documents hit locations for attacks only |
+| A-040 | The target dies or is lost during an activation | The skill fails: energy spent, no recharge penalty beyond the normal one (added in P3) | Observed in play, not documented |
+| A-041 | When a "next spell" trigger fires | At the start of the spell's activation (added in P3) | Mistrust's wording is ambiguous; activation start matches play |
 
 ---
 

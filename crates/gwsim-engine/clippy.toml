@@ -1,0 +1,16 @@
+# Determinism guards (T3.7.3). A run must depend on its seed and inputs alone:
+# no ambient randomness, no iteration over hash order, no wall clock (ENG-1).
+# See CONTRIBUTING.md, "Determinism".
+disallowed-methods = [
+    { path = "rand::thread_rng", reason = "use a seeded stream from gwsim_engine::rng", allow-invalid = true },
+    { path = "rand::rng", reason = "use a seeded stream from gwsim_engine::rng", allow-invalid = true },
+    { path = "rand::random", reason = "use a seeded stream from gwsim_engine::rng", allow-invalid = true },
+    { path = "std::time::Instant::now", reason = "the engine has no wall clock; use SimTime" },
+    { path = "std::time::SystemTime::now", reason = "the engine has no wall clock; use SimTime" },
+]
+disallowed-types = [
+    { path = "std::collections::HashMap", reason = "iteration order varies between runs; use BTreeMap" },
+    { path = "std::collections::HashSet", reason = "iteration order varies between runs; use BTreeSet" },
+    { path = "std::time::Instant", reason = "the engine has no wall clock; use SimTime" },
+    { path = "std::time::SystemTime", reason = "the engine has no wall clock; use SimTime" },
+]

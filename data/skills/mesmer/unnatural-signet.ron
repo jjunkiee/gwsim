@@ -23,11 +23,23 @@
         ],
         description_hash: Some("blake3:610f95e7252107e9c70e755d97c5879d"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            Damage(to: TargetFoe, amount: Scaled(15, 75)),
+            Control(If(
+                condition: Any([Hexed, Enchanted]),
+                of: Some(TargetFoe),
+                then: [
+                    Damage(to: Secondary(of: Adjacent(TargetFoe), factor: 1.0), amount: Scaled(5, 50)),
+                ],
+            )),
+        ],
+        roles: [Damage, Aoe],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Unnatural_Signet"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
         notes: "PvE version of a split skill (D3)",
     ),
 )

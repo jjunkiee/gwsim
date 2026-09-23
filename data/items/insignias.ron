@@ -21,7 +21,7 @@
         review: Draft,
         reviewed_by: None,
         assumptions: [],
-        notes: "Values from T1.4.1. Only the five insignias M1 uses are listed. Insignia armor is core armor and sits outside the +25 bonus cap. Tormentor's also adds holy damage taken, +6 on the chest, +4 on the legs and +2 elsewhere, which is 14 across a set; the DSL has no per-piece amount yet, so that penalty is recorded here rather than encoded.",
+        notes: "Values from T1.4.1. Only the five insignias M1 uses are listed. The stepped insignias (Prodigy's, Minion Master's, Shaman's) are written as nested If/otherwise, because the steps are exclusive: +15 at five, not 5 + 10 + 15. Insignia armor is core armor and sits outside the +25 bonus cap. Tormentor's also adds holy damage taken, +6 on the chest, +4 on the legs and +2 elsewhere, which is 14 across a set; the DSL has no per-piece amount yet, so that penalty is recorded here rather than encoded.",
     ),
 
     insignias: [
@@ -31,14 +31,16 @@
             name: "Prodigy's Insignia",
             profession: Some(Mesmer),
             effects: [
-                Control(If(condition: RechargingSkills(at_least: 1), then: [
-                    ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
-                ])),
-                Control(If(condition: RechargingSkills(at_least: 3), then: [
-                    ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
-                ])),
                 Control(If(condition: RechargingSkills(at_least: 5), then: [
                     ModifyStat(to: Self, stat: Armor, amount: Fixed(15), category: Core),
+                ], otherwise: [
+                    Control(If(condition: RechargingSkills(at_least: 3), then: [
+                        ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+                    ], otherwise: [
+                        Control(If(condition: RechargingSkills(at_least: 1), then: [
+                            ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
+                        ])),
+                    ])),
                 ])),
             ],
             per_piece: true,
@@ -65,14 +67,16 @@
             name: "Minion Master's Insignia",
             profession: Some(Necromancer),
             effects: [
-                Control(If(condition: ControllingMinions(at_least: 1), then: [
-                    ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
-                ])),
-                Control(If(condition: ControllingMinions(at_least: 3), then: [
-                    ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
-                ])),
                 Control(If(condition: ControllingMinions(at_least: 5), then: [
                     ModifyStat(to: Self, stat: Armor, amount: Fixed(15), category: Core),
+                ], otherwise: [
+                    Control(If(condition: ControllingMinions(at_least: 3), then: [
+                        ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+                    ], otherwise: [
+                        Control(If(condition: ControllingMinions(at_least: 1), then: [
+                            ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
+                        ])),
+                    ])),
                 ])),
             ],
             per_piece: true,
@@ -103,14 +107,16 @@
             name: "Shaman's Insignia",
             profession: Some(Ritualist),
             effects: [
-                Control(If(condition: ControllingSpirits(at_least: 1), then: [
-                    ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
-                ])),
-                Control(If(condition: ControllingSpirits(at_least: 2), then: [
-                    ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
-                ])),
                 Control(If(condition: ControllingSpirits(at_least: 3), then: [
                     ModifyStat(to: Self, stat: Armor, amount: Fixed(15), category: Core),
+                ], otherwise: [
+                    Control(If(condition: ControllingSpirits(at_least: 2), then: [
+                        ModifyStat(to: Self, stat: Armor, amount: Fixed(10), category: Core),
+                    ], otherwise: [
+                        Control(If(condition: ControllingSpirits(at_least: 1), then: [
+                            ModifyStat(to: Self, stat: Armor, amount: Fixed(5), category: Core),
+                        ])),
+                    ])),
                 ])),
             ],
             per_piece: true,

@@ -13,6 +13,7 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 pub mod coverage;
 pub mod data;
 pub mod describe;
+pub mod evaluate;
 pub mod info;
 pub mod loading;
 pub mod template;
@@ -39,6 +40,45 @@ pub enum Command {
     Data(DataArgs),
     /// Read and write build template codes.
     Template(TemplateArgs),
+    /// Run a party in a situation many times and report the results.
+    Evaluate(EvaluateArgs),
+}
+
+/// `gwsim evaluate` (T3.10.6).
+#[derive(Debug, Args)]
+pub struct EvaluateArgs {
+    /// A party file, or the slug of a party in the data.
+    #[arg(long)]
+    pub party: String,
+
+    /// A situation file, or the slug of a situation in the data.
+    #[arg(long)]
+    pub situation: String,
+
+    /// Run exactly this many seeds. Without it, runs are added until the
+    /// result is stable.
+    #[arg(long, value_name = "N")]
+    pub runs: Option<usize>,
+
+    /// The master seed.
+    #[arg(long, value_name = "S")]
+    pub seed: Option<u64>,
+
+    /// Worker threads. The result does not depend on this.
+    #[arg(long, value_name = "N")]
+    pub threads: Option<usize>,
+
+    /// Print one run's combat log instead, as `text` or `json`.
+    #[arg(long, value_name = "FORMAT")]
+    pub log: Option<String>,
+
+    /// Print JSON instead of text.
+    #[arg(long)]
+    pub json: bool,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
 }
 
 /// `gwsim template`.

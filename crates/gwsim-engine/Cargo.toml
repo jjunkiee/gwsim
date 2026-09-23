@@ -8,6 +8,15 @@ publish.workspace = true
 
 [dependencies]
 gwsim-data = { path = "../gwsim-data" }
+rand_chacha.workspace = true
+rand_core.workspace = true
+rayon.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+insta.workspace = true
 
 [lints]
 workspace = true

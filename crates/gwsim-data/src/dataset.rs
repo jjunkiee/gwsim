@@ -4,11 +4,12 @@ use std::collections::BTreeMap;
 
 use crate::assumptions::{Assumptions, AssumptionsFile};
 use crate::error::{DataError, DataErrorKind, DataErrors, Location};
-use crate::foe::{Foe, HeroesFile, MinionsFile, SpiritsFile};
+use crate::foe::{DummiesFile, Dummy, Foe, HeroesFile, MinionsFile, SpiritsFile};
 use crate::ids::{SkillId, Slug, slugify};
 use crate::items::{
     ArmorFile, ConsumablesFile, InsigniasFile, RunesFile, WeaponUpgradesFile, WeaponsFile,
 };
+use crate::party::PartyFile;
 use crate::scenario::{Benchmark, Encounter, Situation, SituationSet};
 use crate::skill::Skill;
 use crate::skill_index::SkillIndexFile;
@@ -53,6 +54,11 @@ pub struct DataSet {
     pub heroes: Option<Entry<HeroesFile>>,
     pub minions: Option<Entry<MinionsFile>>,
     pub spirits: Option<Entry<SpiritsFile>>,
+    /// Training dummies (T3.10.2).
+    pub dummies: Option<Entry<DummiesFile>>,
+
+    /// Party files, by slug (T4.9.1).
+    pub parties: BTreeMap<Slug, Entry<PartyFile>>,
 
     pub assumptions: Assumptions,
 
@@ -177,6 +183,21 @@ impl DataSet {
             ["creatures", "spirits.ron"] => {
                 self.spirits = parse(path, &text, problems).map(|value| entry(path, value));
             }
+            ["creatures", "dummies.ron"] => {
+                self.dummies = parse(path, &text, problems).map(|value| entry(path, value));
+            }
+
+            ["parties", _] => match parse::<PartyFile>(path, &text, problems) {
+                Some(party) => insert_by_slug(
+                    &mut self.parties,
+                    path,
+                    slugify(&party.name),
+                    party,
+                    "party",
+                    problems,
+                ),
+                None => self.note_unparsed(path),
+            },
 
             ["items", "armor.ron"] => {
                 self.armor = parse(path, &text, problems).map(|value| entry(path, value));
@@ -397,6 +418,21 @@ impl DataSet {
     /// A foe by slug.
     pub fn foe(&self, slug: &Slug) -> Option<&Foe> {
         self.foes.get(slug).map(|entry| &entry.value)
+    }
+
+    /// A training dummy by slug.
+    pub fn dummy(&self, slug: &Slug) -> Option<&Dummy> {
+        self.dummies
+            .as_ref()?
+            .value
+            .dummies
+            .iter()
+            .find(|dummy| dummy.slug == *slug)
+    }
+
+    /// A party by slug.
+    pub fn party(&self, slug: &Slug) -> Option<&PartyFile> {
+        self.parties.get(slug).map(|entry| &entry.value)
     }
 
     /// How many entities of each kind were loaded.

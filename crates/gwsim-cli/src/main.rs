@@ -19,6 +19,7 @@ fn main() -> ExitCode {
             DataCommand::Coverage(args) => run(|out| gwsim_cli::coverage::run(&args, out)),
             DataCommand::Info(args) => run(|out| gwsim_cli::info::run(&args, out)),
         },
+        Some(Command::Evaluate(args)) => run(|out| gwsim_cli::evaluate::run(&args, out)),
         Some(Command::Template(args)) => match args.command {
             TemplateCommand::Decode(args) => run(|out| gwsim_cli::template::decode(&args, out)),
             TemplateCommand::Encode(args) => run(|out| gwsim_cli::template::encode(&args, out)),
