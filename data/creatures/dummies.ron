@@ -1,0 +1,23 @@
+// Training dummies: stationary targets with stated stats (T3.10.2).
+// Not a game creature: the stats are chosen so tests know exactly what they hit.
+(
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Training_dummy"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "The M0 dummy spec from T3.10.1: level 26, 40 energy that never regenerates, armor 60 against everything, and a fixed 480 health. Killing one grants experience so Air of Superiority can trigger.",
+    ),
+    dummies: [
+        (
+            slug: "training-dummy",
+            name: "Training dummy",
+            level: 26,
+            health: 480,
+            energy: 40,
+            energy_regeneration: 0,
+            armor: 60,
+            gives_experience: true,
+            traits: [Fleshy],
+        ),
+    ],
+)

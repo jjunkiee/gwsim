@@ -1,0 +1,25 @@
+// Three training dummies for M0 (T3.10.2). The second stands adjacent to the
+// first; the third is nearby but not adjacent, so area bands can be told apart.
+(
+    name: "Training dummies",
+    area: "Training ground",
+    campaign: Core,
+    groups: [
+        (
+            foes: [(foe: "training-dummy", count: 3)],
+            formation: Explicit([
+                (x: 0.0, y: 0.0),
+                (x: 100.0, y: 0.0),
+                (x: -200.0, y: 100.0),
+            ]),
+            position: (x: 0.0, y: 1000.0),
+        ),
+    ],
+    party_start: (x: 0.0, y: 0.0),
+    provenance: (
+        sources: ["docs/plan/P3-engine-core.md#t3102-dummies-minimal-encounter-and-dummies-hm"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "Positions in gwinches. 100 is inside adjacent (166); the third dummy is 224 from the first, inside nearby (252) but outside adjacent. All three are inside casting range (1248) of the party's start.",
+    ),
+)

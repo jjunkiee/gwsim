@@ -22,19 +22,20 @@
   4. WP3.4 (it uses both).
   5. WP3.9, then WP3.8.
   6. WP3.10.
+- **Status:** 2026-09-23, **Done** in the unattended session, except the owner review of the M0 encodings (T3.10.8, logged as F3.9). The M0 criteria hold: `crates/gwsim-cli/tests/m0.rs` reproduces the T3.10.1 hand calculations exactly for all six damage and energy skills, checks Arcane Echo and Air of Superiority's behaviour, and shows identical results at 1 and 6 threads; the `wiki_examples` suites in `gwsim-data` and `gwsim-engine` pass. Decisions taken without the owner are in [fallout-tasks.md](fallout-tasks.md) §7 (F3.1–F3.20).
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 3.1 | Time model and event queue | A deterministic simulation clock and loop, with the tick-vs-events question settled by a spike. | Todo |
-| 3.2 | Space | An open 2D field with range bands, movement, body-blocking, projectiles and area queries. | Todo |
-| 3.3 | Units and derived stats | Units spawned from builds and foe data, with a stat-modifier framework that enforces caps. | Todo |
-| 3.4 | Skill use pipeline | Skills used exactly as the wiki's rules describe, from validity checks through to recharge. | Todo |
-| 3.5 | Damage, armor and healing | Wiki-exact damage, armor, hits, crits, healing and regeneration. | Todo |
-| 3.6 | Effects framework | Effects, conditions, stacking, triggers and the DSL interpreter. | Todo |
-| 3.7 | RNG streams and CRN | Seeded, purpose-separated random streams and shared seed lists. | Todo |
-| 3.8 | Run harness | Many seeded runs, aggregated with confidence intervals, until the result is stable. | Todo |
-| 3.9 | Combat log | An opt-in, zero-cost-when-off event log in JSON Lines and text. | Todo |
-| 3.10 | Dummies, M0 skills and `PlanAi` v0 | M0: the player bar against dummies, matching hand calculations. | Todo |
+| 3.1 | Time model and event queue | A deterministic simulation clock and loop, with the tick-vs-events question settled by a spike. | Done |
+| 3.2 | Space | An open 2D field with range bands, movement, body-blocking, projectiles and area queries. | Done |
+| 3.3 | Units and derived stats | Units spawned from builds and foe data, with a stat-modifier framework that enforces caps. | Done |
+| 3.4 | Skill use pipeline | Skills used exactly as the wiki's rules describe, from validity checks through to recharge. | Done |
+| 3.5 | Damage, armor and healing | Wiki-exact damage, armor, hits, crits, healing and regeneration. | Done |
+| 3.6 | Effects framework | Effects, conditions, stacking, triggers and the DSL interpreter. | Done |
+| 3.7 | RNG streams and CRN | Seeded, purpose-separated random streams and shared seed lists. | Done |
+| 3.8 | Run harness | Many seeded runs, aggregated with confidence intervals, until the result is stable. | Done |
+| 3.9 | Combat log | An opt-in, zero-cost-when-off event log in JSON Lines and text. | Done |
+| 3.10 | Dummies, M0 skills and `PlanAi` v0 | M0: the player bar against dummies, matching hand calculations. | Done |
 
 ---
 
@@ -48,12 +49,12 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.1.1 | Timing facts | Research | — | Todo |
-| T3.1.2 | Simulation time and the event queue | Build | — | Todo |
-| T3.1.3 | Spike: tick vs pure events | Build | T3.1.2 | Todo |
-| T3.1.4 | Choose the time model | Decision | T3.1.3 | Todo |
-| T3.1.5 | Main loop, stop conditions and controller hook | Build | T3.1.4 | Todo |
-| T3.1.6 | Loop tests | Test | T3.1.5 | Todo |
+| T3.1.1 | Timing facts | Research | — | Done |
+| T3.1.2 | Simulation time and the event queue | Build | — | Done |
+| T3.1.3 | Spike: tick vs pure events | Build | T3.1.2 | Done |
+| T3.1.4 | Choose the time model | Decision | T3.1.3 | Done |
+| T3.1.5 | Main loop, stop conditions and controller hook | Build | T3.1.4 | Done |
+| T3.1.6 | Loop tests | Test | T3.1.5 | Done |
 
 ### T3.1.1 Timing facts
 
@@ -149,13 +150,13 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.2.1 | Movement, collision, projectile and aggro values | Research | — | Todo |
-| T3.2.2 | Geometry and range checks | Build | — | Todo |
-| T3.2.3 | Movement and speed modifiers | Build | T3.2.2, T3.2.1 | Todo |
-| T3.2.4 | Body-blocking | Build | T3.2.3 | Todo |
-| T3.2.5 | Projectiles | Build | T3.2.3 | Todo |
-| T3.2.6 | Area and target queries | Build | T3.2.2 | Todo |
-| T3.2.7 | Space tests | Test | T3.2.3–T3.2.6 | Todo |
+| T3.2.1 | Movement, collision, projectile and aggro values | Research | — | Done |
+| T3.2.2 | Geometry and range checks | Build | — | Done |
+| T3.2.3 | Movement and speed modifiers | Build | T3.2.2, T3.2.1 | Done |
+| T3.2.4 | Body-blocking | Build | T3.2.3 | Done |
+| T3.2.5 | Projectiles | Build | T3.2.3 | Done |
+| T3.2.6 | Area and target queries | Build | T3.2.2 | Done |
+| T3.2.7 | Space tests | Test | T3.2.3–T3.2.6 | Done |
 
 ### T3.2.1 Movement, collision, projectile and aggro values
 
@@ -253,11 +254,11 @@
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.3.1 | Unit storage | Build | — | Todo |
-| T3.3.2 | Spawn party units | Build | T3.3.1 | Todo |
-| T3.3.3 | Spawn foe units | Build | T3.3.1 | Todo |
-| T3.3.4 | Stat-modifier framework | Build | T3.3.1 | Todo |
-| T3.3.5 | Spawn tests | Test | T3.3.2–T3.3.4 | Todo |
+| T3.3.1 | Unit storage | Build | — | Done |
+| T3.3.2 | Spawn party units | Build | T3.3.1 | Done |
+| T3.3.3 | Spawn foe units | Build | T3.3.1 | Done |
+| T3.3.4 | Stat-modifier framework | Build | T3.3.1 | Done |
+| T3.3.5 | Spawn tests | Test | T3.3.2–T3.3.4 | Done |
 
 ### T3.3.1 Unit storage
 
@@ -346,17 +347,17 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.4.1 | Skill-use rules per skill type | Research | T3.1.1 | Todo |
-| T3.4.2 | Validity checks (ENG-10) | Build | T3.4.1 | Todo |
-| T3.4.3 | Approach to range (ENG-11) | Build | T3.4.2 | Todo |
-| T3.4.4 | Activation time (ENG-12) | Build | T3.4.1 | Todo |
-| T3.4.5 | Costs (ENG-13) | Build | T3.4.2 | Todo |
-| T3.4.6 | Outcomes and aftercast (ENG-14) | Build | T3.4.4, T3.4.5 | Todo |
-| T3.4.7 | Recharge (ENG-16) | Build | T3.4.6 | Todo |
-| T3.4.8 | Upkeep (ENG-17) | Build | T3.4.6 | Todo |
-| T3.4.9 | Interrupts (ENG-18) | Build | T3.4.6 | Todo |
-| T3.4.10 | Auto-attacks and attack skills (ENG-15) | Build | T3.4.6 | Todo |
-| T3.4.11 | Pipeline tests | Test | T3.4.2–T3.4.10 | Todo |
+| T3.4.1 | Skill-use rules per skill type | Research | T3.1.1 | Done |
+| T3.4.2 | Validity checks (ENG-10) | Build | T3.4.1 | Done |
+| T3.4.3 | Approach to range (ENG-11) | Build | T3.4.2 | Done |
+| T3.4.4 | Activation time (ENG-12) | Build | T3.4.1 | Done |
+| T3.4.5 | Costs (ENG-13) | Build | T3.4.2 | Done |
+| T3.4.6 | Outcomes and aftercast (ENG-14) | Build | T3.4.4, T3.4.5 | Done |
+| T3.4.7 | Recharge (ENG-16) | Build | T3.4.6 | Done |
+| T3.4.8 | Upkeep (ENG-17) | Build | T3.4.6 | Done |
+| T3.4.9 | Interrupts (ENG-18) | Build | T3.4.6 | Done |
+| T3.4.10 | Auto-attacks and attack skills (ENG-15) | Build | T3.4.6 | Done |
+| T3.4.11 | Pipeline tests | Test | T3.4.2–T3.4.10 | Done |
 
 ### T3.4.1 Skill-use rules per skill type
 
@@ -528,15 +529,15 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.5.1 | Damage and healing rules with worked examples | Research | — | Todo |
-| T3.5.2 | Damage packet and strike level | Build | T3.5.1 | Todo |
-| T3.5.3 | Armor calculation | Build | T3.5.1 | Todo |
-| T3.5.4 | Hit resolution | Build | T3.5.2, T3.5.3 | Todo |
-| T3.5.5 | Damage modifier pipeline and mitigation hooks | Build | T3.5.2 | Todo |
-| T3.5.6 | Healing | Build | T3.5.1 | Todo |
-| T3.5.7 | Regeneration, degeneration and combat state | Build | T3.5.1 | Todo |
-| T3.5.8 | Death (minimal) | Build | T3.5.5 | Todo |
-| T3.5.9 | Wiki-example and property tests | Test | T3.5.2–T3.5.8 | Todo |
+| T3.5.1 | Damage and healing rules with worked examples | Research | — | Done |
+| T3.5.2 | Damage packet and strike level | Build | T3.5.1 | Done |
+| T3.5.3 | Armor calculation | Build | T3.5.1 | Done |
+| T3.5.4 | Hit resolution | Build | T3.5.2, T3.5.3 | Done |
+| T3.5.5 | Damage modifier pipeline and mitigation hooks | Build | T3.5.2 | Done |
+| T3.5.6 | Healing | Build | T3.5.1 | Done |
+| T3.5.7 | Regeneration, degeneration and combat state | Build | T3.5.1 | Done |
+| T3.5.8 | Death (minimal) | Build | T3.5.5 | Done |
+| T3.5.9 | Wiki-example and property tests | Test | T3.5.2–T3.5.8 | Done |
 
 ### T3.5.1 Damage and healing rules with worked examples
 
@@ -672,16 +673,16 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.6.1 | Effect stacking, conditions, removal and knockdown | Research | — | Todo |
-| T3.6.2 | Active effects and stacking rules | Build | T3.6.1 | Todo |
-| T3.6.3 | One-at-a-time families (ENG-32) | Build | T3.6.2 | Todo |
-| T3.6.4 | Conditions (ENG-30) | Build | T3.6.2 | Todo |
-| T3.6.5 | `while_active` modifiers and caps | Build | T3.6.2, T3.3.4 | Todo |
-| T3.6.6 | Event bus and triggers | Build | T3.6.2 | Todo |
-| T3.6.7 | DSL interpreter | Build | T3.6.5, T3.6.6 | Todo |
-| T3.6.8 | Handler trait and registry | Build | T3.6.7 | Todo |
-| T3.6.9 | Knockdown (ENG-35) | Build | T3.6.2 | Todo |
-| T3.6.10 | Effects tests | Test | T3.6.2–T3.6.9 | Todo |
+| T3.6.1 | Effect stacking, conditions, removal and knockdown | Research | — | Done |
+| T3.6.2 | Active effects and stacking rules | Build | T3.6.1 | Done |
+| T3.6.3 | One-at-a-time families (ENG-32) | Build | T3.6.2 | Done |
+| T3.6.4 | Conditions (ENG-30) | Build | T3.6.2 | Done |
+| T3.6.5 | `while_active` modifiers and caps | Build | T3.6.2, T3.3.4 | Done |
+| T3.6.6 | Event bus and triggers | Build | T3.6.2 | Done |
+| T3.6.7 | DSL interpreter | Build | T3.6.5, T3.6.6 | Done |
+| T3.6.8 | Handler trait and registry | Build | T3.6.7 | Done |
+| T3.6.9 | Knockdown (ENG-35) | Build | T3.6.2 | Done |
+| T3.6.10 | Effects tests | Test | T3.6.2–T3.6.9 | Done |
 
 ### T3.6.1 Effect stacking, conditions, removal and knockdown
 
@@ -818,11 +819,11 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.7.1 | Choose the PRNG | Research / Decision | — | Todo |
-| T3.7.2 | Stream derivation | Build | T3.7.1 | Todo |
-| T3.7.3 | Determinism guards | Build | — | Todo |
-| T3.7.4 | Seed lists | Build | T3.7.2 | Todo |
-| T3.7.5 | Determinism tests | Test | T3.7.2–T3.7.4, WP3.8 | Todo |
+| T3.7.1 | Choose the PRNG | Research / Decision | — | Done |
+| T3.7.2 | Stream derivation | Build | T3.7.1 | Done |
+| T3.7.3 | Determinism guards | Build | — | Done |
+| T3.7.4 | Seed lists | Build | T3.7.2 | Done |
+| T3.7.5 | Determinism tests | Test | T3.7.2–T3.7.4, WP3.8 | Done |
 
 ### T3.7.1 Choose the PRNG
 
@@ -888,11 +889,11 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.8.1 | `RunResult` and per-run statistics | Build | WP3.5 | Todo |
-| T3.8.2 | Parallel evaluation | Build | T3.8.1 | Todo |
-| T3.8.3 | Aggregates and confidence intervals | Build | T3.8.2 | Todo |
-| T3.8.4 | Stop-when-stable rule | Build | T3.8.3 | Todo |
-| T3.8.5 | Harness tests | Test | T3.8.4 | Todo |
+| T3.8.1 | `RunResult` and per-run statistics | Build | WP3.5 | Done |
+| T3.8.2 | Parallel evaluation | Build | T3.8.1 | Done |
+| T3.8.3 | Aggregates and confidence intervals | Build | T3.8.2 | Done |
+| T3.8.4 | Stop-when-stable rule | Build | T3.8.3 | Done |
+| T3.8.5 | Harness tests | Test | T3.8.4 | Done |
 
 ### T3.8.1 `RunResult` and per-run statistics
 
@@ -966,11 +967,11 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.9.1 | Log sink | Build | — | Todo |
-| T3.9.2 | Emission points | Build | T3.9.1 | Todo |
-| T3.9.3 | JSON Lines and text writers | Build | T3.9.2 | Todo |
-| T3.9.4 | Re-simulation API | Build | T3.9.3, WP3.8 | Todo |
-| T3.9.5 | Log tests | Test | T3.9.4 | Todo |
+| T3.9.1 | Log sink | Build | — | Done |
+| T3.9.2 | Emission points | Build | T3.9.1 | Done |
+| T3.9.3 | JSON Lines and text writers | Build | T3.9.2 | Done |
+| T3.9.4 | Re-simulation API | Build | T3.9.3, WP3.8 | Done |
+| T3.9.5 | Log tests | Test | T3.9.4 | Done |
 
 ### T3.9.1 Log sink
 
@@ -1038,14 +1039,14 @@ Auto-attacks and attack skills follow the same rules.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T3.10.1 | The 8 M0 skills and M0 hand calculations | Research | — | Todo |
-| T3.10.2 | Dummies, minimal encounter and `dummies-hm` | Data | WP3.3 | Todo |
-| T3.10.3 | Encode the 8 player skills | Data | T3.10.1, T2.6.5 or hand entry | Todo |
-| T3.10.4 | Handlers: Arcane Echo, Air of Superiority, Mistrust | Build | T3.10.3, T3.6.8 | Todo |
-| T3.10.5 | `PlanAi` v0 | Build | T3.1.5 | Todo |
-| T3.10.6 | Minimal `gwsim evaluate` | Build | T3.10.2, WP3.8 | Todo |
-| T3.10.7 | M0 acceptance tests | Test | T3.10.3–T3.10.6 | Todo |
-| T3.10.8 | Owner review of the M0 encodings | Review | T3.10.7 | Todo |
+| T3.10.1 | The 8 M0 skills and M0 hand calculations | Research | — | Done |
+| T3.10.2 | Dummies, minimal encounter and `dummies-hm` | Data | WP3.3 | Done |
+| T3.10.3 | Encode the 8 player skills | Data | T3.10.1, T2.6.5 or hand entry | Done |
+| T3.10.4 | Handlers: Arcane Echo, Air of Superiority, Mistrust | Build | T3.10.3, T3.6.8 | Done |
+| T3.10.5 | `PlanAi` v0 | Build | T3.1.5 | Done |
+| T3.10.6 | Minimal `gwsim evaluate` | Build | T3.10.2, WP3.8 | Done |
+| T3.10.7 | M0 acceptance tests | Test | T3.10.3–T3.10.6 | Done |
+| T3.10.8 | Owner review of the M0 encodings | Review | T3.10.7 | Owner (F3.9) |
 
 ### T3.10.1 The 8 M0 skills and M0 hand calculations
 

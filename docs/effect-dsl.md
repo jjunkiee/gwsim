@@ -29,11 +29,10 @@ installed it with `cargo install --path crates/gwsim-cli`.
 wiki page.** If the two disagree, the encoding is almost always what is wrong.
 Add `--rank 12` to see the numbers at a rank instead of as ranges.
 
-> **`data/skills/` is empty today.** The schemas, the DSL and the renderer are
-> built, but no skill has been written yet: the extractor seeds them in P2 and
-> they are encoded in WP4.1. Until then `data describe` has nothing to find,
-> and the way to see the renderer's output is the golden tests in
-> `crates/gwsim-data/tests/descriptions.rs`.
+> **Most of `data/skills/` is numbers only so far.** The extractor seeded the M1
+> skills in P2 as `NumbersOnly`; the eight M0 player skills are encoded (P3) and the
+> rest follow in WP4.1. `data describe` renders only encoded skills; the golden tests
+> in `crates/gwsim-data/tests/descriptions.rs` show more of the renderer's output.
 
 ## Values
 

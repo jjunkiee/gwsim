@@ -12,6 +12,7 @@ gwsim-engine = { path = "../gwsim-engine" }
 gwsim-data = { path = "../gwsim-data" }
 clap.workspace = true
 serde_json.workspace = true
+rayon.workspace = true
 ron.workspace = true
 
 [build-dependencies]

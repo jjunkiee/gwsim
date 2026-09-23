@@ -113,3 +113,17 @@ pub fn embedded_bytes() -> &'static [u8] {
 pub fn embedded_size() -> usize {
     EMBEDDED.len()
 }
+
+/// Loads the core data from the same place [`load`] chose (F3.2).
+pub fn load_core(origin: &DataOrigin) -> Result<gwsim_data::core::CoreData, String> {
+    match origin {
+        DataOrigin::Named(path) | DataOrigin::WorkingDirectory(path) => {
+            gwsim_data::core::CoreData::load(path.join("core")).map_err(|errors| errors.to_string())
+        }
+        DataOrigin::Embedded => {
+            let source = gwsim_data::pack::source_from_bytes(EMBEDDED)
+                .map_err(|errors| errors.to_string())?;
+            gwsim_data::core::CoreData::from_source(&source).map_err(|errors| errors.to_string())
+        }
+    }
+}
