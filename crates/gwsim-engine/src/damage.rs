@@ -47,6 +47,14 @@ pub struct Reduction {
     /// A ceiling on one packet, as a percentage of maximum health (Shelter).
     pub cap: Option<f64>,
     pub only_from: Option<DamageSource>,
+    /// The most it prevents from one packet (Reversal of Fortune).
+    pub limit: Option<f64>,
+    /// What it prevents heals the bearer instead.
+    pub heals: bool,
+    /// Health the granting creature loses each time it prevents damage
+    /// (Shelter, Union).
+    pub cost_to_source: Option<f64>,
+    /// Who granted it: an effect's caster, or an aura's spirit.
     pub caster: UnitId,
     pub skill: u16,
 }
@@ -69,7 +77,8 @@ impl Sim {
         penetration: f64,
     ) -> f64 {
         let u = &self.units[unit.index()];
-        let mut core = f64::from(u.armor[piece.index()].against(damage));
+        let mut core =
+            f64::from(u.armor[piece.index()].against(damage)) + self.mysticism_armor(unit);
         let mut bonuses = Vec::new();
         let mut special = 0.0;
         for modifier in self.modifiers(unit, Stat::Armor, Some(piece)) {
@@ -138,6 +147,8 @@ impl Sim {
                 .kind
                 .is_a(SkillType::Spell)
         });
+        let mut converted: Vec<(UnitId, f64, u16)> = Vec::new();
+        let mut spirit_costs: Vec<(UnitId, f64)> = Vec::new();
         for reduction in self.damage_reductions(target) {
             let applies = match reduction.only_from {
                 None => true,
@@ -158,14 +169,41 @@ impl Sim {
             if let Some(flat) = reduction.flat {
                 amount = (amount - flat).max(0.0);
             }
+            if let Some(limit) = reduction.limit {
+                amount = amount.max(before - limit);
+            }
+            let saved = before - amount;
+            if saved > 0.0 {
+                if reduction.heals {
+                    converted.push((reduction.caster, saved, reduction.skill));
+                }
+                if let Some(cost) = reduction.cost_to_source {
+                    spirit_costs.push((reduction.caster, cost));
+                }
+            }
             let prevented = combat::round_points(before - amount);
             if prevented > 0 {
                 self.stats.skills[usize::from(reduction.skill)].mitigation += i64::from(prevented);
+                if self.units[target.index()].team == crate::unit::Team::Party
+                    && let Some(slot) = self.credit_slot(reduction.caster)
+                {
+                    self.stats
+                        .contribution(slot, Some(reduction.skill))
+                        .mitigation += i64::from(prevented);
+                }
             }
         }
 
         let damage = combat::round_points(amount).max(0);
         self.apply_health_change(target, -damage * HEALTH_SCALE);
+        // Prevented damage that heals instead, and what preventing costs the
+        // spirits that did it.
+        for (healer, saved, skill) in converted {
+            self.heal(healer, target, saved, Some(skill), HealKind::HealthGain);
+        }
+        for (spirit, cost) in spirit_costs {
+            self.health_loss(spirit, cost, Some(source));
+        }
         self.mark_combat(source);
         self.mark_combat(target);
 
@@ -177,8 +215,16 @@ impl Sim {
         if let Some(slot) = self.units[target.index()].slot_index {
             self.stats.slots[slot].damage_taken += i64::from(damage);
         }
-        if let Some(skill) = info.skill {
+        // Damage a skill does to its own side (a spirit paying for a block)
+        // is a cost, not damage dealt.
+        let hostile = self.units[source.index()].team != self.units[target.index()].team;
+        if let Some(skill) = info.skill
+            && hostile
+        {
             self.stats.skills[usize::from(skill)].damage += i64::from(damage);
+        }
+        if hostile && let Some(slot) = self.credit_slot(source) {
+            self.stats.contribution(slot, info.skill).damage += i64::from(damage);
         }
         if self.logging() {
             let mut event = LogEvent::new(self.now, LogKind::Damage)
@@ -314,6 +360,11 @@ impl Sim {
         if let Some(skill) = skill {
             self.stats.skills[usize::from(skill)].healing += i64::from(gained);
         }
+        if let Some(slot) = self.credit_slot(source) {
+            let row = self.stats.contribution(slot, skill);
+            row.healing += i64::from(gained);
+            row.overhealing += i64::from(over);
+        }
         if self.logging() {
             self.log_event(
                 LogEvent::new(self.now, LogKind::Heal)
@@ -415,6 +466,9 @@ impl Sim {
         if self.engaged_at.is_none() {
             self.engaged_at = Some(self.now);
         }
+        if self.segment_engaged.is_none() && self.resting_until.is_none() {
+            self.segment_engaged = Some(self.now);
+        }
     }
 
     /// Kills a unit (T3.5.8). Its activation stops (not an interrupt), most
@@ -440,12 +494,32 @@ impl Sim {
                 slot.adrenaline = 0;
             }
         }
+        // On-death triggers read the effects the unit still bears (Putrid
+        // Bile, Blood Bond), so they fire before death clears them.
+        self.fire(Fired {
+            event: Event::OnDeath,
+            subject: unit,
+            other: killer,
+            skill: None,
+            amount: 0.0,
+        });
         self.clear_on_death(unit);
+        self.creature_died(unit);
         let u = &self.units[unit.index()];
-        if let Some(slot) = u.slot_index {
+        let (slot_index, foe_index) = (u.slot_index, u.foe_index);
+        let party_member = u.team == Team::Party && !u.kind.is_summoned();
+        if let Some(slot) = slot_index {
             self.stats.slots[slot].deaths += 1;
         }
-        if let Some(foe) = u.foe_index {
+        if party_member {
+            // Death penalty: 15% per death, to 60% (§10.11).
+            let u = &mut self.units[unit.index()];
+            u.death_penalty = (u.death_penalty + 15).min(60);
+            if self.fight.dhuums_covenant {
+                self.covenant_broken = true;
+            }
+        }
+        if let Some(foe) = foe_index {
             let engaged = self.engaged_at.unwrap_or(crate::time::SimTime::ZERO);
             self.stats.foe_ttk_ms[foe] = Some(now.ms().saturating_sub(engaged.ms()));
         }
@@ -457,13 +531,6 @@ impl Sim {
             event
         });
 
-        self.fire(Fired {
-            event: Event::OnDeath,
-            subject: unit,
-            other: killer,
-            skill: None,
-            amount: 0.0,
-        });
         if let Some(killer) = killer {
             self.fire(Fired {
                 event: Event::OnKill,

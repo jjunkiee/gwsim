@@ -13,7 +13,7 @@
     cost: (energy: 10),
     activation: 0.75,
     recharge: 4.0,
-    target: Self,
+    target: Ally,
     range: None,
     aoe: None,
     extracted: (
@@ -22,10 +22,16 @@
         ],
         description_hash: Some("blake3:3373bc437eb9c0c36c62b45787c17ccc"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            Control(If(condition: BelowHealth(percent: 50.0), of: Some(TargetAlly), then: [GainEnergy(to: Self, amount: Fixed(7))])),
+            Heal(to: TargetAlly, amount: Scaled(30, 180)),
+        ],
+        roles: [Healing],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Zealous_Benediction"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
     ),
 )

@@ -181,7 +181,7 @@ fn energy_surge_damage_follows_the_energy_actually_lost() {
 }
 
 #[test]
-fn mistrust_fails_the_next_spell_and_deals_85_then_64_nearby() {
+fn mistrust_fails_the_next_spell_and_deals_64_to_every_foe_it_reaches() {
     let mut sim = scripted();
     use_and_finish(&mut sim, MISTRUST, Target::Unit(FIRST));
     assert_eq!(
@@ -195,13 +195,14 @@ fn mistrust_fails_the_next_spell_and_deals_85_then_64_nearby() {
     let mut fired = Fired::new(gwsim_data::dsl::Event::OnSpellCast, FIRST);
     fired.other = Some(PLAYER);
     sim.fire(fired);
-    assert_eq!(damage_taken(&sim, FIRST), 85);
+    // Since 2026-06-24 the target takes the area's 75% too: 0.75 × 85.
+    assert_eq!(damage_taken(&sim, FIRST), 64);
     assert_eq!(damage_taken(&sim, ADJACENT), 64);
     assert_eq!(damage_taken(&sim, NEARBY), 64);
 
     // One charge: a second spell does nothing.
     sim.fire(fired);
-    assert_eq!(damage_taken(&sim, FIRST), 85);
+    assert_eq!(damage_taken(&sim, FIRST), 64);
 }
 
 #[test]
@@ -257,7 +258,16 @@ fn spiritual_pain_deals_79_and_132_to_summoned_creatures() {
     sim.units[ADJACENT.index()].kind = UnitKind::Minion;
     use_and_finish(&mut sim, SPIRITUAL_PAIN, Target::Unit(FIRST));
     assert_eq!(damage_taken(&sim, FIRST), 79);
-    assert_eq!(damage_taken(&sim, ADJACENT), 132);
+    // A minion also decays while the spell is cast, so read the hit itself.
+    let hit: i32 = sim
+        .log
+        .as_ref()
+        .unwrap()
+        .iter()
+        .filter(|e| e.kind == gwsim_engine::log::LogKind::Damage && e.target == Some(ADJACENT.0))
+        .filter_map(|e| e.amount)
+        .sum();
+    assert_eq!(hit, 132);
     assert_eq!(damage_taken(&sim, NEARBY), 0, "not summoned");
 }
 
@@ -410,7 +420,14 @@ fn digests(threads: &str) -> String {
         .unwrap();
     assert!(output.status.success());
     let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    json["digests"].to_string()
+    let digests: Vec<String> = json["situations"][0]["runs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|run| run["digest"].as_str().unwrap().to_owned())
+        .collect();
+    assert_eq!(digests.len(), 24);
+    digests.join(",")
 }
 
 #[test]

@@ -10,12 +10,18 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
+pub mod check;
+pub mod compare;
 pub mod coverage;
 pub mod data;
 pub mod describe;
 pub mod evaluate;
 pub mod info;
 pub mod loading;
+pub mod log;
+pub mod plan;
+pub mod report;
+pub mod results;
 pub mod template;
 
 /// Guild Wars Reforged PvE build simulator.
@@ -42,23 +48,167 @@ pub enum Command {
     Template(TemplateArgs),
     /// Run a party in a situation many times and report the results.
     Evaluate(EvaluateArgs),
+    /// Print the priority plan a human slot would follow, as editable RON.
+    Plan(PlanArgs),
+    /// Re-simulate one run of a result file and print its combat log.
+    Log(LogArgs),
+    /// Run two parties on the same seeds and compare them.
+    Compare(CompareArgs),
+    /// Run the relative checks of DESIGN §17.4 (RC1, RC2, RC6).
+    Check(CheckArgs),
 }
 
-/// `gwsim evaluate` (T3.10.6).
+/// Which checks `gwsim check` runs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CheckSuite {
+    /// RC1, RC2 and RC6.
+    Relative,
+    /// Quick self-checks of the comparison machinery.
+    Unit,
+    /// Both.
+    All,
+}
+
+/// How many runs each comparison uses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
+pub enum CheckLevel {
+    /// Fewer runs, for CI.
+    Reduced,
+    /// The full run counts.
+    Full,
+}
+
+/// `gwsim check` (T4.10.2).
 #[derive(Debug, Args)]
-pub struct EvaluateArgs {
+pub struct CheckArgs {
+    /// Which suite to run.
+    #[arg(long, value_enum, default_value_t = CheckSuite::All)]
+    pub suite: CheckSuite,
+
+    /// Reduced run counts (CI) or full ones.
+    #[arg(long, value_enum, default_value_t = CheckLevel::Reduced)]
+    pub level: CheckLevel,
+
+    /// Only these checks, by id (RC1, RC2, RC6, SELF, DET). Repeatable.
+    #[arg(long, value_name = "ID")]
+    pub only: Vec<String>,
+
+    /// Where to write the JSON report. Defaults to `gwsim-check.json`.
+    #[arg(long, value_name = "PATH")]
+    pub report: Option<PathBuf>,
+
+    /// Worker threads. The result does not depend on this.
+    #[arg(long, value_name = "N")]
+    pub threads: Option<usize>,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
+}
+
+/// `gwsim log` (T4.9.6).
+#[derive(Debug, Args)]
+pub struct LogArgs {
+    /// A result file written by `gwsim evaluate --json PATH`.
+    #[arg(long, value_name = "FILE")]
+    pub result: PathBuf,
+
+    /// The run, counted from 0 across the result's situations in order.
+    #[arg(long, value_name = "N", default_value_t = 0)]
+    pub run: usize,
+
+    /// `text`, or `jsonl` for one JSON object per event.
+    #[arg(long, value_name = "FORMAT", default_value = "text")]
+    pub format: String,
+
+    /// Include decisions, movement, energy changes and swing starts.
+    #[arg(long)]
+    pub verbose: bool,
+
+    /// Log the run even though the data pack has changed since the result
+    /// was written. The log may then disagree with the recorded summary.
+    #[arg(long)]
+    pub force: bool,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
+}
+
+/// `gwsim compare` (T4.9.8).
+#[derive(Debug, Args)]
+pub struct CompareArgs {
+    /// The first party: a file, a party slug, or comma-separated skill codes.
+    pub party_a: String,
+
+    /// The second party, in the same forms.
+    pub party_b: String,
+
+    /// A situation slug or file, or a situation set's slug.
+    #[arg(long, value_name = "ID")]
+    pub situations: String,
+
+    /// Run exactly this many seeds per situation. Without it, each party runs
+    /// until stable and the shorter is extended to match.
+    #[arg(long, value_name = "N")]
+    pub runs: Option<usize>,
+
+    /// The master seed, shared by both parties.
+    #[arg(long, value_name = "S")]
+    pub seed: Option<u64>,
+
+    /// Worker threads. The result does not depend on this.
+    #[arg(long, value_name = "N")]
+    pub threads: Option<usize>,
+
+    /// Print JSON instead of text.
+    #[arg(long)]
+    pub json: bool,
+
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
+}
+
+/// `gwsim plan` (T4.6.2).
+#[derive(Debug, Args)]
+pub struct PlanArgs {
     /// A party file, or the slug of a party in the data.
     #[arg(long)]
     pub party: String,
 
-    /// A situation file, or the slug of a situation in the data.
+    /// The slot, by name. Defaults to the first human slot.
     #[arg(long)]
-    pub situation: String,
+    pub slot: Option<String>,
 
-    /// Run exactly this many seeds. Without it, runs are added until the
-    /// result is stable.
-    #[arg(long, value_name = "N")]
+    /// Read data from this directory instead of `./data` or the built-in pack.
+    #[arg(long, value_name = "PATH")]
+    pub data_dir: Option<PathBuf>,
+}
+
+/// `gwsim evaluate` (T3.10.6, T4.9.2).
+#[derive(Debug, Args)]
+pub struct EvaluateArgs {
+    /// A party file, the slug of a party in the data, or up to eight
+    /// comma-separated skill template codes (the first is the player).
+    #[arg(long)]
+    pub party: String,
+
+    /// A situation file, or the slug of a situation in the data.
+    #[arg(long, required_unless_present = "set", conflicts_with = "set")]
+    pub situation: Option<String>,
+
+    /// Every situation of a situation set, by slug, weighted as it says.
+    #[arg(long, value_name = "SET")]
+    pub set: Option<String>,
+
+    /// Run exactly this many seeds per situation.
+    #[arg(long, value_name = "N", conflicts_with = "auto")]
     pub runs: Option<usize>,
+
+    /// Add runs until the result is stable (the default without --runs).
+    #[arg(long)]
+    pub auto: bool,
 
     /// The master seed.
     #[arg(long, value_name = "S")]
@@ -68,13 +218,23 @@ pub struct EvaluateArgs {
     #[arg(long, value_name = "N")]
     pub threads: Option<usize>,
 
-    /// Print one run's combat log instead, as `text` or `json`.
+    /// Print the first run's combat log instead, as `text` or `json`.
     #[arg(long, value_name = "FORMAT")]
     pub log: Option<String>,
 
-    /// Print JSON instead of text.
+    /// Write the result file (docs/result-schema.md) to PATH, or print it
+    /// instead of the text report when no PATH is given.
+    #[arg(long, value_name = "PATH", num_args = 0..=1, default_missing_value = "-")]
+    pub json: Option<PathBuf>,
+
+    /// Add report 4: contributions per slot and skill, interrupts landed,
+    /// and the energy timeline.
     #[arg(long)]
-    pub json: bool,
+    pub breakdown: bool,
+
+    /// Refuse unless every skill on the party's bars is Reviewed.
+    #[arg(long)]
+    pub reviewed_only: bool,
 
     /// Read data from this directory instead of `./data` or the built-in pack.
     #[arg(long, value_name = "PATH")]
@@ -213,6 +373,11 @@ pub struct DescribeSkillArgs {
     #[arg(long, conflicts_with_all = ["skill", "profession", "status"])]
     pub all: bool,
 
+    /// Print a markdown review table (T4.1.1) instead: name, wiki link, type
+    /// and costs, generated text, roles and status.
+    #[arg(long)]
+    pub review_sheet: bool,
+
     /// Print as JSON.
     #[arg(long)]
     pub json: bool,
@@ -236,6 +401,22 @@ pub struct ValidateArgs {
     /// How to print the report.
     #[arg(long, value_enum, default_value_t = OutputFormat::Text)]
     pub format: OutputFormat,
+
+    /// Print as JSON; the same as `--format json`, for consistency with the
+    /// other commands.
+    #[arg(long, conflicts_with = "format")]
+    pub json: bool,
+}
+
+impl ValidateArgs {
+    /// The format asked for, by either flag.
+    pub fn output_format(&self) -> OutputFormat {
+        if self.json {
+            OutputFormat::Json
+        } else {
+            self.format
+        }
+    }
 }
 
 /// How a command prints its findings.

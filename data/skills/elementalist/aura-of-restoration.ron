@@ -23,11 +23,29 @@
         ],
         description_hash: Some("blake3:4c8f18464d6856ce76d53cff432621c8"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [ApplyEffect(to: Self, effect: "aura-of-restoration", duration: Fixed(60))],
+        effect_defs: [
+            (
+                id: "aura-of-restoration",
+                kind: Enchantment,
+                triggers: [
+                    Triggered(
+                        event: OnSpellCast,
+                        actions: [
+                            GainEnergy(to: Self, amount: Scaled(0, 1)),
+                            Heal(to: Self, amount: ShareOf(percent: Scaled(200, 500), of: EnergyCost)),
+                        ],
+                    ),
+                ],
+            ),
+        ],
+        roles: [Healing, EnergyManagement],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Aura_of_Restoration"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
         notes: "PvE version of a split skill (D3)",
     ),
 )

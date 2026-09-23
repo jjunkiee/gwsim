@@ -1,0 +1,10 @@
+// Kournan melee heavy HM (DESIGN §20.6, T4.8.3).
+(
+    name: "Kournan melee heavy HM",
+    encounters: Single("kournan-melee-heavy"),
+    mode: (hard_mode: true),
+    party_size: 8,
+    timeout: Some(180.0),
+    notes: "A generic archetype group, hard mode.",
+    assumption_refs: ["A-030"],
+)

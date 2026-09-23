@@ -53,13 +53,14 @@ fn data() -> DataSet {
     // The real items and core files, but not the seeded skills, foes or the
     // skill index: the test skills below use invented ids that would clash
     // with real ones. Parties, encounters and situations go too, since they
-    // name those skills and foes.
-    const SKIPPED: [&str; 5] = [
+    // name those skills and foes, and situation sets name the situations.
+    const SKIPPED: [&str; 6] = [
         "skills/",
         "creatures/",
         "parties/",
         "encounters/",
         "situations/",
+        "situation_sets/",
     ];
     for (path, contents) in real_files(&real) {
         if SKIPPED.iter().any(|folder| path.starts_with(folder)) {

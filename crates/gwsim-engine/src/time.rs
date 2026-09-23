@@ -94,6 +94,8 @@ pub enum EventKind {
         slot: u8,
         generation: u32,
     },
+    /// A created creature's time is up: a spirit's duration ends.
+    CreatureExpiry { unit: UnitId },
     /// Nothing but a marker, used by tests.
     Marker(u32),
 }
@@ -102,7 +104,9 @@ impl EventKind {
     /// The class that orders this kind among simultaneous events.
     pub fn class(self) -> PriorityClass {
         match self {
-            EventKind::EffectExpiry { .. } => PriorityClass::EffectExpiry,
+            EventKind::EffectExpiry { .. } | EventKind::CreatureExpiry { .. } => {
+                PriorityClass::EffectExpiry
+            }
             EventKind::ProjectileImpact { .. } => PriorityClass::ProjectileImpact,
             EventKind::AttackHit { .. } => PriorityClass::AttackHit,
             EventKind::ActivationEnd { .. } => PriorityClass::ActivationEnd,

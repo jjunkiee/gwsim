@@ -23,10 +23,16 @@
         ],
         description_hash: Some("blake3:6c5f02d2a7b7d23feba89554950dc009"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            LoseEnergy(to: Nearest(Spirits), amount: PercentOf(percent: 100.0, of: CurrentEnergy)),
+            GainEnergy(to: Self, amount: ShareOf(percent: Scaled(30, 60), of: EnergyLost)),
+        ],
+        roles: [EnergyManagement, Spirit],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Spirit_Siphon"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
     ),
 )

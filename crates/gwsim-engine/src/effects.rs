@@ -177,6 +177,14 @@ impl Sim {
             key: request.key,
             slot: request.slot,
         };
+        if let EffectSource::Skill { skill, def } = effect.source
+            && self.fight.skills[usize::from(skill)]
+                .def_stats
+                .get(usize::from(def))
+                .is_some_and(|(_, caster)| *caster != 0)
+        {
+            self.caster_effects.push((target, effect.id));
+        }
         self.units[target.index()].effects.push(effect);
         if let Some(at) = ends_at {
             self.queue.schedule(
@@ -310,6 +318,7 @@ impl Sim {
             return;
         };
         let effect = self.units[unit.index()].effects.remove(position);
+        self.caster_effects.retain(|(_, e)| *e != id);
         let kind = match reason {
             EndReason::Expired => crate::log::LogKind::EffectEnded,
             _ => crate::log::LogKind::EffectRemoved,

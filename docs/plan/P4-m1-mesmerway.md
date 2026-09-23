@@ -5,6 +5,7 @@
 - **Design refs:** §8.3–§8.5, §10, §11, §12, §14, §15, §17.3–§17.6, §20, §21, D22–D26, Q30–Q35, Q37, Q40, Q41.
 - **Starts when:** M0 is done (P3), and the M1 files are seeded (T2.6.5).
 - **Ends when:** every M1 criterion holds (see "M1 acceptance" at the end).
+- **Status:** 2026-09-23, **Done** in the unattended session, except for the owner's steps and one failing check. `gwsim evaluate` runs the M1 party on every M1 situation and on the set, deterministically. One patrol fight takes **4.7 ms** (D19: under 10 ms). RC2 and RC6 pass. **RC1 fails** (15 of 31 variants), triaged in [T4.10.7](../findings/T4.10.7-m1-relative-checks.md) (F4.40). Acceptance #2 and #3 wait on the owner's reviews: every M1 encoding is still `Draft` (F4.34). Also waiting on the owner: the foe data (F4.32), the player plan (F4.33), the RC2 baseline (F4.31) and A-044 (F4.30). Decisions taken without the owner are in [fallout-tasks.md](fallout-tasks.md) §7 (F4.1–F4.42).
 - **Suggested order:**
   1. **Start together:** WP4.2 (foe data), WP4.3 (mechanics) and WP4.1 (skill batches), interleaved: each batch needs the mechanics it uses.
   2. **Then:** WP4.4, WP4.5 and WP4.6.
@@ -15,17 +16,17 @@
 
 | WP | Title | Goal | Status |
 | --- | --- | --- | --- |
-| 4.1 | Encode the M1 skills | All 72 skills encoded, tested and `Reviewed`. | Todo |
-| 4.2 | Kournan foe data | The eight Kournan foes are complete, with every gap labelled as an assumption. | Todo |
-| 4.3 | Mechanics for M1 | Every §20.5 mechanic is implemented and tested. | Todo |
-| 4.4 | `FoeAi` | Foes behave as the wiki documents, in NM and HM. | Todo |
-| 4.5 | `HeroAi`, `MinionAi`, `SpiritAi` | Heroes act as documented, quirks and 2026 changes included; minions and spirits act by rule. | Todo |
-| 4.6 | `PlanAi` generation | The player's priority plan is generated from the build, and the user can edit it. | Todo |
-| 4.7 | Tactics plans | Per-situation tactics are generated from builds and can be overridden. | Todo |
-| 4.8 | Encounters, situations, chains | The six M1 situations and the M1 set exist and run, and chains carry state over. | Todo |
-| 4.9 | Command line and reports | `evaluate`, `compare`, `log`, `template` and `data`, with reports 1, 2, 4, 5 and 7. | Todo |
-| 4.10 | Relative checks | RC1, RC2 and RC6 run in `gwsim check` and in CI, and they pass. | Todo |
-| 4.11 | Performance | One M1 fight runs in under 10 ms on one core, with a CI guard. | Todo |
+| 4.1 | Encode the M1 skills | All 72 skills encoded, tested and `Reviewed`. | Done (reviews: Owner) |
+| 4.2 | Kournan foe data | The eight Kournan foes are complete, with every gap labelled as an assumption. | Done (review: Owner) |
+| 4.3 | Mechanics for M1 | Every §20.5 mechanic is implemented and tested. | Done |
+| 4.4 | `FoeAi` | Foes behave as the wiki documents, in NM and HM. | Done |
+| 4.5 | `HeroAi`, `MinionAi`, `SpiritAi` | Heroes act as documented, quirks and 2026 changes included; minions and spirits act by rule. | Done |
+| 4.6 | `PlanAi` generation | The player's priority plan is generated from the build, and the user can edit it. | Done (review: Owner) |
+| 4.7 | Tactics plans | Per-situation tactics are generated from builds and can be overridden. | Done |
+| 4.8 | Encounters, situations, chains | The six M1 situations and the M1 set exist and run, and chains carry state over. | Done |
+| 4.9 | Command line and reports | `evaluate`, `compare`, `log`, `template` and `data`, with reports 1, 2, 4, 5 and 7. | Done |
+| 4.10 | Relative checks | RC1, RC2 and RC6 run in `gwsim check` and in CI, and they pass. | Done (RC1 fails: Owner) |
+| 4.11 | Performance | One M1 fight runs in under 10 ms on one core, with a CI guard. | Done |
 
 ---
 
@@ -61,18 +62,18 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.1.1 | Generated per-skill tests and batch tooling | Build | M0 | Todo |
-| T4.1.2 | Mesmer batch (3) | Data / Build | T4.1.1, T4.3.3, T4.3.4 | Todo |
-| T4.1.3 | Ritualist batch A: spirits and Communing (10) | Data / Build | T4.1.1, T4.3.7 | Todo |
-| T4.1.4 | Ritualist batch B: Restoration and Channeling (8) | Data / Build | T4.1.3, T4.3.9, T4.3.10 | Todo |
-| T4.1.5 | Necromancer batch (7) | Data / Build | T4.1.1, T4.3.5, T4.3.8 | Todo |
-| T4.1.6 | Paragon batch (3) | Data / Build | T4.1.1, T4.3.11 | Todo |
-| T4.1.7 | Monk batch (2) | Data / Build | T4.1.1, T4.3.4, T4.3.10 | Todo |
-| T4.1.8 | PvE-only batch (Air of Superiority, confirm) | Review | T3.10.8 | Todo |
-| T4.1.9 | Kournan batch 1: Guard, Zealot, Phalanx (12) | Data / Build | T4.1.1, T4.3.13 | Todo |
-| T4.1.10 | Kournan batch 2: Bowman, Scribe (10) | Data / Build | T4.1.9, T4.3.7, T4.3.12 | Todo |
-| T4.1.11 | Kournan batch 3: Seer, Oppressor, Priest (9) | Data / Build | T4.1.9, T4.3.4 | Todo |
-| T4.1.12 | Data authoring guide: skills and handlers | Docs | T4.1.2 | Todo |
+| T4.1.1 | Generated per-skill tests and batch tooling | Build | M0 | Done |
+| T4.1.2 | Mesmer batch (3) | Data / Build | T4.1.1, T4.3.3, T4.3.4 | Done (review: Owner, F4.34) |
+| T4.1.3 | Ritualist batch A: spirits and Communing (10) | Data / Build | T4.1.1, T4.3.7 | Done (review: Owner, F4.34) |
+| T4.1.4 | Ritualist batch B: Restoration and Channeling (8) | Data / Build | T4.1.3, T4.3.9, T4.3.10 | Done (review: Owner, F4.34) |
+| T4.1.5 | Necromancer batch (7) | Data / Build | T4.1.1, T4.3.5, T4.3.8 | Done (review: Owner, F4.34) |
+| T4.1.6 | Paragon batch (3) | Data / Build | T4.1.1, T4.3.11 | Done (review: Owner, F4.34) |
+| T4.1.7 | Monk batch (2) | Data / Build | T4.1.1, T4.3.4, T4.3.10 | Done (review: Owner, F4.34) |
+| T4.1.8 | PvE-only batch (Air of Superiority, confirm) | Review | T3.10.8 | Done (review: Owner, F4.34) |
+| T4.1.9 | Kournan batch 1: Guard, Zealot, Phalanx (12) | Data / Build | T4.1.1, T4.3.13 | Done (review: Owner, F4.34) |
+| T4.1.10 | Kournan batch 2: Bowman, Scribe (10) | Data / Build | T4.1.9, T4.3.7, T4.3.12 | Done (review: Owner, F4.34) |
+| T4.1.11 | Kournan batch 3: Seer, Oppressor, Priest (9) | Data / Build | T4.1.9, T4.3.4 | Done (review: Owner, F4.34) |
+| T4.1.12 | Data authoring guide: skills and handlers | Docs | T4.1.2 | Done |
 
 ### T4.1.1 Generated per-skill tests and batch tooling
 
@@ -286,10 +287,10 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.2.1 | Kournan armor, ranks, weapons and behaviour | Research | T2.5.7 | Todo |
-| T4.2.2 | Complete the foe files | Data | T4.2.1 | Todo |
-| T4.2.3 | Foe spawn tests | Test | T4.2.2 | Todo |
-| T4.2.4 | Owner review of the foe data | Review | T4.2.3 | Todo |
+| T4.2.1 | Kournan armor, ranks, weapons and behaviour | Research | T2.5.7 | Done |
+| T4.2.2 | Complete the foe files | Data | T4.2.1 | Done |
+| T4.2.3 | Foe spawn tests | Test | T4.2.2 | Done |
+| T4.2.4 | Owner review of the foe data | Review | T4.2.3 | Owner (F4.32) |
 
 ### T4.2.1 Kournan armor, ranks, weapons and behaviour
 
@@ -348,21 +349,21 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.3.1 | Inherent attribute effects | Research | — | Todo |
-| T4.3.2 | Implement the inherent attribute effects | Build | T4.3.1 | Todo |
-| T4.3.3 | Casting mechanics | Build | — | Todo |
-| T4.3.4 | Hex and enchantment removal; maintained effects | Build | — | Todo |
-| T4.3.5 | Energy mechanics | Build | T4.3.2 | Todo |
-| T4.3.6 | Area effects | Build | — | Todo |
-| T4.3.7 | Spirits | Build | T4.3.2 | Todo |
-| T4.3.8 | Minions and corpses | Build | T4.3.2 | Todo |
-| T4.3.9 | Weapon spells | Build | — | Todo |
-| T4.3.10 | Death, resurrection, DP and morale | Build | — | Todo |
-| T4.3.11 | Shouts, chants and speed boosts | Build | — | Todo |
-| T4.3.12 | Conditions, snares and knockdown from foe skills | Build | — | Todo |
-| T4.3.13 | Foe attacks, adrenaline, blocks and damage conversion | Build | T4.3.2 | Todo |
-| T4.3.14 | Gear effects | Build | — | Todo |
-| T4.3.15 | Mechanics checklist tests | Test | T4.3.2–T4.3.14 | Todo |
+| T4.3.1 | Inherent attribute effects | Research | — | Done |
+| T4.3.2 | Implement the inherent attribute effects | Build | T4.3.1 | Done |
+| T4.3.3 | Casting mechanics | Build | — | Done |
+| T4.3.4 | Hex and enchantment removal; maintained effects | Build | — | Done |
+| T4.3.5 | Energy mechanics | Build | T4.3.2 | Done |
+| T4.3.6 | Area effects | Build | — | Done |
+| T4.3.7 | Spirits | Build | T4.3.2 | Done |
+| T4.3.8 | Minions and corpses | Build | T4.3.2 | Done |
+| T4.3.9 | Weapon spells | Build | — | Done |
+| T4.3.10 | Death, resurrection, DP and morale | Build | — | Done |
+| T4.3.11 | Shouts, chants and speed boosts | Build | — | Done |
+| T4.3.12 | Conditions, snares and knockdown from foe skills | Build | — | Done |
+| T4.3.13 | Foe attacks, adrenaline, blocks and damage conversion | Build | T4.3.2 | Done |
+| T4.3.14 | Gear effects | Build | — | Done |
+| T4.3.15 | Mechanics checklist tests | Test | T4.3.2–T4.3.14 | Done |
 
 ### T4.3.1 Inherent attribute effects
 
@@ -554,15 +555,15 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.4.1 | Foe behaviour | Research | — | Todo |
-| T4.4.2 | Shared controller helpers | Build | — | Todo |
-| T4.4.3 | Aggro and group engagement (AI-F1) | Build | T4.4.2 | Todo |
-| T4.4.4 | Targeting (AI-F2) | Build | T4.4.2 | Todo |
-| T4.4.5 | Skill use from AI hints (AI-F3) | Build | T4.4.2 | Todo |
-| T4.4.6 | Scatter and AoE avoidance (AI-F4) | Build | T4.4.2 | Todo |
-| T4.4.7 | Movement styles (AI-F5, AI-F8) | Build | T4.4.2 | Todo |
-| T4.4.8 | HM superior AI (AI-F6) | Build | T4.4.3–T4.4.7 | Todo |
-| T4.4.9 | Foe AI scenario tests | Test | T4.4.8 | Todo |
+| T4.4.1 | Foe behaviour | Research | — | Done |
+| T4.4.2 | Shared controller helpers | Build | — | Done |
+| T4.4.3 | Aggro and group engagement (AI-F1) | Build | T4.4.2 | Done |
+| T4.4.4 | Targeting (AI-F2) | Build | T4.4.2 | Done |
+| T4.4.5 | Skill use from AI hints (AI-F3) | Build | T4.4.2 | Done |
+| T4.4.6 | Scatter and AoE avoidance (AI-F4) | Build | T4.4.2 | Done |
+| T4.4.7 | Movement styles (AI-F5, AI-F8) | Build | T4.4.2 | Done |
+| T4.4.8 | HM superior AI (AI-F6) | Build | T4.4.3–T4.4.7 | Done |
+| T4.4.9 | Foe AI scenario tests | Test | T4.4.8 | Done |
 
 ### T4.4.1 Foe behaviour
 
@@ -676,14 +677,14 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.5.1 | Hero behaviour and the 2026 notes | Research | — | Todo |
-| T4.5.2 | Targeting and modes (AI-H1, AI-H2) | Build | T4.5.1, T4.4.2 | Todo |
-| T4.5.3 | Quirks (AI-H3 to AI-H5) | Build | T4.5.2 | Todo |
-| T4.5.4 | Skill-type rules (AI-H6) | Build | T4.5.2 | Todo |
-| T4.5.5 | 2026 rules and per-skill tweaks (AI-H7) | Build | T4.5.4 | Todo |
-| T4.5.6 | No pre-casting; disabled skills (AI-H8, AI-H9) | Build | T4.5.2 | Todo |
-| T4.5.7 | `MinionAi` and `SpiritAi` | Build | T4.4.2, T4.3.7, T4.3.8 | Todo |
-| T4.5.8 | Hero AI scenario tests | Test | T4.5.3–T4.5.7 | Todo |
+| T4.5.1 | Hero behaviour and the 2026 notes | Research | — | Done |
+| T4.5.2 | Targeting and modes (AI-H1, AI-H2) | Build | T4.5.1, T4.4.2 | Done |
+| T4.5.3 | Quirks (AI-H3 to AI-H5) | Build | T4.5.2 | Done |
+| T4.5.4 | Skill-type rules (AI-H6) | Build | T4.5.2 | Done |
+| T4.5.5 | 2026 rules and per-skill tweaks (AI-H7) | Build | T4.5.4 | Done |
+| T4.5.6 | No pre-casting; disabled skills (AI-H8, AI-H9) | Build | T4.5.2 | Done |
+| T4.5.7 | `MinionAi` and `SpiritAi` | Build | T4.4.2, T4.3.7, T4.3.8 | Done |
+| T4.5.8 | Hero AI scenario tests | Test | T4.5.3–T4.5.7 | Done |
 
 ### T4.5.1 Hero behaviour and the 2026 notes
 
@@ -782,10 +783,10 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.6.1 | Plan generator | Build | T3.10.5 | Todo |
-| T4.6.2 | Plan storage and editing | Build | T4.6.1 | Todo |
-| T4.6.3 | Plan generation tests | Test | T4.6.2 | Todo |
-| T4.6.4 | Owner review of the player plan | Review | T4.6.3 | Todo |
+| T4.6.1 | Plan generator | Build | T3.10.5 | Done |
+| T4.6.2 | Plan storage and editing | Build | T4.6.1 | Done |
+| T4.6.3 | Plan generation tests | Test | T4.6.2 | Done |
+| T4.6.4 | Owner review of the player plan | Review | T4.6.3 | Owner (F4.33) |
 
 ### T4.6.1 Plan generator
 
@@ -844,12 +845,12 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.7.1 | `TacticsPlan` types and RON | Build | — | Todo |
-| T4.7.2 | Generator rules | Build | T4.7.1 | Todo |
-| T4.7.3 | Pre-fight phase and walk-in | Build | T4.7.1, WP4.8 (T4.8.1) | Todo |
-| T4.7.4 | Formation and flags | Build | T4.7.1 | Todo |
-| T4.7.5 | Overrides merge | Build | T4.7.2 | Todo |
-| T4.7.6 | Tactics tests | Test | T4.7.3–T4.7.5 | Todo |
+| T4.7.1 | `TacticsPlan` types and RON | Build | — | Done |
+| T4.7.2 | Generator rules | Build | T4.7.1 | Done |
+| T4.7.3 | Pre-fight phase and walk-in | Build | T4.7.1, WP4.8 (T4.8.1) | Done |
+| T4.7.4 | Formation and flags | Build | T4.7.1 | Done |
+| T4.7.5 | Overrides merge | Build | T4.7.2 | Done |
+| T4.7.6 | Tactics tests | Test | T4.7.3–T4.7.5 | Done |
 
 ### T4.7.1 `TacticsPlan` types and RON
 
@@ -930,12 +931,12 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.8.1 | Encounter spawning | Build | T3.10.2 | Todo |
-| T4.8.2 | The curated Kournan patrol | Data | T4.8.1, WP4.2 | Todo |
-| T4.8.3 | Generic encounters, M1 situations and the M1 set | Data | T4.8.2 | Todo |
-| T4.8.4 | Chains | Build | T4.8.1, T4.3.10 | Todo |
-| T4.8.5 | Situation switches | Build | T4.8.1 | Todo |
-| T4.8.6 | Situation tests | Test | T4.8.3–T4.8.5 | Todo |
+| T4.8.1 | Encounter spawning | Build | T3.10.2 | Done |
+| T4.8.2 | The curated Kournan patrol | Data | T4.8.1, WP4.2 | Done |
+| T4.8.3 | Generic encounters, M1 situations and the M1 set | Data | T4.8.2 | Done |
+| T4.8.4 | Chains | Build | T4.8.1, T4.3.10 | Done |
+| T4.8.5 | Situation switches | Build | T4.8.1 | Done |
+| T4.8.6 | Situation tests | Test | T4.8.3–T4.8.5 | Done |
 
 ### T4.8.1 Encounter spawning
 
@@ -1026,17 +1027,17 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.9.1 | Party files and benchmark files | Data / Build | WP4.8 | Todo |
-| T4.9.2 | `gwsim evaluate` and the result JSON | Build | T4.9.1 | Todo |
-| T4.9.3 | Rules common to every report | Build | T4.9.2 | Todo |
-| T4.9.4 | Report 1: ranked builds with template codes | Build | T4.9.3 | Todo |
-| T4.9.5 | Report 2: metrics with confidence ranges | Build | T4.9.3 | Todo |
-| T4.9.6 | Report 5: `gwsim log` | Build | T4.9.2, T3.9.4 | Todo |
-| T4.9.7 | Report 4: contribution breakdown and energy timeline | Build | T4.9.3 | Todo |
-| T4.9.8 | Report 7: `gwsim compare` | Build | T4.9.5 | Todo |
-| T4.9.9 | Finish the `template` and `data` commands | Build | T4.9.1 | Todo |
-| T4.9.10 | CLI integration tests | Test | T4.9.2–T4.9.9 | Todo |
-| T4.9.11 | README first evaluation | Docs | T4.9.10 | Todo |
+| T4.9.1 | Party files and benchmark files | Data / Build | WP4.8 | Done |
+| T4.9.2 | `gwsim evaluate` and the result JSON | Build | T4.9.1 | Done |
+| T4.9.3 | Rules common to every report | Build | T4.9.2 | Done |
+| T4.9.4 | Report 1: ranked builds with template codes | Build | T4.9.3 | Done |
+| T4.9.5 | Report 2: metrics with confidence ranges | Build | T4.9.3 | Done |
+| T4.9.6 | Report 5: `gwsim log` | Build | T4.9.2, T3.9.4 | Done |
+| T4.9.7 | Report 4: contribution breakdown and energy timeline | Build | T4.9.3 | Done |
+| T4.9.8 | Report 7: `gwsim compare` | Build | T4.9.5 | Done |
+| T4.9.9 | Finish the `template` and `data` commands | Build | T4.9.1 | Done |
+| T4.9.10 | CLI integration tests | Test | T4.9.2–T4.9.9 | Done |
+| T4.9.11 | README first evaluation | Docs | T4.9.10 | Done |
 
 ### T4.9.1 Party files and benchmark files
 
@@ -1170,13 +1171,13 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.10.1 | The RC2 baseline team | Research / Decision | — | Todo |
-| T4.10.2 | Check framework and `gwsim check` | Build | WP4.9 | Todo |
-| T4.10.3 | RC1: weakened variants | Build | T4.10.2 | Todo |
-| T4.10.4 | RC2: naive baseline | Build | T4.10.1, T4.10.2 | Todo |
-| T4.10.5 | RC6: monotonicity properties | Build | T4.10.2 | Todo |
-| T4.10.6 | Reduced checks in CI | Setup | T4.10.3–T4.10.5 | Todo |
-| T4.10.7 | Run the checks and triage | Run | T4.10.6 | Todo |
+| T4.10.1 | The RC2 baseline team | Research / Decision | — | Done (approval: Owner, F4.31) |
+| T4.10.2 | Check framework and `gwsim check` | Build | WP4.9 | Done |
+| T4.10.3 | RC1: weakened variants | Build | T4.10.2 | Done |
+| T4.10.4 | RC2: naive baseline | Build | T4.10.1, T4.10.2 | Done |
+| T4.10.5 | RC6: monotonicity properties | Build | T4.10.2 | Done |
+| T4.10.6 | Reduced checks in CI | Setup | T4.10.3–T4.10.5 | Done |
+| T4.10.7 | Run the checks and triage | Run | T4.10.6 | Done (RC1: Owner, F4.40) |
 
 ### T4.10.1 The RC2 baseline team
 
@@ -1266,12 +1267,12 @@ Every batch task below follows these steps.
 
 | Task | Title | Type | Depends on | Status |
 | --- | --- | --- | --- | --- |
-| T4.11.1 | Profiling and performance CI on Windows | Research | — | Todo |
-| T4.11.2 | Benchmark suite | Build | WP4.8 | Todo |
-| T4.11.3 | Profile the hot paths | Run | T4.11.1, T4.11.2 | Todo |
-| T4.11.4 | Optimise | Build | T4.11.3 | Todo |
-| T4.11.5 | Performance smoke test in CI | Setup | T4.11.4 | Todo |
-| T4.11.6 | Verify and record the target | Test | T4.11.4 | Todo |
+| T4.11.1 | Profiling and performance CI on Windows | Research | — | Done |
+| T4.11.2 | Benchmark suite | Build | WP4.8 | Done |
+| T4.11.3 | Profile the hot paths | Run | T4.11.1, T4.11.2 | Done |
+| T4.11.4 | Optimise | Build | T4.11.3 | Done |
+| T4.11.5 | Performance smoke test in CI | Setup | T4.11.4 | Done |
+| T4.11.6 | Verify and record the target | Test | T4.11.4 | Done |
 
 ### T4.11.1 Profiling and performance CI on Windows
 

@@ -1,0 +1,27 @@
+// Kournan melee heavy: a generic Kournan archetype group (DESIGN §20.6, T4.8.3).
+(
+    name: "Kournan melee heavy",
+    area: "Vehtendi Valley",
+    campaign: Nightfall,
+    groups: [
+        (
+            foes: [
+                (foe: "kournan-guard", count: 2),
+                (foe: "kournan-zealot", count: 2),
+                (foe: "kournan-phalanx", count: 2),
+                (foe: "kournan-priest"),
+                (foe: "kournan-bowman"),
+            ],
+            formation: Cluster(radius: 150.0),
+            position: (x: 0.0, y: 1800.0),
+        ),
+    ],
+    party_start: (x: 0.0, y: 0.0),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Vehtendi_Valley"],
+        crawled: "2026-09-23",
+        review: Draft,
+        assumptions: ["A-007", "A-008"],
+        notes: "A composition proposed in DESIGN §20.6 to stress the party's frontline and mitigation.",
+    ),
+)

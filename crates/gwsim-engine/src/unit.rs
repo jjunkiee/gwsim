@@ -159,6 +159,8 @@ pub struct WeaponProfile {
     pub mastery: Option<Attribute>,
     /// Whether this is a spellcasting weapon (wand, staff), for AI rules.
     pub caster: bool,
+    /// Its hits ignore armor: spirit attacks (Spirit).
+    pub armor_ignoring: bool,
 }
 
 /// Where a unit is going.
@@ -259,6 +261,62 @@ pub struct Unit {
     pub soul_reaping: Vec<SimTime>,
     /// A fleshy corpse that nothing has exploited yet.
     pub corpse_available: bool,
+
+    /// When it entered the fight: at the start, or when a skill created it.
+    pub born_at: SimTime,
+    /// For a spirit, the aura its ritual gives (T4.3.7).
+    pub aura: Option<Aura>,
+    /// For a created creature, its type (`spirits.ron` or `minions.ron`
+    /// slug): only one allied spirit of each type may stand (ENG-32).
+    pub creature_type: Option<String>,
+    /// Death penalty, as a percentage off maximum health and energy
+    /// (§10.11).
+    pub death_penalty: u8,
+    /// Morale boost, as a percentage onto maximum health and energy.
+    pub morale: u8,
+
+    /// For a foe, the group it aggroes with (AI-F1).
+    pub group: Option<u16>,
+    /// For a hero, its combat mode (AI-H2).
+    pub hero_mode: HeroMode,
+    /// The foe this unit is concentrating on: its last attack or offensive
+    /// skill target. Heroes lock onto the player's (AI-H1).
+    pub focus: Option<UnitId>,
+    /// Where it stands when it has nothing to do: a hero's flag or formation
+    /// point, a foe's spawn point.
+    pub home: Vec2,
+    /// Backs away from melee (AI-F5).
+    pub kiter: bool,
+    /// Bar slots the tactics plan disables for the AI (AI-H9), as a bit per
+    /// slot.
+    pub disabled_slots: u8,
+    /// A target the tactics plan locks this hero onto (AI-H1).
+    pub locked_target: Option<UnitId>,
+}
+
+/// A hero's combat mode (AI-H2, Hero).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum HeroMode {
+    /// Attacks called targets, then targets engaging the party.
+    #[default]
+    Fight,
+    /// Holds its position and fights only when engaged.
+    Guard,
+    /// Never attacks; uses only indirect skills.
+    AvoidCombat,
+}
+
+/// A spirit's aura: the `SpiritAura` effect definitions of the skill that
+/// created it, reaching units within the spirit's range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Aura {
+    /// The creating skill, as a fight skill index.
+    pub skill: u16,
+    /// The rank the creator had, which the aura's values use.
+    pub rank: u8,
+    /// Whether it reaches foes too (nature rituals) or only allies (binding
+    /// rituals).
+    pub affects_all: bool,
 }
 
 impl Unit {

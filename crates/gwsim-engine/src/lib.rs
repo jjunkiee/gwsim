@@ -30,6 +30,7 @@ pub mod exec;
 pub mod geom;
 pub mod handlers;
 pub mod harness;
+pub mod inherent;
 pub mod log;
 pub mod movement;
 pub mod pipeline;

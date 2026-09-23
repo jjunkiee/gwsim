@@ -3,7 +3,6 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::Campaign;
-use crate::dsl;
 use crate::foe::{AiTag, ModeValue};
 use crate::ids::{AssumptionId, Slug};
 use crate::provenance::Provenance;
@@ -101,9 +100,10 @@ pub struct Situation {
     /// when this is absent.
     #[serde(default)]
     pub timeout: Option<Seconds>,
-    /// Overrides for the tactics plan. Placeholder until WP4.7.
+    /// Overrides for the tactics plan (§11.6, T4.7.5): each field given is
+    /// kept, and everything else is generated from the party's builds.
     #[serde(default)]
-    pub tactics_overrides: Option<dsl::Value>,
+    pub tactics_overrides: Option<crate::tactics::TacticsOverrides>,
     #[serde(default)]
     pub notes: String,
     #[serde(default)]
@@ -201,6 +201,10 @@ pub struct BenchmarkSlot {
     pub skill_code: String,
     #[serde(default)]
     pub equipment_code: Option<String>,
+    /// The code of the bar gwsim runs, where it differs from the published
+    /// one (an optional skill chosen, a column picked; T4.9.1).
+    #[serde(default)]
+    pub bar_code: Option<String>,
     #[serde(default)]
     pub notes: String,
 }

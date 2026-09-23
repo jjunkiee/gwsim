@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 use gwsim_data::core::{ArmorSlot, Attribute, Condition, DamageType, RangeBand, SkillType};
 use gwsim_data::dsl::{
-    Action, Control, EffectKind, Filter, ModCategory, Quantity, Selector, Stat, Value,
+    Action, Control, EffectKind, Filter, ModCategory, Quantity, Selector, Side, Stat, Value,
 };
 use gwsim_data::foe::CreatureTrait;
 
@@ -54,6 +54,10 @@ pub struct ExecCtx {
     pub enchantments_removed: f64,
     /// Set by `SetUnblockable` for the attack this skill makes.
     pub unblockable: bool,
+    /// Set by `WaiveSacrifice`: the skill's health sacrifice is not paid.
+    pub waive_sacrifice: bool,
+    /// A per-attack projectile speed factor (Mighty Throw).
+    pub projectile_speed: f64,
 }
 
 impl ExecCtx {
@@ -81,6 +85,8 @@ impl ExecCtx {
             conditions_removed: 0.0,
             enchantments_removed: 0.0,
             unblockable: false,
+            waive_sacrifice: false,
+            projectile_speed: 1.0,
         }
     }
 
@@ -114,6 +120,33 @@ impl ExecCtx {
     pub fn target_unit(&self) -> Option<UnitId> {
         self.target.unit()
     }
+
+    /// The context for an effect definition acting on a bearer, whether from
+    /// an effect it bears or a spirit's aura it stands in.
+    pub fn for_def(def: &ActiveDef, bearer: UnitId) -> Self {
+        ExecCtx {
+            effect: def.effect,
+            slot: def.slot,
+            ..ExecCtx::for_skill(def.caster, Target::Unit(bearer), def.skill, None, def.rank)
+        }
+    }
+}
+
+/// An effect definition acting on a unit: from an effect it bears, or from
+/// the aura of a spirit it stands near (T4.3.7).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ActiveDef {
+    /// The skill defining it, as a fight skill index.
+    pub skill: u16,
+    /// Its index among that skill's effect definitions.
+    pub def: u16,
+    /// Who applied it: the caster of an effect, or the spirit of an aura.
+    pub caster: UnitId,
+    /// The rank its values use.
+    pub rank: u8,
+    /// The effect instance, or [`None`] for an aura.
+    pub effect: Option<u32>,
+    pub slot: Option<u8>,
 }
 
 impl Sim {
@@ -221,9 +254,12 @@ impl Sim {
                 }
             }
             Action::LoseEnergy { to, amount } => {
-                let value = self.eval_value(amount, ctx);
                 let (targets, factor) = self.select(to, ctx);
                 for target in targets {
+                    // Evaluated per creature, so "all of its energy" means its own.
+                    let mut each = ctx.clone();
+                    each.target = Target::Unit(target);
+                    let value = self.eval_value(amount, &each);
                     ctx.energy_lost =
                         f64::from(self.lose_energy(target, (value * factor).round() as i32));
                 }
@@ -286,15 +322,38 @@ impl Sim {
                     }
                 }
             }
-            Action::Interrupt { to } => {
+            Action::Interrupt { to, disable } => {
+                let extra = disable
+                    .as_ref()
+                    .map(|v| (self.eval_value(v, ctx) * 1000.0).round() as u32);
                 let (targets, _) = self.select(to, ctx);
                 for target in targets {
-                    if self.interrupt(target, ctx.caster, InterruptScope::Any)
-                        && let Some(skill) = ctx.skill
-                    {
-                        self.stats.skills[usize::from(skill)].interrupts += 1;
-                        if let Some(slot) = self.units[ctx.caster.index()].slot_index {
-                            self.stats.slots[slot].interrupts += 1;
+                    let slot = self.units[target.index()]
+                        .activating()
+                        .map(|(slot, _)| slot);
+                    let stopped = slot.and_then(|s| {
+                        self.units[target.index()].bar[usize::from(s)]
+                            .as_ref()
+                            .map(|state| state.skill)
+                    });
+                    if self.interrupt(target, ctx.caster, InterruptScope::Any) {
+                        if let (Some(extra), Some(slot)) = (extra, slot)
+                            && let Some(state) =
+                                self.units[target.index()].bar[usize::from(slot)].as_mut()
+                        {
+                            state.disabled_until = state.ready_at.plus(extra);
+                        }
+                        if let Some(skill) = ctx.skill {
+                            self.stats.skills[usize::from(skill)].interrupts += 1;
+                            if let Some(slot) = self.units[ctx.caster.index()].slot_index {
+                                self.stats.slots[slot].interrupts += 1;
+                            }
+                            if let Some(slot) = self.credit_slot(ctx.caster) {
+                                self.stats.contribution(slot, Some(skill)).interrupts += 1;
+                                if let Some(stopped) = stopped {
+                                    self.stats.record_stopped(skill, stopped);
+                                }
+                            }
                         }
                     }
                 }
@@ -376,14 +435,17 @@ impl Sim {
                 spirit,
                 level,
                 duration,
+                attack_damage,
             } => {
                 let level = self.eval_value(level, ctx);
                 let seconds = self.eval_value(duration, ctx);
+                let damage = attack_damage.as_ref().map(|v| self.eval_value(v, ctx));
                 self.create_spirit(
                     ctx.caster,
                     spirit.as_str(),
                     level.round() as u8,
                     seconds,
+                    damage,
                     ctx,
                 );
             }
@@ -398,6 +460,12 @@ impl Sim {
                     fight.handlers.get(index).on_use(self, ctx);
                 }
             }
+            Action::EndEffect => {
+                if let (Some(id), Some(bearer)) = (ctx.effect, ctx.target_unit()) {
+                    self.end_effect(bearer, id, crate::effects::EndReason::Removed);
+                }
+            }
+            Action::WaiveSacrifice => ctx.waive_sacrifice = true,
             Action::Control(control) => self.execute_control(control, ctx),
             // State, not deeds: read by effect_modifiers and the damage
             // pipeline from an effect's while_active list. At the top level
@@ -460,7 +528,7 @@ impl Sim {
         }
     }
 
-    fn apply_named_effect(
+    pub(crate) fn apply_named_effect(
         &mut self,
         to: &Selector,
         effect: &str,
@@ -551,6 +619,9 @@ impl Sim {
             Value::PercentOf { percent, of } => {
                 f64::from(*percent) / 100.0 * self.quantity(*of, ctx)
             }
+            Value::ShareOf { percent, of } => {
+                self.eval_value(percent, ctx) / 100.0 * self.quantity(*of, ctx)
+            }
             Value::PerUnit { value, of } => self.eval_value(value, ctx) * self.quantity(*of, ctx),
             Value::Min(a, b) => self.eval_value(a, ctx).min(self.eval_value(b, ctx)),
             Value::Max(a, b) => self.eval_value(a, ctx).max(self.eval_value(b, ctx)),
@@ -569,6 +640,11 @@ impl Sim {
                 .unwrap_or(0.0),
             Quantity::MaxHealth => f64::from(self.max_health(target)),
             Quantity::CurrentHealth => f64::from(self.units[target.index()].health_points()),
+            // A spirit's own end actions count its lifetime (Life).
+            Quantity::SecondsAlive if ctx.effect.is_none() => {
+                let born = self.units[ctx.caster.index()].born_at;
+                f64::from(self.now.ms().saturating_sub(born.ms())) / 1000.0
+            }
             Quantity::SecondsAlive => {
                 let born = ctx
                     .effect
@@ -582,6 +658,7 @@ impl Sim {
                     .unwrap_or(self.now);
                 f64::from(self.now.ms().saturating_sub(born.ms())) / 1000.0
             }
+            Quantity::CurrentEnergy => f64::from(self.units[target.index()].energy_points()),
             Quantity::HexesRemoved => ctx.hexes_removed,
             Quantity::ConditionsRemoved => ctx.conditions_removed,
             Quantity::EnchantmentsRemoved => ctx.enchantments_removed,
@@ -607,6 +684,10 @@ impl Sim {
     /// temporary effects, less one for Weakness (Condition: ranks above 0
     /// only), clamped to 0..=20.
     pub fn rank_of(&self, unit: UnitId, attribute: Attribute) -> u8 {
+        // An effect that sets a rank replaces the build's (Master of Magic).
+        if let Some(rank) = self.set_rank(unit, attribute) {
+            return rank;
+        }
         let base = self.units[unit.index()].base_ranks[attribute.index()];
         let mut rank = f64::from(base);
         for modifier in self.modifiers(unit, Stat::AttributeRank(attribute), None) {
@@ -661,6 +742,28 @@ impl Sim {
             | Selector::TargetAlly
             | Selector::TargetOtherAlly => ctx.target_unit().into_iter().collect(),
             Selector::Corpse => ctx.target_unit().into_iter().collect(),
+            Selector::Other => ctx.other.into_iter().collect(),
+            Selector::Around { of, band, side } => {
+                let radius = self.fight.core.gwinches(*band);
+                let team = match side {
+                    Side::Foes => caster.team.other(),
+                    Side::Allies => caster.team,
+                };
+                let centres = self.resolve(of, ctx, factor);
+                let mut found = Vec::new();
+                for centre in centres {
+                    let unit = &self.units[centre.index()];
+                    for other in &self.units {
+                        if other.id != centre
+                            && other.team == team
+                            && other.pos.within(unit.pos, radius)
+                        {
+                            found.push(other.id);
+                        }
+                    }
+                }
+                found
+            }
             Selector::Location => Vec::new(),
             Selector::Adjacent(inner) => self.area(inner, RangeBand::Adjacent, ctx, factor),
             Selector::Nearby(inner) => self.area(inner, RangeBand::Nearby, ctx, factor),
@@ -753,6 +856,10 @@ impl Sim {
                     .filter(|u| self.filter_passes(filter, *u, ctx.caster, Some(ctx)))
                     .collect()
             }
+            Selector::Reduced { of, factor: share } => {
+                *factor *= f64::from(*share);
+                self.resolve(of, ctx, factor)
+            }
             Selector::Secondary { of, factor: share } => {
                 *factor *= f64::from(*share);
                 let main = ctx.target_unit();
@@ -764,7 +871,9 @@ impl Sim {
         }
     }
 
-    /// Units within a band of each centre, on the centre's side.
+    /// Units within a band of each centre. Around a foe of the user, the
+    /// area reaches that foe and its fellows; around the user or an ally, it
+    /// reaches the user's foes, and not the centre itself (effect-dsl.md).
     fn area(
         &self,
         inner: &Selector,
@@ -773,12 +882,22 @@ impl Sim {
         factor: &mut f64,
     ) -> Vec<UnitId> {
         let radius = self.fight.core.gwinches(band);
+        let user_team = self.units[ctx.caster.index()].team;
         let centres = self.resolve(inner, ctx, factor);
         let mut found = Vec::new();
         for centre in centres {
             let unit = &self.units[centre.index()];
+            let hostile_centre = unit.team != user_team;
+            let team = if hostile_centre {
+                unit.team
+            } else {
+                user_team.other()
+            };
             for other in &self.units {
-                if other.team == unit.team && other.pos.within(unit.pos, radius) {
+                if other.team == team
+                    && (hostile_centre || other.id != centre)
+                    && other.pos.within(unit.pos, radius)
+                {
                     found.push(other.id);
                 }
             }
@@ -789,11 +908,147 @@ impl Sim {
     /// The radius of a spirit's aura, from `spirits.ron` (A-015), or spirit
     /// range.
     pub fn aura_range(&self, spirit: UnitId) -> f32 {
-        self.fight
-            .spirit_ranges
-            .get(&self.units[spirit.index()].name)
-            .copied()
+        self.units[spirit.index()]
+            .creature_type
+            .as_ref()
+            .and_then(|slug| self.fight.spirits.get(slug))
+            .and_then(|spec| spec.range)
             .unwrap_or_else(|| self.fight.core.gwinches(RangeBand::SpiritRange))
+    }
+
+    /// Every effect definition acting on a unit: the effects it bears, then
+    /// the auras of spirits whose range it stands in (T4.3.7). Spirits are
+    /// untouched by auras; a binding ritual reaches its own side, a nature
+    /// ritual every non-spirit creature.
+    pub fn defs_on(&self, unit: UnitId) -> Vec<ActiveDef> {
+        let me = &self.units[unit.index()];
+        let mut found: Vec<ActiveDef> = me
+            .effects
+            .iter()
+            .filter_map(|effect| match effect.source {
+                EffectSource::Skill { skill, def } => Some(ActiveDef {
+                    skill,
+                    def,
+                    caster: effect.caster,
+                    rank: effect.rank,
+                    effect: Some(effect.id),
+                    slot: effect.slot,
+                }),
+                _ => None,
+            })
+            .collect();
+        if me.kind == UnitKind::Spirit || me.has_trait(CreatureTrait::Spirit) {
+            return found;
+        }
+        for spirit in &self.units {
+            let Some(aura) = spirit.aura else { continue };
+            if !spirit.alive()
+                || (!aura.affects_all && spirit.team != me.team)
+                || !me.pos.within(spirit.pos, self.aura_range(spirit.id))
+            {
+                continue;
+            }
+            let Some(encoding) = &self.fight.skills[usize::from(aura.skill)].skill.encoding else {
+                continue;
+            };
+            for (index, def) in encoding.effect_defs.iter().enumerate() {
+                if def.kind == EffectKind::SpiritAura {
+                    found.push(ActiveDef {
+                        skill: aura.skill,
+                        def: index as u16,
+                        caster: spirit.id,
+                        rank: aura.rank,
+                        effect: None,
+                        slot: None,
+                    });
+                }
+            }
+        }
+        found
+    }
+
+    /// The definitions acting on a unit that carry a flag
+    /// ([`crate::setup::DEF_REDUCES`] and so on).
+    pub fn defs_flagged(&self, unit: UnitId, flag: u8) -> Vec<ActiveDef> {
+        self.defs_matching(unit, |skill, def| {
+            self.fight.skills[usize::from(skill)]
+                .def_flags
+                .get(usize::from(def))
+                .is_some_and(|flags| flags & flag != 0)
+        })
+    }
+
+    /// [`Self::defs_on`], keeping only definitions a predicate accepts, and
+    /// skipping the aura scan's range checks for auras it rejects.
+    fn defs_matching(&self, unit: UnitId, touches: impl Fn(u16, u16) -> bool) -> Vec<ActiveDef> {
+        let mut found = Vec::new();
+        self.for_each_matching(unit, touches, |active| found.push(active));
+        found
+    }
+
+    /// Visits the definitions acting on a unit that a predicate accepts,
+    /// without allocating: the hot path of every stat query (T4.11.4).
+    fn for_each_matching(
+        &self,
+        unit: UnitId,
+        touches: impl Fn(u16, u16) -> bool,
+        mut visit: impl FnMut(ActiveDef),
+    ) {
+        let me = &self.units[unit.index()];
+        for effect in &me.effects {
+            if let EffectSource::Skill { skill, def } = effect.source
+                && touches(skill, def)
+            {
+                visit(ActiveDef {
+                    skill,
+                    def,
+                    caster: effect.caster,
+                    rank: effect.rank,
+                    effect: Some(effect.id),
+                    slot: effect.slot,
+                });
+            }
+        }
+        if me.kind == UnitKind::Spirit || me.has_trait(CreatureTrait::Spirit) {
+            return;
+        }
+        for spirit in self.aura_spirits.iter().map(|id| &self.units[id.index()]) {
+            let Some(aura) = spirit.aura else { continue };
+            if !spirit.alive() || (!aura.affects_all && spirit.team != me.team) {
+                continue;
+            }
+            let Some(encoding) = &self.fight.skills[usize::from(aura.skill)].skill.encoding else {
+                continue;
+            };
+            let mut in_range: Option<bool> = None;
+            for (index, def) in encoding.effect_defs.iter().enumerate() {
+                if def.kind != EffectKind::SpiritAura || !touches(aura.skill, index as u16) {
+                    continue;
+                }
+                let close = *in_range
+                    .get_or_insert_with(|| me.pos.within(spirit.pos, self.aura_range(spirit.id)));
+                if !close {
+                    break;
+                }
+                visit(ActiveDef {
+                    skill: aura.skill,
+                    def: index as u16,
+                    caster: spirit.id,
+                    rank: aura.rank,
+                    effect: None,
+                    slot: None,
+                });
+            }
+        }
+    }
+
+    /// The definition an active def points at.
+    pub fn def_of(&self, def: &ActiveDef) -> Option<&gwsim_data::dsl::EffectDef> {
+        self.fight.skills[usize::from(def.skill)]
+            .skill
+            .encoding
+            .as_ref()
+            .and_then(|e| e.effect_defs.get(usize::from(def.def)))
     }
 
     // --------------------------------------------------------------- filters
@@ -862,6 +1117,36 @@ impl Sim {
             Filter::ExploitsCorpse => ctx
                 .and_then(|c| c.skill)
                 .is_some_and(|s| self.fight.skills[usize::from(s)].skill.flags.needs_corpse),
+            Filter::Removed(kind) => ctx.is_some_and(|c| match kind {
+                EffectKind::Hex => c.hexes_removed > 0.0,
+                EffectKind::Enchantment => c.enchantments_removed > 0.0,
+                EffectKind::Condition => c.conditions_removed > 0.0,
+                _ => false,
+            }),
+            Filter::SpiritsInEarshot { at_least } => {
+                let earshot = self.fight.core.gwinches(RangeBand::Earshot);
+                self.units
+                    .iter()
+                    .filter(|o| {
+                        o.alive() && o.kind == UnitKind::Spirit && o.pos.within(u.pos, earshot)
+                    })
+                    .count()
+                    >= usize::from(*at_least)
+            }
+            Filter::CorpsesInEarshot { at_least } => {
+                let earshot = self.fight.core.gwinches(RangeBand::Earshot);
+                self.units
+                    .iter()
+                    .filter(|o| !o.alive() && o.corpse_available && o.pos.within(u.pos, earshot))
+                    .count()
+                    >= usize::from(*at_least)
+            }
+            Filter::NearAllies => {
+                let nearby = self.fight.core.gwinches(RangeBand::Nearby);
+                self.units.iter().any(|o| {
+                    o.alive() && o.id != unit && o.team == me.team && o.pos.within(u.pos, nearby)
+                })
+            }
             Filter::Not(inner) => !self.filter_passes(inner, unit, relative_to, ctx),
             Filter::All(filters) => filters
                 .iter()
@@ -913,7 +1198,11 @@ impl Sim {
             .copied()
             .collect();
 
+        let bit = crate::stats::stat_bit(stat);
         for gear in &u.gear {
+            if gear.stats & bit == 0 {
+                continue;
+            }
             if gear.piece.is_some() && gear.piece != piece && stat == Stat::Armor {
                 continue;
             }
@@ -924,29 +1213,77 @@ impl Sim {
                 &ctx,
                 ModSource::Gear,
                 false,
+                Share::All,
                 &mut found,
             );
         }
 
-        for effect in &u.effects {
-            let EffectSource::Skill { skill, def } = effect.source else {
-                continue;
+        let touches = |skill: u16, def: u16| {
+            self.fight.skills[usize::from(skill)]
+                .def_stats
+                .get(usize::from(def))
+                .is_some_and(|(all, _)| all & bit != 0)
+        };
+        self.for_each_matching(unit, touches, |active| {
+            let Some(def) = self.def_of(&active) else {
+                return;
             };
-            let Some(encoding) = &self.fight.skills[usize::from(skill)].skill.encoding else {
-                continue;
+            let ctx = ExecCtx::for_def(&active, unit);
+            // A `ModifyStat(to: Self)` in a hex helps its caster, not the
+            // bearer (Life Siphon); the caster collects it below.
+            let bearer_share = if active.caster == unit {
+                Share::All
+            } else {
+                Share::Bearer
             };
-            let Some(def) = encoding.effect_defs.get(usize::from(def)) else {
-                continue;
-            };
-            let ctx = ExecCtx::for_effect(effect, unit);
             self.collect_modifiers(
                 &def.while_active,
                 stat,
                 &ctx,
-                ModSource::Effect(effect.id),
+                ModSource::Effect(active.effect.unwrap_or(u32::MAX)),
                 true,
+                bearer_share,
                 &mut found,
             );
+        });
+        // The caster's share of effects it put on others.
+        let caster_scan = self.fight.caster_share_mask & bit != 0;
+        for (bearer, id) in self.caster_effects.iter().filter(|_| caster_scan) {
+            if *bearer == unit {
+                continue;
+            }
+            let other = &self.units[bearer.index()];
+            for effect in other.effects.iter().filter(|e| e.id == *id) {
+                let EffectSource::Skill { skill, def } = effect.source else {
+                    continue;
+                };
+                if effect.caster != unit
+                    || self.fight.skills[usize::from(skill)]
+                        .def_stats
+                        .get(usize::from(def))
+                        .is_none_or(|(_, caster)| caster & bit == 0)
+                {
+                    continue;
+                }
+                let Some(def) = self.fight.skills[usize::from(skill)]
+                    .skill
+                    .encoding
+                    .as_ref()
+                    .and_then(|e| e.effect_defs.get(usize::from(def)))
+                else {
+                    continue;
+                };
+                let ctx = ExecCtx::for_effect(effect, other.id);
+                self.collect_modifiers(
+                    &def.while_active,
+                    stat,
+                    &ctx,
+                    ModSource::Effect(effect.id),
+                    true,
+                    Share::Caster,
+                    &mut found,
+                );
+            }
         }
 
         // Conditions with a fixed effect on a stat (Condition).
@@ -980,6 +1317,7 @@ impl Sim {
     /// Reads `ModifyStat` actions out of a list, following `If`s whose
     /// conditions hold for the bearer. `Chance` nodes are left to the moment
     /// they roll (weapon chance mods, in the pipeline).
+    #[allow(clippy::too_many_arguments)]
     fn collect_modifiers(
         &self,
         actions: &[Action],
@@ -987,16 +1325,17 @@ impl Sim {
         ctx: &ExecCtx,
         source: ModSource,
         from_skill: bool,
+        share: Share,
         found: &mut Vec<Modifier>,
     ) {
         for action in actions {
             match action {
                 Action::ModifyStat {
+                    to,
                     stat: s,
                     amount,
                     category,
-                    ..
-                } if stat_matches(*s, stat) => found.push(Modifier {
+                } if stat_matches(*s, stat) && share.takes(to) => found.push(Modifier {
                     stat,
                     value: self.eval_value(amount, ctx),
                     category: *category,
@@ -1023,10 +1362,10 @@ impl Sim {
                         } else {
                             otherwise
                         };
-                        self.collect_modifiers(branch, stat, ctx, source, from_skill, found);
+                        self.collect_modifiers(branch, stat, ctx, source, from_skill, share, found);
                     }
                     Control::Sequence(inner) => {
-                        self.collect_modifiers(inner, stat, ctx, source, from_skill, found)
+                        self.collect_modifiers(inner, stat, ctx, source, from_skill, share, found)
                     }
                     _ => {}
                 },
@@ -1035,11 +1374,17 @@ impl Sim {
         }
     }
 
-    /// The weapon chance mods on a unit for a stat: the highest single chance
-    /// and its amount (A-038: the same kind does not stack).
-    pub fn chance_mod(&self, unit: UnitId, stat: Stat) -> Option<(f64, f64)> {
-        let mut best: Option<(f64, f64)> = None;
+    /// The weapon chance mods on a unit for a stat, for one skill: their
+    /// chances added across the weapon and off-hand, to at most 100%, and the
+    /// amount (A-038: a "40/40 set" is 20% from each item). An upgrade reaches
+    /// only spells of its weapon set's attribute.
+    pub fn chance_mod(&self, unit: UnitId, stat: Stat, skill: u16) -> Option<(f64, f64)> {
+        let attribute = self.fight.skills[usize::from(skill)].skill.attribute;
+        let mut total: Option<(f64, f64)> = None;
         for gear in &self.units[unit.index()].gear {
+            if gear.scope.is_some() && gear.scope != attribute {
+                continue;
+            }
             for action in &gear.actions {
                 let Action::Control(control) = action else {
                     continue;
@@ -1056,14 +1401,15 @@ impl Sim {
                         let ctx = ExecCtx::for_skill(unit, Target::Unit(unit), 0, None, 0);
                         let value = self.eval_value(amount, &ctx);
                         let chance = f64::from(*percent) / 100.0;
-                        if best.is_none_or(|(c, _)| chance > c) {
-                            best = Some((chance, value));
-                        }
+                        total = Some(match total {
+                            Some((sum, _)) => ((sum + chance).min(1.0), value),
+                            None => (chance, value),
+                        });
                     }
                 }
             }
         }
-        best
+        total
     }
 
     /// Damage reductions on a target from its effects' `while_active` lists,
@@ -1071,23 +1417,20 @@ impl Sim {
     /// from, caster, skill)`.
     pub fn damage_reductions(&self, unit: UnitId) -> Vec<crate::damage::Reduction> {
         let mut found = Vec::new();
-        for effect in &self.units[unit.index()].effects {
-            let EffectSource::Skill { skill, def } = effect.source else {
+        for active in self.defs_flagged(unit, crate::setup::DEF_REDUCES) {
+            let Some(def) = self.def_of(&active) else {
                 continue;
             };
-            let Some(encoding) = &self.fight.skills[usize::from(skill)].skill.encoding else {
-                continue;
-            };
-            let Some(def) = encoding.effect_defs.get(usize::from(def)) else {
-                continue;
-            };
-            let ctx = ExecCtx::for_effect(effect, unit);
+            let ctx = ExecCtx::for_def(&active, unit);
             for action in &def.while_active {
                 if let Action::ReduceIncomingDamage {
                     flat,
                     percent,
                     cap_percent_of_max_health,
                     only_from,
+                    limit,
+                    heals,
+                    cost_to_source,
                     ..
                 } = action
                 {
@@ -1098,8 +1441,11 @@ impl Sim {
                             .as_ref()
                             .map(|v| self.eval_value(v, &ctx)),
                         only_from: *only_from,
-                        caster: effect.caster,
-                        skill,
+                        limit: limit.as_ref().map(|v| self.eval_value(v, &ctx)),
+                        heals: *heals,
+                        cost_to_source: cost_to_source.as_ref().map(|v| self.eval_value(v, &ctx)),
+                        caster: active.caster,
+                        skill: active.skill,
                     });
                 }
             }
@@ -1109,21 +1455,15 @@ impl Sim {
 
     /// Whether a unit is immune to critical hits.
     pub fn critical_immune(&self, unit: UnitId) -> bool {
-        self.units[unit.index()].effects.iter().any(|effect| {
-            let EffectSource::Skill { skill, def } = effect.source else {
-                return false;
-            };
-            self.fight.skills[usize::from(skill)]
-                .skill
-                .encoding
-                .as_ref()
-                .and_then(|e| e.effect_defs.get(usize::from(def)))
-                .is_some_and(|d| {
+        self.defs_flagged(unit, crate::setup::DEF_CRIT_IMMUNE)
+            .iter()
+            .any(|active| {
+                self.def_of(active).is_some_and(|d| {
                     d.while_active
                         .iter()
                         .any(|a| matches!(a, Action::SetCriticalImmune { .. }))
                 })
-        })
+            })
     }
 
     /// Whether a skill type counts as a spell for Fast Casting and Dazed.
@@ -1166,4 +1506,26 @@ fn stat_matches(have: Stat, want: Stat) -> bool {
                 )
             )
         )
+}
+
+/// Which `ModifyStat` actions of an effect a unit takes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Share {
+    /// All of them: gear, and effects the unit cast on itself.
+    All,
+    /// The bearer's: everything but `to: Self`, which means the caster.
+    Bearer,
+    /// The caster's: only `to: Self`.
+    Caster,
+}
+
+impl Share {
+    fn takes(self, to: &Selector) -> bool {
+        let caster_side = matches!(to, Selector::SelfUnit);
+        match self {
+            Share::All => true,
+            Share::Bearer => !caster_side,
+            Share::Caster => caster_side,
+        }
+    }
 }

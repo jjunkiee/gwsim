@@ -66,6 +66,11 @@ pub fn run(args: &DescribeSkillArgs, out: &mut impl Write) -> io::Result<i32> {
         return Ok(FAILED);
     }
 
+    if args.review_sheet {
+        write_review_sheet(&matched, args, core.as_ref(), out)?;
+        return Ok(OK);
+    }
+
     if args.json {
         let values: Vec<serde_json::Value> = matched
             .iter()
@@ -164,6 +169,44 @@ fn select<'a>(
         matched.push(skill);
     }
     matched
+}
+
+/// A markdown table for reviewing a batch (T4.1.1): generated text and wiki
+/// links only, so it is safe to share.
+fn write_review_sheet(
+    skills: &[&Skill],
+    args: &DescribeSkillArgs,
+    core: Option<&CoreData>,
+    out: &mut impl Write,
+) -> io::Result<()> {
+    let context = context_for(args, core);
+    writeln!(
+        out,
+        "| Skill | Wiki | Type and costs | Generated text | Roles | Status |"
+    )?;
+    writeln!(out, "| --- | --- | --- | --- | --- | --- |")?;
+    for skill in skills {
+        let roles: Vec<String> = skill
+            .encoding
+            .as_ref()
+            .map(|e| e.roles.iter().map(|r| format!("{r:?}")).collect())
+            .unwrap_or_default();
+        let text = describe(skill, &context)
+            .replace('|', "\\|")
+            .replace('\n', " ");
+        writeln!(
+            out,
+            "| {} | <{}> | {:?}; {} | {} | {} | {:?} |",
+            skill.name,
+            skill.wiki.url(),
+            skill.kind,
+            costs(skill),
+            text,
+            roles.join(", "),
+            skill.provenance.review
+        )?;
+    }
+    Ok(())
 }
 
 fn write_text(

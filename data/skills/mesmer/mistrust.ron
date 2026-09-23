@@ -38,8 +38,7 @@
                         charges: Some(1),
                         actions: [
                             FailSkill(to: Target),
-                            Damage(to: TargetFoe, amount: Scaled(10, 80)),
-                            Damage(to: Secondary(of: Nearby(TargetFoe), factor: 0.75), amount: Scaled(10, 80)),
+                            Damage(to: Reduced(of: Nearby(TargetFoe), factor: 0.75), amount: Scaled(10, 80)),
                         ],
                     ),
                 ],

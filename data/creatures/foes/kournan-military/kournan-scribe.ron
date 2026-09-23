@@ -8,7 +8,7 @@
     traits: [Fleshy],
     professions: (Elementalist,None),
     level: (nm: 20, hm: Some(26)),
-    attributes: (nm: [(FireMagic,15)], hm: None),
+    attributes: (nm: [(FireMagic,15),(EarthMagic,15),(EnergyStorage,15)], hm: None),
     skills: [
         (skill: Slug("aftershock")),
         (skill: Slug("aura-of-restoration")),
@@ -17,11 +17,12 @@
         (skill: Slug("meteor")),
     ],
     armor: (default: Some(60), level_context: Some(20)),
+    weapon: Some((weapon_type: "staff")),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Kournan_Scribe"],
         crawled: "2026-09-23",
         review: Draft,
-        assumptions: ["A-004","A-005"],
+        assumptions: ["A-004","A-005","A-042"],
         notes: "the page lists 2 level pairs; the highest, 20 (26), is used; the bar is the page\'s \"Levels 20 and above\" list, which covers level 20; 1 level variant(s) for other levels were left out",
     ),
 )

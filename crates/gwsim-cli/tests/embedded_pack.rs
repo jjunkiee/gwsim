@@ -80,7 +80,7 @@ fn the_embedded_data_holds_the_assumptions_register() {
     let text = String::from_utf8(output).expect("output should be UTF-8");
     let value: serde_json::Value = serde_json::from_str(&text).expect("output should be JSON");
 
-    assert_eq!(value["counts"]["assumptions"], 41);
+    assert_eq!(value["counts"]["assumptions"], 44);
     assert!(
         value["embedded_bytes"].as_u64().unwrap_or(0) > 10_000,
         "the pack should hold the real data, not an empty stub"

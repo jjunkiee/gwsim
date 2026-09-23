@@ -8,7 +8,7 @@
     traits: [Fleshy],
     professions: (Paragon,None),
     level: (nm: 20, hm: Some(26)),
-    attributes: (nm: [], hm: None),
+    attributes: (nm: [(SpearMastery,14),(Command,14)], hm: None),
     skills: [
         (skill: Slug("never-surrender")),
         (skill: Slug("stand-your-ground")),
@@ -17,11 +17,12 @@
         (skill: Slug("wild-throw")),
     ],
     armor: (default: Some(95), level_context: Some(20)),
+    weapon: Some((weapon_type: "spear")),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Kournan_Phalanx"],
         crawled: "2026-09-23",
         review: Draft,
-        assumptions: ["A-004","A-005"],
-        notes: "the page lists 2 level pairs; the highest, 20 (26), is used; the bar is the page\'s \"Level 20 and above\" list, which covers level 20; 1 level variant(s) for other levels were left out; the page gives no attribute ranks; WP4.2 supplies them",
+        assumptions: ["A-004","A-005","A-042"],
+        notes: "the page lists 2 level pairs; the highest, 20 (26), is used; the bar is the page\'s \"Level 20 and above\" list, which covers level 20; 1 level variant(s) for other levels were left out; the page gives no attribute ranks, so A-042 supplies 14 in each attribute the bar uses",
     ),
 )

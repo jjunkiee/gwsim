@@ -1,0 +1,112 @@
+---
+source: crates/gwsim-engine/tests/tactics.rs
+expression: text
+---
+(
+    formation: [
+        (
+            slot: "player",
+            x: 0.0,
+            y: 0.0,
+        ),
+        (
+            slot: "hero 1",
+            x: -0.0,
+            y: -100.0,
+        ),
+        (
+            slot: "hero 2",
+            x: 270.0,
+            y: -100.0,
+        ),
+        (
+            slot: "hero 3",
+            x: -270.0,
+            y: -100.0,
+        ),
+        (
+            slot: "hero 4",
+            x: 540.0,
+            y: -100.0,
+        ),
+        (
+            slot: "hero 5",
+            x: -0.0,
+            y: -350.0,
+        ),
+        (
+            slot: "hero 6",
+            x: -540.0,
+            y: -100.0,
+        ),
+        (
+            slot: "hero 7",
+            x: 270.0,
+            y: -350.0,
+        ),
+    ],
+    hero_modes: [
+        (
+            slot: "hero 1",
+            mode: Fight,
+        ),
+        (
+            slot: "hero 2",
+            mode: Fight,
+        ),
+        (
+            slot: "hero 3",
+            mode: Fight,
+        ),
+        (
+            slot: "hero 4",
+            mode: Fight,
+        ),
+        (
+            slot: "hero 5",
+            mode: Guard,
+        ),
+        (
+            slot: "hero 6",
+            mode: Fight,
+        ),
+        (
+            slot: "hero 7",
+            mode: Guard,
+        ),
+    ],
+    called_targets: [
+        FoeWithRole(Healing),
+    ],
+    locked_targets: [],
+    pre_fight: [
+        (
+            slot: "hero 7",
+            skill: Slug("soul-twisting"),
+            target: Caster,
+        ),
+        (
+            slot: "hero 7",
+            skill: Slug("shelter"),
+            target: Caster,
+        ),
+        (
+            slot: "hero 7",
+            skill: Slug("union"),
+            target: Caster,
+        ),
+        (
+            slot: "hero 7",
+            skill: Slug("displacement"),
+            target: Caster,
+        ),
+        (
+            slot: "hero 7",
+            skill: Slug("armor-of-unfeeling"),
+            target: Caster,
+        ),
+    ],
+    disabled_hero_skills: [],
+    engage_order: [],
+    spread_against_aoe: true,
+)

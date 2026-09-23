@@ -19,6 +19,8 @@ const SOUL_REAPING_RANGE: f32 = 2508.0;
 /// Soul Reaping pays out at most this often per window.
 const SOUL_REAPING_LIMIT: usize = 3;
 const SOUL_REAPING_WINDOW_MS: u32 = 15_000;
+/// A minion's degeneration worsens by a pip this often (Minion).
+const MINION_DECAY_STEP_MS: u32 = 20_000;
 
 impl Sim {
     /// A unit's maximum health in whole points: base, plus modifiers, less
@@ -32,7 +34,14 @@ impl Sim {
         if self.has_condition(unit, Condition::DeepWound) {
             max -= (max * 0.2).min(100.0);
         }
+        max *= Self::penalty_factor(u);
         (max.round() as i32).max(1)
+    }
+
+    /// Death penalty less morale boost, as a multiplier on maximum health and
+    /// energy (§10.11: −15% per death to −60%, morale to +10%).
+    fn penalty_factor(u: &crate::unit::Unit) -> f64 {
+        1.0 - f64::from(u.death_penalty) / 100.0 + f64::from(u.morale) / 100.0
     }
 
     /// A unit's maximum energy in whole points, less overcast.
@@ -42,6 +51,7 @@ impl Sim {
         for modifier in self.modifiers(unit, Stat::MaxEnergy, None) {
             max += modifier.value;
         }
+        max *= Self::penalty_factor(u);
         let overcast = f64::from(u.overcast) / f64::from(ENERGY_SCALE);
         (max - overcast).round().max(0.0) as i32
     }
@@ -57,13 +67,16 @@ impl Sim {
 
     /// Energy pips after upkeep, capped at ±10.
     pub fn energy_pips(&self, unit: UnitId) -> i32 {
-        let upkeep: i32 = self
-            .units
-            .iter()
-            .flat_map(|u| u.effects.iter())
-            .filter(|e| e.caster == unit && e.upkeep != 0)
-            .map(|e| i32::from(e.upkeep))
-            .sum();
+        let upkeep: i32 = if self.fight.any_upkeep {
+            self.units
+                .iter()
+                .flat_map(|u| u.effects.iter())
+                .filter(|e| e.caster == unit && e.upkeep != 0)
+                .map(|e| i32::from(e.upkeep))
+                .sum()
+        } else {
+            0
+        };
         (self.energy_pips_uncapped(unit) - upkeep).clamp(-10, 10)
     }
 
@@ -75,14 +88,15 @@ impl Sim {
         for modifier in self.modifiers(unit, Stat::HealthRegeneration, None) {
             pips += modifier.value;
         }
-        for (condition, degeneration) in [
-            (Condition::Bleeding, 3.0),
-            (Condition::Burning, 7.0),
-            (Condition::Poison, 4.0),
-            (Condition::Disease, 4.0),
-        ] {
-            if self.has_condition(unit, condition) {
-                pips -= degeneration;
+        // Degenerating conditions, in one pass over the effects.
+        for effect in &u.effects {
+            if let crate::effects::EffectSource::Condition(condition) = effect.source {
+                pips -= match condition {
+                    Condition::Bleeding => 3.0,
+                    Condition::Burning => 7.0,
+                    Condition::Poison | Condition::Disease => 4.0,
+                    _ => 0.0,
+                };
             }
         }
         let mut pips = pips.round() as i32;
@@ -94,7 +108,14 @@ impl Sim {
             };
             pips += combat::natural_regeneration_pips(out_of_combat);
         }
-        pips.clamp(-10, 10)
+        let mut pips = pips.clamp(-10, 10);
+        // A minion decays from −1, one pip worse every 20 seconds, past the
+        // displayed cap (Minion).
+        if u.kind == UnitKind::Minion {
+            pips -=
+                1 + (self.now.ms().saturating_sub(u.born_at.ms()) / MINION_DECAY_STEP_MS) as i32;
+        }
+        pips
     }
 
     /// One tick of regeneration, degeneration and overcast recovery.
@@ -105,8 +126,16 @@ impl Sim {
             if !self.units[index].alive() {
                 continue;
             }
-            // 2 HP per second per pip, in milli-HP per tick.
-            let health = self.health_pips(unit) * 2 * HEALTH_SCALE / ticks_per_second;
+            // 2 HP per second per pip, in milli-HP per tick, plus any flat
+            // health per second ("Incoming!").
+            let per_second: f64 = self
+                .modifiers(unit, Stat::HealthPerSecond, None)
+                .iter()
+                .map(|m| m.value)
+                .sum();
+            let health = self.health_pips(unit) * 2 * HEALTH_SCALE / ticks_per_second
+                + (per_second * f64::from(HEALTH_SCALE) / f64::from(ticks_per_second)).round()
+                    as i32;
             // 1 energy per 3 seconds per pip, in units per tick.
             let energy = self.energy_pips(unit) * ENERGY_SCALE / (3 * ticks_per_second);
             let max_health = self.max_health(unit) * HEALTH_SCALE;

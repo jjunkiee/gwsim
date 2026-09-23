@@ -60,6 +60,14 @@ impl Sim {
                     .collect()
             },
             draft_skills_used: draft,
+            first_failed: self.segments.iter().position(|s| s.outcome != Outcome::Win),
+            segments: std::mem::take(&mut self.segments),
+            covenant_broken: self.covenant_broken,
+            unit_names: if self.log.is_some() {
+                self.units.iter().map(|u| u.name.clone()).collect()
+            } else {
+                Vec::new()
+            },
             log: self.log,
             stats,
         }
@@ -187,6 +195,74 @@ pub fn wilson(wins: usize, n: usize) -> Interval {
     }
 }
 
+/// Resamples a paired bootstrap draws (ENG-42, T4.9.8).
+pub const BOOTSTRAP_RESAMPLES: usize = 1000;
+
+/// The bootstrap's fixed seed, so a comparison prints the same interval
+/// every time it is run.
+pub const BOOTSTRAP_SEED: u64 = 0x6777_7369_6d42_5331;
+
+/// The mean of paired differences `a[i] − b[i]` and its 95% percentile
+/// interval from a paired bootstrap over the pairs.
+///
+/// The pairs are runs on the same seed, so resampling pairs rather than each
+/// side separately keeps the common random numbers' correlation, which is
+/// what makes a small real difference visible (ENG-42).
+#[derive(Debug, Clone, Copy, PartialEq, Serialize)]
+pub struct PairedDifference {
+    pub n: usize,
+    pub mean: f64,
+    pub ci: Interval,
+}
+
+impl PairedDifference {
+    /// Whether the interval lies wholly above zero.
+    pub fn above_zero(&self) -> bool {
+        self.n > 0 && self.ci.low > 0.0
+    }
+
+    /// Whether the interval lies wholly below zero.
+    pub fn below_zero(&self) -> bool {
+        self.n > 0 && self.ci.high < 0.0
+    }
+}
+
+/// Bootstraps the mean of `a[i] − b[i]`; the slices must be paired.
+pub fn paired_bootstrap(a: &[f64], b: &[f64], resamples: usize, seed: u64) -> PairedDifference {
+    let n = a.len().min(b.len());
+    let differences: Vec<f64> = (0..n).map(|i| a[i] - b[i]).collect();
+    if n == 0 {
+        return PairedDifference {
+            n,
+            mean: 0.0,
+            ci: Interval {
+                low: 0.0,
+                high: 0.0,
+            },
+        };
+    }
+    let mean = differences.iter().sum::<f64>() / n as f64;
+    let mut state = seed;
+    let mut means: Vec<f64> = (0..resamples.max(1))
+        .map(|_| {
+            let total: f64 = (0..n)
+                .map(|_| differences[(crate::rng::splitmix64(&mut state) % n as u64) as usize])
+                .sum();
+            total / n as f64
+        })
+        .collect();
+    means.sort_by(f64::total_cmp);
+    let at = |q: f64| means[((means.len() - 1) as f64 * q).round() as usize];
+    PairedDifference {
+        n,
+        mean,
+        ci: Interval {
+            low: at(0.025),
+            high: at(0.975),
+        },
+    }
+}
+
 /// Why an evaluation stopped.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum StopReason {
@@ -258,6 +334,20 @@ pub fn evaluate(setup: &FightSetup, seeds: &SeedList) -> Evaluation {
     Evaluation::from_results(run_seeds(setup, seeds.seeds()), StopReason::Fixed)
 }
 
+/// Extends an evaluation on the same master seed to `n` runs, so two
+/// evaluations stopped at different lengths can be compared pair by pair
+/// (the first `k` seeds of a list never change; ENG-42).
+pub fn extend_to(setup: &FightSetup, evaluation: Evaluation, master: u64, n: usize) -> Evaluation {
+    if evaluation.runs >= n {
+        return evaluation;
+    }
+    let stop = evaluation.stop;
+    let mut results = evaluation.results;
+    let seeds = SeedList::new(master, n);
+    results.extend(run_seeds(setup, &seeds.seeds()[results.len()..n]));
+    Evaluation::from_results(results, stop)
+}
+
 /// Adds batches of runs until the result is stable (T3.8.4).
 pub fn evaluate_until_stable(setup: &FightSetup, master: u64, options: EvalOptions) -> Evaluation {
     let mut results: Vec<RunResult> = Vec::new();
@@ -303,6 +393,34 @@ mod tests {
         let interval = wilson(95, 100);
         assert!((interval.low - 0.888).abs() < 0.002, "{interval:?}");
         assert!((interval.high - 0.978).abs() < 0.002, "{interval:?}");
+    }
+
+    #[test]
+    fn a_paired_bootstrap_of_identical_samples_is_zero() {
+        let a = [1.0, 0.0, 1.0, 1.0, 0.0];
+        let d = paired_bootstrap(&a, &a, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED);
+        assert_eq!(d.mean, 0.0);
+        assert_eq!(
+            d.ci,
+            Interval {
+                low: 0.0,
+                high: 0.0
+            }
+        );
+        assert!(!d.above_zero() && !d.below_zero());
+    }
+
+    #[test]
+    fn a_paired_bootstrap_sees_a_consistent_shift() {
+        let a: Vec<f64> = (0..50).map(|i| f64::from(i % 7) + 1.0).collect();
+        let b: Vec<f64> = (0..50).map(|i| f64::from(i % 7)).collect();
+        let d = paired_bootstrap(&a, &b, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED);
+        assert_eq!(d.mean, 1.0);
+        assert!(d.above_zero());
+        assert_eq!(
+            d,
+            paired_bootstrap(&a, &b, BOOTSTRAP_RESAMPLES, BOOTSTRAP_SEED)
+        );
     }
 
     #[test]

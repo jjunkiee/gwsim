@@ -95,6 +95,11 @@ pub struct WeaponSet {
     pub inscription: Option<Slug>,
     #[serde(default)]
     pub offhand_upgrades: Vec<Slug>,
+    /// The attribute the weapon set is for, such as a "40/40 Domination set".
+    /// Its halve-casting and halve-recharge chances apply only to spells of
+    /// this attribute (Weapon upgrade).
+    #[serde(default)]
+    pub attribute: Option<Attribute>,
 }
 
 impl Build {

@@ -48,11 +48,43 @@ pub struct SkillStats {
     pub interrupts: u32,
 }
 
+/// What one party slot achieved with one skill (§14.2), or with its
+/// attacks and everything else no skill caused when `skill` is [`None`].
+///
+/// Minions' damage is credited to their master and spirits' to their caster;
+/// damage an effect prevents is credited to whoever put the effect there.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct Contribution {
+    pub slot: u8,
+    /// The fight skill, by index.
+    pub skill: Option<u16>,
+    pub uses: u32,
+    pub damage: i64,
+    pub healing: i64,
+    pub overhealing: i64,
+    pub mitigation: i64,
+    pub interrupts: u32,
+}
+
+/// How often one skill interrupted another.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct Stopped {
+    /// The interrupting fight skill.
+    pub by: u16,
+    /// The fight skill it stopped.
+    pub stopped: u16,
+    pub count: u32,
+}
+
 /// Everything recorded during one fight.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct RunStats {
     pub slots: Vec<SlotStats>,
     pub skills: Vec<SkillStats>,
+    /// Per slot and skill, in the order they first contributed (T4.9.7).
+    pub contributions: Vec<Contribution>,
+    /// What interrupts stopped.
+    pub stopped: Vec<Stopped>,
     /// Time to kill per foe, in foe order.
     pub foe_ttk_ms: Vec<Option<u32>>,
     /// Energy per party slot, sampled every second.
@@ -76,6 +108,45 @@ impl RunStats {
             slots,
             skills: (0..skills).map(|_| SkillStats::default()).collect(),
             foe_ttk_ms: vec![None; foes],
+            contributions: Vec::new(),
+            stopped: Vec::new(),
+        }
+    }
+
+    /// The contribution row for a slot and skill, added when first needed.
+    pub fn contribution(&mut self, slot: usize, skill: Option<u16>) -> &mut Contribution {
+        let slot = slot as u8;
+        let index = match self
+            .contributions
+            .iter()
+            .position(|c| c.slot == slot && c.skill == skill)
+        {
+            Some(index) => index,
+            None => {
+                self.contributions.push(Contribution {
+                    slot,
+                    skill,
+                    ..Contribution::default()
+                });
+                self.contributions.len() - 1
+            }
+        };
+        &mut self.contributions[index]
+    }
+
+    /// Counts one interrupt of `stopped` by `by`.
+    pub fn record_stopped(&mut self, by: u16, stopped: u16) {
+        match self
+            .stopped
+            .iter_mut()
+            .find(|s| s.by == by && s.stopped == stopped)
+        {
+            Some(row) => row.count += 1,
+            None => self.stopped.push(Stopped {
+                by,
+                stopped,
+                count: 1,
+            }),
         }
     }
 
@@ -110,9 +181,29 @@ pub struct RunResult {
     pub stats: RunStats,
     pub assumptions_touched: Vec<AssumptionId>,
     pub draft_skills_used: Vec<SkillId>,
+    /// Each fight of a chain in turn; one entry for a single fight (T4.8.4).
+    pub segments: Vec<Segment>,
+    /// The fight (from 0) in which a chain first failed, if it did.
+    pub first_failed: Option<usize>,
+    /// Dhuum's Covenant was on and a party member died (T4.3.10).
+    pub covenant_broken: bool,
     /// The combat log, when one was kept.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub log: Option<Vec<crate::log::LogEvent>>,
+    /// Every unit's name by id, when a log was kept, so a log can name the
+    /// creatures and foes that appeared mid-fight.
+    #[serde(skip)]
+    pub unit_names: Vec<String>,
+}
+
+/// One fight of a chain.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Segment {
+    pub outcome: Outcome,
+    /// From this fight's aggro to its last foe's death, for a win.
+    pub clear_time_ms: Option<u32>,
+    /// Party deaths during this fight.
+    pub deaths: u32,
 }
 
 impl RunResult {
@@ -125,6 +216,7 @@ impl RunResult {
     pub fn digest(&self) -> u64 {
         let mut copy = self.clone();
         copy.log = None;
+        copy.unit_names.clear();
         let text = serde_json::to_string(&copy).unwrap_or_default();
         text.bytes().fold(0xcbf2_9ce4_8422_2325u64, |hash, byte| {
             (hash ^ u64::from(byte)).wrapping_mul(0x0100_0000_01b3)

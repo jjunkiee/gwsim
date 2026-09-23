@@ -98,18 +98,45 @@ cargo install --path crates/gwsim-cli
 gwsim --version
 ```
 
-This is where the interesting command lives. Since milestone M0 it runs the
-Mesmerway player alone against training dummies:
+This is where the interesting command lives. Since milestone M1 it runs the 7-hero
+Mesmerway party against a hard-mode Kournan patrol in Vehtendi Valley:
 
 ```powershell
-cargo run --release -p gwsim-cli -- evaluate --party m0-player --situation dummies-hm
+cargo run --release -p gwsim-cli -- evaluate --party data/parties/m1-mesmerway.ron --situation kournan-patrol-hm
 ```
 
-It prints the win rate, the clear time and each skill's uses and damage, with 95%
-confidence intervals, adding runs until the result is stable. `--runs 100` fixes the
-number of runs, `--seed 7` changes the seed list, and `--log text` prints one fight's
-combat log instead. The same seed always gives the same result, on any machine and at
-any thread count. The full Kournan patrol arrives with M1.
+It prints each slot's bar with its template codes, then the win rate, clear time, deaths,
+damage taken and energy left, each with a 95% interval. It keeps adding runs until the
+result is stable. The output ends with notes: which assumptions the result rests on, which
+skills are still `Draft`, and which data pack produced it. An abridged sample:
+
+```text
+gwsim evaluate: M1 Mesmerway
+  Absolute numbers are uncalibrated: compare builds with each other under the same conditions, not with the game (D22).
+  ...
+Kournan patrol HM [kournan-patrol-hm]
+  runs:          64 (Stable)
+  win rate:      100.0  (94.3 to 100.0) %   64 of 64 won
+  clear time:    43.4  (42.3 to 44.6) s   median 43.0 s
+  deaths:        0.08  (0.01 to 0.14)
+  ...
+Notes
+  assumptions touched:
+    A-001 [Assumed] The base movement speed of characters and foes, in gwinches per second.
+  ...
+```
+
+Some useful options:
+
+- `--runs 100` fixes the number of runs, and `--seed 7` changes the seed list.
+- `--set m1` runs all six M1 situations and weights them.
+- `--breakdown` adds who did what: damage, healing, prevented damage and interrupts per slot and skill, plus an energy timeline.
+- `--json out.json` writes the full result file, described in [docs/result-schema.md](docs/result-schema.md).
+- `gwsim log --result out.json --run 3` replays one run of that file and prints its combat log.
+- `gwsim compare A B --situations kournan-patrol-hm` runs two parties on the same seeds and reports the differences with paired intervals.
+- `--party` also accepts up to eight comma-separated skill template codes.
+
+The same seed always gives the same result, on any machine and at any thread count.
 
 ### 5. Tests
 
@@ -117,8 +144,17 @@ any thread count. The full Kournan patrol arrives with M1.
 cargo test --workspace
 ```
 
-`gwsim check`, which runs the game-behaviour checks rather than the unit tests, arrives in
-M1.
+`gwsim check` runs the game-behaviour checks, which the unit tests do not cover. These
+are the relative checks of DESIGN §17.4. RC1 checks that the benchmark party beats weakened
+copies of itself. RC2 checks that it beats a naive baseline team. RC6 checks monotonicity
+properties.
+
+```powershell
+cargo run --release -p gwsim-cli -- check --level reduced
+```
+
+`--level full` uses the full run counts and takes several minutes. `--only RC1` runs one
+check. The command writes a JSON report next to its summary.
 
 ### 6. Contributors: the wiki extractor
 

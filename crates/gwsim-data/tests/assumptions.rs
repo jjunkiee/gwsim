@@ -21,13 +21,13 @@ fn the_register_holds_every_entry() {
     let data = data();
     assert_eq!(
         data.assumptions.len(),
-        41,
-        "DESIGN §21 lists 41 assumptions"
+        44,
+        "DESIGN §21 lists 44 assumptions"
     );
 }
 
 #[test]
-fn the_register_runs_from_a_001_to_a_041_with_no_gaps() {
+fn the_register_runs_from_a_001_to_a_044_with_no_gaps() {
     let data = data();
     let ids: Vec<String> = data
         .assumptions
@@ -36,7 +36,7 @@ fn the_register_runs_from_a_001_to_a_041_with_no_gaps() {
         .map(|entry| entry.id.to_string())
         .collect();
 
-    let expected: Vec<String> = (1..=41).map(|n| format!("A-{n:03}")).collect();
+    let expected: Vec<String> = (1..=44).map(|n| format!("A-{n:03}")).collect();
     assert_eq!(
         ids, expected,
         "the register should be complete and in order"
@@ -96,16 +96,20 @@ fn the_assumptions_the_core_data_relies_on_have_values() {
 }
 
 #[test]
-fn the_hard_mode_recharge_reduction_is_still_pending() {
-    // A-032. There is no number on the wiki to read, so this stays open
-    // until something measures it. The test is here so that settling it is a
-    // deliberate act.
+fn the_hard_mode_recharge_reduction_is_settled_at_zero() {
+    // A-032. There is no number on the wiki to read. T4.2.1 settled it at 0%
+    // (flagged on every hard-mode result) rather than leave foes undefined;
+    // this test keeps changing it a deliberate act.
     let data = data();
     let entry = data
         .assumptions
         .get("A-032".parse().unwrap())
         .expect("A-032 should exist");
-    assert!(entry.is_pending());
+    assert!(!entry.is_pending());
+    assert_eq!(
+        entry.value,
+        gwsim_data::assumptions::AssumptionValue::Percent(0.0)
+    );
     assert!(entry.notes.contains("T4.2.1"), "{:?}", entry.notes);
 }
 

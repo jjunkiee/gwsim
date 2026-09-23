@@ -23,10 +23,16 @@
         ],
         description_hash: Some("blake3:92788199d6b1d60107dbc8cebb08c16b"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            HealthLoss(to: Nearest(Spirits), amount: Scaled(5, 50)),
+            Heal(to: TargetAlly, amount: PerUnit(value: Fixed(5), of: HealthLost)),
+        ],
+        roles: [Healing, Spirit],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Spirit_Transfer"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
     ),
 )

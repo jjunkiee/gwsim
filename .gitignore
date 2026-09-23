@@ -16,3 +16,6 @@
 # OS files
 Thumbs.db
 Desktop.ini
+
+# gwsim check writes its report here by default.
+gwsim-check.json

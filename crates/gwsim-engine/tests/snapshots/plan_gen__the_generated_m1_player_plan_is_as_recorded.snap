@@ -1,0 +1,68 @@
+---
+source: crates/gwsim-engine/tests/plan_gen.rs
+expression: text
+---
+(
+    maintain: [
+        Id(2416),
+    ],
+    rules: [
+        (
+            skill: Id(75),
+            target: Self,
+            only_if: [],
+        ),
+        (
+            skill: Id(57),
+            target: Foe(
+                pick: Nearest,
+                filter: Some(Casting),
+            ),
+            only_if: [],
+        ),
+        (
+            skill: Id(25),
+            target: Foe(
+                pick: Nearest,
+                filter: Some(CastingSpell),
+            ),
+            only_if: [],
+        ),
+        (
+            skill: Id(39),
+            target: Foe(
+                pick: MostEnergy,
+                filter: None,
+            ),
+            only_if: [],
+        ),
+        (
+            skill: Id(979),
+            target: Foe(
+                pick: Nearest,
+                filter: Some(HoldingCasterWeapon),
+            ),
+            only_if: [],
+        ),
+        (
+            skill: Id(934),
+            target: Foe(
+                pick: Nearest,
+                filter: Some(Any([
+                    Hexed,
+                    Enchanted,
+                ])),
+            ),
+            only_if: [],
+        ),
+        (
+            skill: Id(1336),
+            target: Foe(
+                pick: MostFoesNearby,
+                filter: None,
+            ),
+            only_if: [],
+        ),
+    ],
+    default: Attack,
+)

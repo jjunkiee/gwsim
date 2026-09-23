@@ -534,6 +534,7 @@ pub fn build_foe(
                 .unwrap_or_else(|| "variant".to_owned()),
             weapon: None,
             skills: Some(to_skills(variant)),
+            armor: None,
         })
         .collect();
     if !variants.is_empty() {
@@ -578,6 +579,7 @@ pub fn build_foe(
         energy: None,
         weapon: None,
         boss: raw.boss,
+        pre_searing: false,
         ai_tags: Vec::new(),
         provenance: Provenance {
             sources: vec![title.url()],

@@ -101,6 +101,9 @@ impl Sim {
         if state.adrenaline < adrenaline {
             return Err(Invalid::NoAdrenaline);
         }
+        if fight_skill.skill.flags.needs_corpse && self.nearest_corpse(unit).is_none() {
+            return Err(Invalid::BadTarget("no corpse in range"));
+        }
         if kind.uses_action_queue() {
             match u.action {
                 Action::Activating { .. } if kind.is_a(SkillType::FlashEnchantmentSpell) => {
@@ -228,6 +231,7 @@ impl Sim {
             Order::Attack(target) => {
                 let u = &mut self.units[unit.index()];
                 u.attack_target = Some(target);
+                u.focus = Some(target);
                 if matches!(u.action, Action::Idle | Action::Attacking { .. }) {
                     u.action = Action::Attacking { target };
                 }
@@ -322,10 +326,18 @@ impl Sim {
             }
         }
         self.stats.skills[usize::from(skill)].uses += 1;
+        if let Some(index) = self.units[unit.index()].slot_index {
+            self.stats.contribution(index, Some(skill)).uses += 1;
+        }
         if let Some(t) = target.unit()
             && self.units[t.index()].team != self.units[unit.index()].team
         {
             self.mark_combat(unit);
+            // A cast-time skill on a foe draws its group's attention (Aggro).
+            if activation_draws_aggro(fight_skill) {
+                self.mark_combat(t);
+            }
+            self.units[unit.index()].focus = Some(t);
         }
 
         let activation = self.activation_ms(unit, skill);
@@ -339,6 +351,9 @@ impl Sim {
             self.log_event(event.amount(activation as i32));
         }
 
+        if self.units[unit.index()].team == crate::unit::Team::Foes && activation > 0 {
+            self.foe_cast_started = Some(self.now);
+        }
         if queued {
             let now = self.now;
             let u = &mut self.units[unit.index()];
@@ -368,10 +383,6 @@ impl Sim {
                 ..fired
             });
         }
-        self.fire(Fired {
-            event: Event::OnSkillUsed,
-            ..fired
-        });
 
         if !queued {
             // Shouts, stances and pet attacks happen at once, outside the
@@ -461,12 +472,21 @@ impl Sim {
                 fight.handlers.get(handler).on_use(self, &mut ctx);
             }
         }
+        self.inherent_after_use(unit, target, skill);
+        // A successful use: Panic listens for this.
+        self.fire(Fired {
+            event: Event::OnSkillUsed,
+            subject: unit,
+            other: target.unit(),
+            skill: Some(skill),
+            amount: 0.0,
+        });
         if !self.units[unit.index()].alive() {
             return;
         }
 
         // Sacrifice comes after success (ENG-13).
-        if fight_skill.skill.cost.sacrifice_pct > 0 {
+        if fight_skill.skill.cost.sacrifice_pct > 0 && !ctx.waive_sacrifice {
             self.sacrifice(unit, f64::from(fight_skill.skill.cost.sacrifice_pct));
             if !self.units[unit.index()].alive() {
                 return;
@@ -475,6 +495,7 @@ impl Sim {
 
         // Recharge starts now, unless a copy took over the slot meanwhile.
         let recharge = self.recharge_ms(unit, skill);
+        let recharge = self.adjust_recharge(unit, skill, recharge);
         let now = self.now;
         if let Some(state) = self.units[unit.index()].bar[usize::from(slot)].as_mut()
             && state.skill == skill
@@ -721,11 +742,21 @@ impl Sim {
         if spell && self.has_condition(unit, Condition::Dazed) {
             time *= 2.0;
         }
+        // Slower casting of one skill type (Enchanter's Conundrum).
+        for scoped in SkillType::ALL {
+            if kind.is_a(scoped) {
+                let modifiers = self.modifiers(unit, Stat::ActivationTimeOf(scoped), None);
+                if !modifiers.is_empty() {
+                    time *= crate::stats::combine(Stat::ActivationTimeOf(scoped), &modifiers);
+                }
+            }
+        }
         let u = &self.units[unit.index()];
         if fight.hard_mode && u.team == Team::Foes && base > 2000.0 {
             time *= 0.5;
         }
-        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::ActivationTime) {
+        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::ActivationTime, skill)
+        {
             self.touch(38);
             if self.streams.unit(unit, Purpose::SkillChance).chance(chance) {
                 time *= 1.0 + amount / 100.0;
@@ -759,7 +790,7 @@ impl Sim {
                 time *= 1.0 - reduction / 100.0;
             }
         }
-        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::Recharge) {
+        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::Recharge, skill) {
             self.touch(38);
             if self.streams.unit(unit, Purpose::SkillChance).chance(chance) {
                 time *= 1.0 + amount / 100.0;
@@ -767,4 +798,10 @@ impl Sim {
         }
         ((time / 1000.0).round() * 1000.0).max(0.0) as u32
     }
+}
+
+/// Whether using a skill on a foe draws that foe's aggro: skills with a cast
+/// time do (Aggro).
+fn activation_draws_aggro(skill: &crate::setup::FightSkill) -> bool {
+    skill.skill.activation.ms() > 0
 }

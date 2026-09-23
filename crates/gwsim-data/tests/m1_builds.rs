@@ -444,3 +444,56 @@ fn a_build_round_trips_back_to_its_published_skill_code() {
         );
     }
 }
+
+/// T4.9.1: the party file's slots in the order of [`SLOTS`] (heroes 1 to 3
+/// share one row).
+const PARTY_ROWS: [usize; 8] = [0, 1, 1, 1, 2, 3, 4, 5];
+
+#[test]
+fn the_party_file_matches_the_hand_values_and_its_benchmarks() {
+    let core = core();
+    let data = data();
+    let party = data
+        .party(&"m1-mesmerway".parse().unwrap())
+        .expect("the M1 party loads");
+    assert_eq!(party.slots.len(), 8);
+    for (slot, row) in party.slots.iter().zip(PARTY_ROWS) {
+        let hand = &SLOTS[row];
+        let ranks = effective_ranks(&slot.build, &data);
+        for (attribute, expected) in hand.expected_ranks {
+            assert_eq!(ranks.get(attribute), Some(expected), "{}", slot.name);
+        }
+        assert_eq!(
+            max_health(&slot.build, 20, &data, &core),
+            hand.expected_health,
+            "{}",
+            slot.name
+        );
+        assert_eq!(
+            energy(&slot.build, &data, &core).max,
+            hand.expected_energy,
+            "{}",
+            slot.name
+        );
+    }
+
+    // Every bar is in a referenced benchmark, as its bar code or, where the
+    // published code is the bar, as that.
+    let codes: Vec<String> = party
+        .benchmarks
+        .iter()
+        .map(|slug| &data.benchmarks[slug].value)
+        .flat_map(|b| b.slots.iter())
+        .map(|s| s.bar_code.clone().unwrap_or_else(|| s.skill_code.clone()))
+        .collect();
+    assert_eq!(party.benchmarks.len(), 2);
+    for slot in &party.slots {
+        let (skill, _) = slot.build.to_templates(&data);
+        assert!(
+            codes.contains(&skill.encode()),
+            "{}'s bar {} is in no benchmark",
+            slot.name,
+            skill.encode()
+        );
+    }
+}

@@ -70,11 +70,41 @@ pub struct Sim {
     /// The combat log, when one was asked for (WP3.9).
     pub log: Option<Vec<LogEvent>>,
     pub stats: RunStats,
+    /// Events dispatched so far: a deterministic measure of the work a
+    /// fight took, which the performance smoke test guards (T4.11.5).
+    pub events_processed: u64,
     /// Assumptions this fight relied on, as a bit per id.
     pub assumptions: u64,
     pub outcome: Option<(Outcome, SimTime)>,
     /// When the fight proper began (aggro). Clear time counts from here.
     pub engaged_at: Option<SimTime>,
+    /// Dhuum's Covenant was on and a party member died.
+    pub covenant_broken: bool,
+    /// Which foe groups have noticed the party (AI-F1), by group index.
+    pub aggroed: Vec<bool>,
+    /// The party's called target (§11.6), which heroes attack first.
+    pub called_target: Option<UnitId>,
+    /// When a foe last started a skill, so heroes can interrupt at once.
+    pub foe_cast_started: Option<SimTime>,
+    /// Spirits carrying an aura, so stat queries need not scan every unit.
+    pub aura_spirits: Vec<UnitId>,
+    /// The next pre-fight cast (T4.7.3), and when it started waiting.
+    pub prefight_step: usize,
+    pub prefight_since: SimTime,
+    /// The next chain fight to spawn (T4.8.4), and the rest before it.
+    pub chain_step: usize,
+    pub resting_until: Option<SimTime>,
+    /// When the current fight began, for its timeout (A-030).
+    pub fight_started_at: SimTime,
+    /// When the current fight's foes first engaged.
+    pub segment_engaged: Option<SimTime>,
+    /// Fights finished so far, and party deaths at the start of this one.
+    pub segments: Vec<crate::result::Segment>,
+    pub deaths_before: u32,
+    /// Effects whose definition gives its caster a modifier (Life Siphon's
+    /// regeneration), as (bearer, effect id), so stat queries need not scan
+    /// every effect in the fight.
+    pub caster_effects: Vec<(UnitId, u32)>,
     trigger_depth: u8,
 }
 
@@ -100,9 +130,24 @@ impl Sim {
             projectiles: Vec::new(),
             log: None,
             stats,
+            events_processed: 0,
             assumptions: 0,
             outcome: None,
             engaged_at: None,
+            covenant_broken: false,
+            aggroed: Vec::new(),
+            called_target: None,
+            foe_cast_started: None,
+            aura_spirits: Vec::new(),
+            prefight_step: 0,
+            prefight_since: SimTime::ZERO,
+            chain_step: 0,
+            resting_until: None,
+            fight_started_at: SimTime::ZERO,
+            segment_engaged: None,
+            segments: Vec::new(),
+            deaths_before: 0,
+            caster_effects: Vec::new(),
             trigger_depth: 0,
         }
     }
@@ -145,6 +190,7 @@ impl Sim {
             let horizon = next_tick.min(until);
             while let Some(event) = self.queue.pop_due(horizon) {
                 self.now = event.at;
+                self.events_processed += 1;
                 self.dispatch(event.kind);
                 if self.outcome.is_some() {
                     return;
@@ -192,6 +238,7 @@ impl Sim {
                 slot,
                 generation,
             } => self.revert_slot(unit, slot, generation),
+            EventKind::CreatureExpiry { unit } => self.kill(unit, None),
             EventKind::Marker(_) => {}
         }
         self.check_outcome();
@@ -199,6 +246,11 @@ impl Sim {
 
     /// The continuous processes, once per tick.
     fn tick(&mut self) {
+        if let Some(until) = self.resting_until
+            && self.now >= until
+        {
+            self.spawn_next_fight();
+        }
         self.move_units();
         self.regenerate();
         self.drive_attacks();
@@ -211,6 +263,11 @@ impl Sim {
     /// Ends the fight if a stop condition holds.
     pub fn check_outcome(&mut self) {
         if self.outcome.is_some() {
+            return;
+        }
+        if self.resting_until.is_some() {
+            // Between fights of a chain; only a wipe could end it, and
+            // nothing fights during a rest.
             return;
         }
         let alive = |team: Team| {
@@ -228,19 +285,80 @@ impl Sim {
         let outcome = if party_alive == 0 {
             Some(Outcome::Wipe)
         } else if has_foes && foes_alive == 0 {
+            if self.chain_step < self.fight.chain.len() {
+                // A chain goes on: this fight is won; rest, then the next.
+                self.end_segment(Outcome::Win);
+                let rest = self.fight.chain[self.chain_step].rest_ms;
+                self.resting_until = Some(self.now.plus(rest));
+                self.log_event(
+                    LogEvent::new(self.now, LogKind::FightEnded)
+                        .detail(&format!("fight {} won; resting", self.segments.len())),
+                );
+                return;
+            }
             Some(Outcome::Win)
-        } else if self.now.ms() >= self.fight.timeout_ms {
+        } else if self.now.ms().saturating_sub(self.fight_started_at.ms()) >= self.fight.timeout_ms
+        {
             self.touch(30);
             Some(Outcome::Timeout)
         } else {
             None
         };
         if let Some(outcome) = outcome {
+            self.end_segment(outcome);
             self.outcome = Some((outcome, self.now));
             self.log_event(
                 LogEvent::new(self.now, LogKind::FightEnded).detail(&format!("{outcome:?}")),
             );
         }
+    }
+
+    /// Records the fight just ended as a segment of the run.
+    fn end_segment(&mut self, outcome: Outcome) {
+        let deaths: u32 = self.stats.slots.iter().map(|s| s.deaths).sum();
+        let clear_time_ms = (outcome == Outcome::Win).then(|| {
+            let engaged = self
+                .segment_engaged
+                .or(self.engaged_at)
+                .unwrap_or(self.fight_started_at);
+            self.now.ms().saturating_sub(engaged.ms())
+        });
+        self.segments.push(crate::result::Segment {
+            outcome,
+            clear_time_ms,
+            deaths: deaths - self.deaths_before,
+        });
+        self.deaths_before = deaths;
+    }
+
+    /// Spawns a chain's next fight ahead of the party's leader, after the
+    /// rest (T4.8.4). Health, energy, recharges, effects, minions, spirits
+    /// and death penalty all carry over, since nothing resets them.
+    fn spawn_next_fight(&mut self) {
+        self.resting_until = None;
+        let Some(step) = self.fight.chain.get(self.chain_step).cloned() else {
+            return;
+        };
+        self.chain_step += 1;
+        let anchor = self
+            .party_leader()
+            .map(|l| self.units[l.index()].pos)
+            .unwrap_or(crate::geom::Vec2::ZERO);
+        for (mut foe, controller) in step.foes.into_iter().zip(step.controllers) {
+            foe.id = UnitId(self.units.len() as u16);
+            foe.pos = anchor + foe.pos;
+            foe.home = foe.pos;
+            foe.foe_index = Some(self.stats.foe_ttk_ms.len());
+            self.stats.foe_ttk_ms.push(None);
+            self.units.push(foe);
+            self.controllers.push(controller);
+        }
+        self.fight_started_at = self.now;
+        self.segment_engaged = None;
+        self.log_event(
+            LogEvent::new(self.now, LogKind::FightEnded)
+                .detail(&format!("fight {} begins", self.segments.len() + 1)),
+        );
     }
 
     /// Called whenever a unit's action finishes and it is free again.
@@ -314,8 +432,34 @@ impl Sim {
                 }
             }
 
+            // Triggers of the auras the subject stands in (Displacement's
+            // block, Infuriating Heat's adrenaline). Auras have no charges.
+            let mut aura_matches: Vec<(crate::exec::ActiveDef, usize)> = Vec::new();
+            for active in self.defs_flagged(subject, crate::setup::DEF_TRIGGERS) {
+                if active.effect.is_some() {
+                    continue;
+                }
+                let Some(def) = self.def_of(&active) else {
+                    continue;
+                };
+                for (index, trigger) in def.triggers.iter().enumerate() {
+                    if let Control::Triggered { event, filter, .. } = trigger
+                        && *event == fired.event
+                        && filter.as_ref().is_none_or(|filter| {
+                            let judged = fired.other.unwrap_or(subject);
+                            self.filter_passes(filter, judged, active.caster, None)
+                        })
+                    {
+                        aura_matches.push((active, index));
+                    }
+                }
+            }
+
             for (id, index) in matched {
                 self.run_trigger(subject, id, index, &fired);
+            }
+            for (active, index) in aura_matches {
+                self.run_aura_trigger(subject, &active, index, &fired);
             }
             let fight = Arc::clone(&self.fight);
             for (id, handler) in handled {
@@ -375,6 +519,34 @@ impl Sim {
         }
     }
 
+    /// Runs one trigger of an aura on a unit standing in it.
+    fn run_aura_trigger(
+        &mut self,
+        bearer: UnitId,
+        active: &crate::exec::ActiveDef,
+        index: usize,
+        fired: &Fired,
+    ) {
+        if !self.units[active.caster.index()].alive() {
+            return;
+        }
+        let fight = Arc::clone(&self.fight);
+        let Some(Control::Triggered { actions, .. }) = fight.skills[usize::from(active.skill)]
+            .skill
+            .encoding
+            .as_ref()
+            .and_then(|e| e.effect_defs.get(usize::from(active.def)))
+            .and_then(|def| def.triggers.get(index))
+        else {
+            return;
+        };
+        let mut ctx = ExecCtx::for_def(active, bearer);
+        ctx.other = fired.other;
+        ctx.event_skill = fired.skill;
+        ctx.event_amount = fired.amount;
+        self.execute(actions, &mut ctx);
+    }
+
     /// Runs an effect's `on_end` actions.
     pub fn run_on_end(&mut self, bearer: UnitId, effect: &ActiveEffect) {
         let EffectSource::Skill { skill, def } = effect.source else {
@@ -406,6 +578,17 @@ impl Sim {
     }
 
     /// Whether a log is being kept.
+    /// The party slot credited with what a unit does (§14.2): its own slot,
+    /// or its master's for a minion or spirit.
+    pub fn credit_slot(&self, unit: UnitId) -> Option<usize> {
+        let u = &self.units[unit.index()];
+        if u.team != crate::unit::Team::Party {
+            return None;
+        }
+        u.slot_index
+            .or_else(|| u.master.and_then(|m| self.units[m.index()].slot_index))
+    }
+
     pub fn logging(&self) -> bool {
         self.log.is_some()
     }

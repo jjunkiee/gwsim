@@ -10,7 +10,7 @@ use std::fmt;
 use std::sync::Arc;
 
 use gwsim_data::assumptions::AssumptionValue;
-use gwsim_data::build::{Build, SlotKind};
+use gwsim_data::build::SlotKind;
 use gwsim_data::core::{CoreData, DamageType, Profession, SkillType, TitleTrack};
 use gwsim_data::dataset::DataSet;
 use gwsim_data::derived::{self, PerDamageType};
@@ -41,12 +41,27 @@ pub struct FightSkill {
     pub skill: Skill,
     pub slug: Slug,
     pub handler: Option<usize>,
+    /// What the skill is for, as the AI reads it.
+    pub profile: crate::ai::profile::SkillProfile,
     pub aftercast_ms: u32,
     pub is_spell: bool,
     pub is_attack: bool,
     /// Used while only `Draft`, so results must say so (§8.7).
     pub draft: bool,
+    /// Per effect definition, the stats its `while_active` can modify: every
+    /// one, and those it gives its caster (T4.11.4).
+    pub def_stats: Vec<(u64, u64)>,
+    /// Per effect definition, what else it holds ([`DEF_REDUCES`] and so on),
+    /// so lookups skip definitions that cannot matter.
+    pub def_flags: Vec<u8>,
 }
+
+/// A definition reduces incoming damage.
+pub const DEF_REDUCES: u8 = 1;
+/// A definition grants immunity to critical hits.
+pub const DEF_CRIT_IMMUNE: u8 = 2;
+/// A definition has triggers.
+pub const DEF_TRIGGERS: u8 = 4;
 
 impl FightSkill {
     /// Prepares a skill for a fight.
@@ -65,7 +80,47 @@ impl FightSkill {
             .as_ref()
             .and_then(|e| e.handler.as_ref())
             .and_then(|h| handlers.index_of(&h.name));
+        let def_stats = skill
+            .encoding
+            .as_ref()
+            .map(|e| {
+                e.effect_defs
+                    .iter()
+                    .map(|d| crate::stats::actions_mask(&d.while_active))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let def_flags = skill
+            .encoding
+            .as_ref()
+            .map(|e| {
+                e.effect_defs
+                    .iter()
+                    .map(|d| {
+                        let mut flags = 0;
+                        for action in &d.while_active {
+                            match action {
+                                gwsim_data::dsl::Action::ReduceIncomingDamage { .. } => {
+                                    flags |= DEF_REDUCES;
+                                }
+                                gwsim_data::dsl::Action::SetCriticalImmune { .. } => {
+                                    flags |= DEF_CRIT_IMMUNE;
+                                }
+                                _ => {}
+                            }
+                        }
+                        if !d.triggers.is_empty() {
+                            flags |= DEF_TRIGGERS;
+                        }
+                        flags
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
         FightSkill {
+            def_stats,
+            def_flags,
+            profile: crate::ai::profile::SkillProfile::of(&skill),
             draft: skill.provenance.review == ReviewStatus::Draft,
             is_spell: kind.is_a(SkillType::Spell),
             is_attack,
@@ -88,8 +143,10 @@ pub struct Tunables {
     pub projectile_speeds: BTreeMap<String, f32>,
     /// A-009.
     pub aggro_range: f32,
-    /// A-010. Pending until T4.4.1; the M0 default is the human delay.
+    /// A-010, in normal mode.
     pub foe_reaction_ms: u32,
+    /// A-010, in hard mode.
+    pub foe_reaction_hm_ms: u32,
     /// A-011, for decisions other than interrupts.
     pub hero_reaction_ms: u32,
     /// A-012.
@@ -104,6 +161,8 @@ pub struct Tunables {
     pub attack_hit_fraction: f64,
     /// A-036.
     pub experience_range: f32,
+    /// A-044: the share of maximum health an AI keeps after a sacrifice.
+    pub sacrifice_floor: f64,
 }
 
 impl Tunables {
@@ -142,6 +201,14 @@ impl Tunables {
                 _ => None,
             }
         };
+        let table_entry = |id: &str, key: &str| -> Option<f64> {
+            match get(id)? {
+                AssumptionValue::Table(rows) => {
+                    rows.iter().find(|(k, _)| k == key).map(|(_, v)| *v)
+                }
+                _ => None,
+            }
+        };
         let projectile_speeds = match get("A-003") {
             Some(AssumptionValue::Table(rows)) => {
                 rows.iter().map(|(k, v)| (k.clone(), *v as f32)).collect()
@@ -157,7 +224,8 @@ impl Tunables {
             collision_radius: number("A-002", &mut problems) as f32,
             projectile_speeds,
             aggro_range: number("A-009", &mut problems) as f32,
-            foe_reaction_ms: optional("A-010").map(|v| v as u32).unwrap_or(human),
+            foe_reaction_ms: table_entry("A-010", "normal").unwrap_or(f64::from(human)) as u32,
+            foe_reaction_hm_ms: table_entry("A-010", "hard").unwrap_or(f64::from(human)) as u32,
             hero_reaction_ms: optional("A-011").map(|v| v as u32).unwrap_or(human),
             human_reaction_ms: human,
             rest_ms: number("A-028", &mut problems) as u32,
@@ -165,6 +233,7 @@ impl Tunables {
             hard_mode_recharge_reduction: optional("A-032"),
             attack_hit_fraction: number("A-035", &mut problems) / 100.0,
             experience_range: number("A-036", &mut problems) as f32,
+            sacrifice_floor: number("A-044", &mut problems) / 100.0,
         };
         if problems.is_empty() {
             Ok(tunables)
@@ -172,6 +241,18 @@ impl Tunables {
             Err(SetupError(problems))
         }
     }
+}
+
+/// One fight of a chain after the first: the rest before it, and its foes,
+/// ready to spawn ahead of the party.
+#[derive(Debug, Clone)]
+pub struct ChainStep {
+    /// The rest before this fight (A-028 unless the situation says).
+    pub rest_ms: u32,
+    /// Its foes, positioned relative to the party's start; ids are assigned
+    /// when they spawn.
+    pub foes: Vec<Unit>,
+    pub controllers: Vec<Controller>,
 }
 
 /// Everything shared, read-only, by every run of one setup.
@@ -184,8 +265,31 @@ pub struct FightData {
     pub plans: Vec<ResolvedPlan>,
     pub hard_mode: bool,
     pub timeout_ms: u32,
-    /// Spirit aura ranges by name, from `spirits.ron` (A-015).
-    pub spirit_ranges: BTreeMap<String, f32>,
+    /// The spirits skills can create, by slug (`spirits.ron`, A-015).
+    pub spirits: BTreeMap<String, gwsim_data::foe::Spirit>,
+    /// The minions skills can create, by slug (`minions.ron`).
+    pub minions: BTreeMap<String, gwsim_data::foe::Minion>,
+    /// Weapon profiles for minions, by slug, resolved once.
+    pub minion_weapons: BTreeMap<String, WeaponProfile>,
+    /// Death penalty the party starts with, and its morale boost (§10.11).
+    pub starting_dp: u8,
+    pub starting_morale: u8,
+    /// Whether Dhuum's Covenant is on (a party death breaks it).
+    pub dhuums_covenant: bool,
+    /// The stats any effect in the fight gives its caster rather than its
+    /// bearer; queries for others skip the caster scan.
+    pub caster_share_mask: u64,
+    /// Whether any skill in the fight maintains an effect with upkeep.
+    pub any_upkeep: bool,
+    /// The tactics plan in force (§11.6), after the user's overrides.
+    pub tactics: gwsim_data::tactics::TacticsPlan,
+    /// The called targets, resolved, in priority order: the first alive is
+    /// the party's called target.
+    pub called_order: Vec<UnitId>,
+    /// The pre-fight casts, resolved to a unit and a bar slot, in order.
+    pub prefight: Vec<(UnitId, u8)>,
+    /// The fights after the first, for a chain (T4.8.4).
+    pub chain: Vec<ChainStep>,
     /// Title ranks for PvE-only skills. With no account profile every track
     /// is at its maximum (Q14).
     pub title_ranks: BTreeMap<TitleTrack, u8>,
@@ -305,6 +409,38 @@ impl FightSetup {
             by_slug: BTreeMap::new(),
         };
 
+        // Melandru's Accord: no mercenary heroes (Optional game modes).
+        if situation.mode.melandrus_accord {
+            for slot in &party.slots {
+                let mercenary = slot.hero.as_ref().is_some_and(|slug| {
+                    data.heroes.as_ref().is_some_and(|h| {
+                        h.value
+                            .heroes
+                            .iter()
+                            .any(|x| x.slug == *slug && x.mercenary)
+                    })
+                });
+                if mercenary {
+                    return Err(SetupError(vec![format!(
+                        "{} is a mercenary hero, which Melandru's Accord forbids",
+                        slot.name
+                    )]));
+                }
+            }
+        }
+        // Consumables must exist; M1 uses none, so their effects are not yet
+        // applied (logged as fallout).
+        for consumable in &situation.consumables {
+            let known = data
+                .consumables
+                .as_ref()
+                .is_some_and(|c| c.value.consumables.iter().any(|x| x.slug == *consumable));
+            if !known {
+                return Err(SetupError(vec![format!(
+                    "no consumable {consumable} in the data"
+                )]));
+            }
+        }
         let encounter = match &situation.encounters {
             SituationEncounters::Single(slug) => data.encounters.get(slug).map(|e| &e.value),
             SituationEncounters::Chain(steps) => steps
@@ -330,10 +466,9 @@ impl FightSetup {
                 Ok((unit, bar_refs)) => {
                     let controller = match slot.kind {
                         SlotKind::Human => {
-                            let plan = slot
-                                .plan
-                                .clone()
-                                .unwrap_or_else(|| default_plan(&slot.build));
+                            let plan = slot.plan.clone().unwrap_or_else(|| {
+                                crate::ai::plan_gen::generate(&slot.build, data)
+                            });
                             match resolve_plan(&plan, &unit, &bar_refs, &mut table) {
                                 Ok(resolved) => {
                                     plans.push(resolved);
@@ -362,6 +497,7 @@ impl FightSetup {
             data,
             core,
             hard_mode,
+            situation.mode.reforged_mode,
             &tunables,
             &mut table,
             &mut units,
@@ -370,21 +506,150 @@ impl FightSetup {
             &mut problems,
         );
 
+        // A chain's later fights, spawned now as templates (T4.8.4).
+        let mut chain = Vec::new();
+        if let SituationEncounters::Chain(steps) = &situation.encounters {
+            let mut groups = encounter.groups.len() as u16;
+            for (index, step) in steps.iter().enumerate().skip(1) {
+                let Some(next) = data.encounters.get(&step.encounter).map(|e| &e.value) else {
+                    problems.push(format!("the chain names no encounter {}", step.encounter));
+                    continue;
+                };
+                let (mut foes, mut step_controllers) = (Vec::new(), Vec::new());
+                spawn_encounter(
+                    next,
+                    data,
+                    core,
+                    hard_mode,
+                    situation.mode.reforged_mode,
+                    &tunables,
+                    &mut table,
+                    &mut foes,
+                    &mut step_controllers,
+                    &mut foe_names,
+                    &mut problems,
+                );
+                for foe in &mut foes {
+                    foe.group = foe.group.map(|g| g + groups);
+                }
+                groups += next.groups.len() as u16;
+                let rest_ms = steps[index - 1]
+                    .rest_after
+                    .map(|s| s.ms())
+                    .unwrap_or(tunables.rest_ms);
+                chain.push(ChainStep {
+                    rest_ms,
+                    foes,
+                    controllers: step_controllers,
+                });
+            }
+        }
+
         if !problems.is_empty() {
             return Err(SetupError(problems));
         }
 
-        let spirit_ranges = data
+        // The tactics plan: generated from the builds, then the party's and
+        // the situation's overrides (§11.6, T4.7.5).
+        let foes: Vec<&gwsim_data::Foe> = encounter
+            .groups
+            .iter()
+            .flat_map(|g| g.foes.iter())
+            .filter_map(|f| data.foe(&f.foe))
+            .collect();
+        let mut tactics = crate::ai::tactics::generate(party, data, &foes);
+        if let Some(overrides) = &party.tactics {
+            tactics = tactics.merged(overrides);
+        }
+        if let Some(overrides) = &situation.tactics_overrides {
+            tactics = tactics.merged(overrides);
+        }
+        let start = Vec2::new(encounter.party_start.x, encounter.party_start.y);
+        let forward = encounter
+            .groups
+            .first()
+            .map(|g| Vec2::new(g.position.x, g.position.y).normalised())
+            .filter(|v| v.is_finite() && v.length() > 0.0)
+            .unwrap_or(Vec2::new(0.0, 1.0));
+        let right = Vec2::new(forward.y, -forward.x);
+        let (called_order, prefight) = apply_tactics(
+            &tactics,
+            party,
+            data,
+            &mut table,
+            &mut units,
+            start,
+            forward,
+            right,
+            &mut problems,
+        );
+        if !problems.is_empty() {
+            return Err(SetupError(problems));
+        }
+
+        let spirits: BTreeMap<String, gwsim_data::foe::Spirit> = data
             .spirits
             .as_ref()
             .map(|file| {
                 file.value
                     .spirits
                     .iter()
-                    .filter_map(|s| s.range.map(|r| (s.name.clone(), r)))
+                    .map(|s| (s.slug.to_string(), s.clone()))
                     .collect()
             })
             .unwrap_or_default();
+        let minions: BTreeMap<String, gwsim_data::foe::Minion> = data
+            .minions
+            .as_ref()
+            .map(|file| {
+                file.value
+                    .minions
+                    .iter()
+                    .map(|m| (m.slug.to_string(), m.clone()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let minion_weapons = minions
+            .iter()
+            .filter_map(|(slug, minion)| {
+                let weapon = minion.weapon.as_ref()?;
+                let mut profile = weapon_profile(
+                    data,
+                    &weapon.weapon_type,
+                    Profession::Necromancer,
+                    &tunables,
+                )?;
+                if let Some((low, high)) = weapon.damage {
+                    profile.damage = (i32::from(low), i32::from(high));
+                }
+                if let Some(interval) = weapon.attack_interval {
+                    profile.interval_ms = interval.ms();
+                }
+                if let Some(range) = minion.range {
+                    profile.range = range;
+                }
+                // A-043: minions strike at three times their level.
+                profile.mastery = None;
+                Some((slug.clone(), profile))
+            })
+            .collect();
+        for unit in &mut units {
+            if unit.team == Team::Party && !unit.kind.is_summoned() {
+                unit.death_penalty = situation.starting_dp;
+                unit.morale = situation.starting_morale;
+            }
+        }
+        let caster_share_mask = table
+            .skills
+            .iter()
+            .flat_map(|s| s.def_stats.iter().map(|(_, caster)| *caster))
+            .fold(0, |mask, bits| mask | bits);
+        let any_upkeep = table.skills.iter().any(|s| {
+            s.skill
+                .encoding
+                .as_ref()
+                .is_some_and(|e| e.effect_defs.iter().any(|d| d.upkeep.is_some()))
+        });
         let fight = FightData {
             core: core.clone(),
             skills: table.skills,
@@ -393,7 +658,18 @@ impl FightSetup {
             plans,
             hard_mode,
             timeout_ms,
-            spirit_ranges,
+            spirits,
+            minions,
+            minion_weapons,
+            starting_dp: situation.starting_dp,
+            starting_morale: situation.starting_morale,
+            dhuums_covenant: situation.mode.dhuums_covenant,
+            caster_share_mask,
+            any_upkeep,
+            tactics,
+            called_order,
+            prefight,
+            chain,
             title_ranks: BTreeMap::new(),
         };
         let slot_names = party.slots.iter().map(|s| s.name.clone()).collect();
@@ -450,25 +726,6 @@ impl FightSetup {
     }
 }
 
-/// A plan for a human slot with none written: every skill in bar order at
-/// the called or current target. WP4.6 replaces this with a generator.
-fn default_plan(build: &Build) -> PriorityPlan {
-    PriorityPlan {
-        maintain: Vec::new(),
-        rules: build
-            .skills
-            .iter()
-            .flatten()
-            .map(|id| gwsim_data::plan::PlanRule {
-                skill: SkillRef::Id(*id),
-                target: gwsim_data::plan::PlanTarget::CalledOrCurrent,
-                only_if: Vec::new(),
-            })
-            .collect(),
-        default: gwsim_data::plan::DefaultAction::Attack,
-    }
-}
-
 fn resolve_plan(
     plan: &PriorityPlan,
     unit: &Unit,
@@ -505,8 +762,120 @@ fn resolve_plan(
     Ok(resolved)
 }
 
+/// Puts a tactics plan onto the units: formation points (as start
+/// positions and follow offsets from the leader), hero modes, disabled
+/// skills and locked targets. Returns the resolved called-target order and
+/// pre-fight sequence.
+#[allow(clippy::too_many_arguments)]
+fn apply_tactics(
+    tactics: &gwsim_data::tactics::TacticsPlan,
+    party: &PartyFile,
+    data: &DataSet,
+    table: &mut SkillTable<'_>,
+    units: &mut [Unit],
+    start: Vec2,
+    forward: Vec2,
+    right: Vec2,
+    problems: &mut Vec<String>,
+) -> (Vec<UnitId>, Vec<(UnitId, u8)>) {
+    use gwsim_data::tactics::{HeroModeName, TargetRule};
+    let slot_unit = |units: &[Unit], name: &str| -> Option<usize> {
+        let index = party.slots.iter().position(|s| s.name == name)?;
+        units.iter().position(|u| u.slot_index == Some(index))
+    };
+    for point in &tactics.formation {
+        if let Some(i) = slot_unit(units, &point.slot) {
+            let offset = right * point.x + forward * point.y;
+            units[i].home = offset;
+            units[i].pos = start + offset;
+        }
+    }
+    for mode in &tactics.hero_modes {
+        if let Some(i) = slot_unit(units, &mode.slot) {
+            units[i].hero_mode = match mode.mode {
+                HeroModeName::Fight => crate::unit::HeroMode::Fight,
+                HeroModeName::Guard => crate::unit::HeroMode::Guard,
+                HeroModeName::AvoidCombat => crate::unit::HeroMode::AvoidCombat,
+            };
+        }
+    }
+    let slot_of = |table: &mut SkillTable<'_>, unit: &Unit, skill: &SkillRef| -> Option<u8> {
+        let index = table.add_ref(skill).ok()?;
+        unit.bar
+            .iter()
+            .position(|s| s.is_some_and(|s| s.skill == index))
+            .map(|p| p as u8)
+    };
+    for disabled in &tactics.disabled_hero_skills {
+        if let Some(i) = slot_unit(units, &disabled.slot) {
+            for skill in &disabled.skills {
+                match slot_of(table, &units[i], skill) {
+                    Some(slot) => units[i].disabled_slots |= 1 << slot,
+                    None => problems.push(format!(
+                        "tactics: {} does not carry {skill:?} to disable",
+                        disabled.slot
+                    )),
+                }
+            }
+        }
+    }
+    let resolve = |units: &[Unit], rule: &TargetRule| -> Vec<UnitId> {
+        units
+            .iter()
+            .filter(|u| u.team == Team::Foes && !u.kind.is_summoned())
+            .filter(|u| match rule {
+                TargetRule::Foe(slug) => data.foe(slug).is_some_and(|f| f.name == u.name),
+                TargetRule::FoeWithRole(role) => table_role(data, &u.name, *role),
+                TargetRule::Nearest | TargetRule::Caster | TargetRule::Slot(_) => false,
+            })
+            .map(|u| u.id)
+            .collect()
+    };
+    let mut called_order = Vec::new();
+    for rule in &tactics.called_targets {
+        for id in resolve(units, rule) {
+            if !called_order.contains(&id) {
+                called_order.push(id);
+            }
+        }
+    }
+    for locked in &tactics.locked_targets {
+        if let Some(i) = slot_unit(units, &locked.slot) {
+            units[i].locked_target = resolve(units, &locked.target).first().copied();
+        }
+    }
+    let mut prefight = Vec::new();
+    for cast in &tactics.pre_fight {
+        let Some(i) = slot_unit(units, &cast.slot) else {
+            problems.push(format!("tactics: no slot named {:?}", cast.slot));
+            continue;
+        };
+        match slot_of(table, &units[i], &cast.skill) {
+            Some(slot) => prefight.push((units[i].id, slot)),
+            None => problems.push(format!(
+                "tactics: {} does not carry {:?} to pre-cast",
+                cast.slot, cast.skill
+            )),
+        }
+    }
+    (called_order, prefight)
+}
+
+/// Whether a foe (by name) carries a skill with a role.
+fn table_role(data: &DataSet, foe_name: &str, role: gwsim_data::skill::RoleTag) -> bool {
+    data.foes
+        .values()
+        .filter(|f| f.value.name == foe_name)
+        .flat_map(|f| f.value.skills.iter())
+        .filter_map(|fs| match &fs.skill {
+            SkillRef::Slug(slug) => data.skill(slug),
+            SkillRef::Id(id) => data.skill_by_id(*id),
+        })
+        .any(|s| s.encoding.as_ref().is_some_and(|e| e.roles.contains(&role)))
+}
+
 /// An empty unit with the fields every kind shares.
-fn blank_unit(
+pub(crate) fn blank_unit(
     id: UnitId,
     name: String,
     team: Team,
@@ -561,6 +930,18 @@ fn blank_unit(
         dead_at: None,
         soul_reaping: Vec::new(),
         corpse_available: false,
+        born_at: SimTime::ZERO,
+        aura: None,
+        creature_type: None,
+        death_penalty: 0,
+        morale: 0,
+        group: None,
+        hero_mode: crate::unit::HeroMode::Fight,
+        focus: None,
+        home: Vec2::ZERO,
+        kiter: false,
+        disabled_slots: 0,
+        locked_target: None,
     }
 }
 
@@ -605,6 +986,7 @@ fn weapon_profile(
             .or_else(|| tunables.projectile_speeds.get(slug.as_str()).copied()),
         mastery: weapon.mastery,
         caster,
+        armor_ignoring: false,
     })
 }
 
@@ -632,6 +1014,9 @@ fn party_unit(
     unit.slot_index = Some(slot_index);
     unit.professions = (build.primary, build.secondary);
     unit.pos = start + Vec2::new(0.0, -(slot_index as f32) * 60.0);
+    // A hero's formation point, relative to the leader (the tactics plan
+    // replaces this, WP4.7).
+    unit.home = unit.pos - start;
 
     for (attribute, rank) in derived::effective_ranks(build, data) {
         unit.base_ranks[attribute.index()] = rank;
@@ -659,6 +1044,8 @@ fn party_unit(
                     name: insignia.name.clone(),
                     actions: insignia.effects.clone(),
                     piece: insignia.per_piece.then_some(piece.slot),
+                    scope: None,
+                    stats: crate::stats::actions_mask(&insignia.effects).0,
                 });
             }
         }
@@ -676,6 +1063,8 @@ fn party_unit(
                     name: upgrade.name.clone(),
                     actions: upgrade.effects.clone(),
                     piece: None,
+                    scope: set.attribute,
+                    stats: crate::stats::actions_mask(&upgrade.effects).0,
                 });
             }
         }
@@ -697,6 +1086,7 @@ fn spawn_encounter(
     data: &DataSet,
     core: &CoreData,
     hard_mode: bool,
+    reforged: bool,
     tunables: &Tunables,
     table: &mut SkillTable<'_>,
     units: &mut Vec<Unit>,
@@ -706,7 +1096,7 @@ fn spawn_encounter(
 ) {
     let start = Vec2::new(encounter.party_start.x, encounter.party_start.y);
     let radius = tunables.collision_radius;
-    for group in &encounter.groups {
+    for (group_index, group) in encounter.groups.iter().enumerate() {
         let centre = start + Vec2::new(group.position.x, group.position.y);
         let members: Vec<(&Slug, Option<&String>)> = group
             .foes
@@ -728,7 +1118,12 @@ fn spawn_encounter(
                 foe_unit(
                     id, foe, variant, level, hard_mode, data, core, table, tunables,
                 )
-                .map(|unit| (unit, Controller::Foe))
+                .map(|mut unit| {
+                    if reforged && foe.pre_searing {
+                        reforged_weaken(&mut unit);
+                    }
+                    (unit, Controller::Foe)
+                })
             } else {
                 Err(format!(
                     "encounter {:?} names {slug}, which is neither a foe nor a dummy",
@@ -738,6 +1133,8 @@ fn spawn_encounter(
             match spawned {
                 Ok((mut unit, controller)) => {
                     unit.pos = position;
+                    unit.home = position;
+                    unit.group = Some(group_index as u16);
                     unit.foe_index = Some(names.len());
                     names.push(unit.name.clone());
                     units.push(unit);
@@ -745,6 +1142,19 @@ fn spawn_encounter(
                 }
                 Err(problem) => problems.push(problem),
             }
+        }
+    }
+}
+
+/// Reforged Mode's pre-Searing tuning: foes have 20% less health and about
+/// 20% less armor (Reforged Mode).
+fn reforged_weaken(unit: &mut Unit) {
+    unit.base_max_health = (f64::from(unit.base_max_health) * 0.8).round() as i32;
+    unit.health = unit.base_max_health * HEALTH_SCALE;
+    for piece in &mut unit.armor {
+        piece.base = (f64::from(piece.base) * 0.8).round() as i16;
+        for armor in &mut piece.by_type {
+            *armor = (f64::from(*armor) * 0.8).round() as i16;
         }
     }
 }
@@ -878,14 +1288,17 @@ fn foe_unit(
     for (attribute, rank) in ranks {
         unit.base_ranks[attribute.index()] = rank;
     }
+    let chosen = variant.and_then(|name| foe.variants.iter().find(|v| v.name == *name));
+    let armor_table = chosen.and_then(|v| v.armor.as_ref()).unwrap_or(&foe.armor);
     let mut by_type = [0i16; 11];
     for damage in DamageType::ALL {
-        by_type[damage.index()] = derived::foe_armor(foe, core, damage, hard_mode);
+        by_type[damage.index()] =
+            derived::foe_armor_with(foe, armor_table, core, damage, hard_mode);
     }
-    let base = by_type[DamageType::Fire.index()];
+    // Chaos is the type no profession bonus touches, so it is the base.
+    let base = by_type[DamageType::Chaos.index()];
     unit.armor = [PerDamageType { base, by_type }; 5];
 
-    let chosen = variant.and_then(|name| foe.variants.iter().find(|v| v.name == *name));
     let weapon = chosen
         .and_then(|v| v.weapon.as_ref())
         .or(foe.weapon.as_ref());

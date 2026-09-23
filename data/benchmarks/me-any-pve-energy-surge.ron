@@ -1,0 +1,26 @@
+// Me/any PvE Energy Surge: the player's bar (D16, T4.9.1, DESIGN §20.1). The
+// published code leaves the optional slots empty; `bar_code` fills them as
+// §20.1 does. Runes follow A-033.
+(
+    name: "Me any PvE energy surge",
+    source_url: "https://gwpvx.fandom.com/wiki/Build:Me/any_PvE_Energy_Surge",
+    snapshot_url: Some("https://web.archive.org/web/20250803220419/https://gwpvx.fandom.com/wiki/Build:Me/any_PvE_Energy_Surge"),
+    snapshot_date: Some("2025-08-03"),
+    slots: [
+        (
+            kind: Human,
+            skill_code: "OQBTAUBPQaJ4EY6x0BAAAAAAuE",
+            bar_code: Some("OQBTAUBPQaJ4EY6x0JHAnKDAuE"),
+            notes: "Arcane Echo, Energy Surge, Mistrust, Unnatural Signet, Cry of Frustration, Spiritual Pain, Power Drain, Air of Superiority. Prodigy's insignias; superior Domination Magic (head), minor Fast Casting, minor Inspiration Magic, superior Vigor, Vitae (A-033).",
+        ),
+    ],
+    provenance: (
+        sources: [
+            "https://web.archive.org/web/20250803220419/https://gwpvx.fandom.com/wiki/Build:Me/any_PvE_Energy_Surge",
+            "docs/DESIGN.md#201-party-decided-q30-q32-q33-q40-q41-default-d23",
+        ],
+        crawled: "2026-09-23",
+        review: Draft,
+        assumptions: ["A-033"],
+    ),
+)
