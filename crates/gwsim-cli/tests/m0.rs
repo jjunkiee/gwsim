@@ -257,7 +257,16 @@ fn spiritual_pain_deals_79_and_132_to_summoned_creatures() {
     sim.units[ADJACENT.index()].kind = UnitKind::Minion;
     use_and_finish(&mut sim, SPIRITUAL_PAIN, Target::Unit(FIRST));
     assert_eq!(damage_taken(&sim, FIRST), 79);
-    assert_eq!(damage_taken(&sim, ADJACENT), 132);
+    // A minion also decays while the spell is cast, so read the hit itself.
+    let hit: i32 = sim
+        .log
+        .as_ref()
+        .unwrap()
+        .iter()
+        .filter(|e| e.kind == gwsim_engine::log::LogKind::Damage && e.target == Some(ADJACENT.0))
+        .filter_map(|e| e.amount)
+        .sum();
+    assert_eq!(hit, 132);
     assert_eq!(damage_taken(&sim, NEARBY), 0, "not summoned");
 }
 

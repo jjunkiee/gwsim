@@ -534,6 +534,7 @@ pub fn build_foe(
                 .unwrap_or_else(|| "variant".to_owned()),
             weapon: None,
             skills: Some(to_skills(variant)),
+            armor: None,
         })
         .collect();
     if !variants.is_empty() {

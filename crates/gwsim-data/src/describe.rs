@@ -281,7 +281,14 @@ pub fn describe_action(
             render_selector(from)
         ),
 
-        Action::Interrupt { to } => format!("Interrupt {}.", render_selector(to)),
+        Action::Interrupt { to, disable } => match disable {
+            None => format!("Interrupt {}.", render_selector(to)),
+            Some(duration) => format!(
+                "Interrupt {}; an interrupted skill is disabled for an additional {}.",
+                render_selector(to),
+                seconds(duration, context)
+            ),
+        },
         Action::FailSkill { to } => {
             let who = render_phrase(to);
             format!("The skill {} {} using fails.", who.text, who.is())
@@ -328,12 +335,22 @@ pub fn describe_action(
             spirit,
             level,
             duration,
-        } => format!(
-            "Create a level {} {} spirit, which dies after {}.",
-            value(level),
-            humanise(spirit.as_str()),
-            seconds(duration, context)
-        ),
+            attack_damage,
+        } => match attack_damage {
+            None => format!(
+                "Create a level {} {} spirit, which dies after {}.",
+                value(level),
+                humanise(spirit.as_str()),
+                seconds(duration, context)
+            ),
+            Some(damage) => format!(
+                "Create a level {} {} spirit, which attacks for {} damage and dies after {}.",
+                value(level),
+                humanise(spirit.as_str()),
+                value(damage),
+                seconds(duration, context)
+            ),
+        },
         Action::CreateArea { area, duration } => format!(
             "Create a {} for {}.",
             humanise(area.as_str()),
@@ -387,20 +404,36 @@ pub fn describe_action(
             percent,
             cap_percent_of_max_health,
             only_from,
+            limit,
+            heals,
+            cost_to_source,
         } => {
             let source = only_from
                 .map(|source| format!(" from {}", source_word(source)))
                 .unwrap_or_default();
             let who = render_phrase(to);
-            if let Some(cap) = cap_percent_of_max_health {
+            let cost = cost_to_source
+                .as_ref()
+                .map(|v| format!(" Each time, the spirit loses {} health.", value(v)))
+                .unwrap_or_default();
+            if *heals {
+                let most = limit
+                    .as_ref()
+                    .map(|v| format!(", up to {}", value(v)))
+                    .unwrap_or_default();
                 format!(
-                    "{} cannot lose more than {}% of their maximum health from one hit.",
+                    "Damage{source} to {} heals instead of harming{most}.",
+                    who.text
+                )
+            } else if let Some(cap) = cap_percent_of_max_health {
+                format!(
+                    "{} cannot lose more than {}% of their maximum health from one hit.{cost}",
                     capitalise(&who.text),
                     value(cap)
                 )
             } else if let Some(flat) = flat {
                 format!(
-                    "Damage{source} to {} is reduced by {}.",
+                    "Damage{source} to {} is reduced by {}.{cost}",
                     who.text,
                     value(flat)
                 )
@@ -433,6 +466,8 @@ pub fn describe_action(
         Action::DropBundle => "Drop what you are holding.".to_owned(),
 
         Action::RunHandler { name } => context.handlers.get(name)?.describe(&Default::default()),
+        Action::EndEffect => "This effect ends.".to_owned(),
+        Action::WaiveSacrifice => "You do not sacrifice health.".to_owned(),
 
         Action::Control(control) => return describe_control(control, effects, context),
     };
@@ -611,6 +646,11 @@ pub fn render_value(value: &Value, context: &DescribeContext<'_>) -> String {
         Value::PercentOf { percent, of } => {
             format!("{percent}% of {}", quantity_word(*of))
         }
+        Value::ShareOf { percent, of } => format!(
+            "{}% of {}",
+            render_value(percent, context),
+            quantity_word(*of)
+        ),
         Value::PerUnit { value, of } => format!(
             "{} per {}",
             render_value(value, context),
@@ -650,6 +690,20 @@ pub fn render_phrase(selector: &Selector) -> Phrase {
         Selector::TargetFoe => Phrase::singular("target foe"),
         Selector::TargetAlly => Phrase::singular("target ally"),
         Selector::TargetOtherAlly => Phrase::singular("target other ally"),
+        Selector::Other => Phrase::singular("that creature"),
+        Selector::Around { of, band, side } => Phrase::plural(format!(
+            "{} {} {}",
+            match side {
+                crate::dsl::Side::Foes => "foes",
+                crate::dsl::Side::Allies => "allies",
+            },
+            match band {
+                RangeBand::Adjacent => "adjacent to".to_owned(),
+                RangeBand::Earshot => "within earshot of".to_owned(),
+                other => format!("within {} of", band_word(*other)),
+            },
+            render_selector(of)
+        )),
 
         // `Adjacent(x)` means x *and* what is next to it. Which side those
         // neighbours are on follows x: "foes adjacent to target ally" is a
@@ -718,10 +772,11 @@ pub fn render_phrase(selector: &Selector) -> Phrase {
 /// "x and adjacent foes", or "foes adjacent to x" when x is on the other side.
 fn spread(inner: &Selector, word: &str) -> Phrase {
     let subject = render_selector(inner);
-    if inner.is_ally_only() {
-        Phrase::plural(format!("foes {word} to {subject}"))
-    } else {
-        Phrase::plural(format!("{subject} and {word} foes"))
+    match (inner.is_ally_only(), word) {
+        (true, "in the area") => Phrase::plural(format!("foes in the area of {subject}")),
+        (true, _) => Phrase::plural(format!("foes {word} to {subject}")),
+        (false, "in the area") => Phrase::plural(format!("{subject} and foes in the area")),
+        (false, _) => Phrase::plural(format!("{subject} and {word} foes")),
     }
 }
 
@@ -758,6 +813,16 @@ fn filter_phrase(filter: &Filter) -> String {
             format!("controls {at_least} or more spirits")
         }
         Filter::ExploitsCorpse => "exploits a corpse".to_owned(),
+        Filter::Removed(kind) => format!("has just lost {}", with_article(effect_word(*kind))),
+        Filter::SpiritsInEarshot { at_least } => match at_least {
+            1 => "has a spirit within earshot".to_owned(),
+            n => format!("has {n} or more spirits within earshot"),
+        },
+        Filter::CorpsesInEarshot { at_least } => match at_least {
+            1 => "has a corpse within earshot".to_owned(),
+            n => format!("has {n} or more corpses within earshot"),
+        },
+        Filter::NearAllies => "is near one of your allies".to_owned(),
         Filter::Not(inner) => negate(&filter_phrase(inner)),
         Filter::All(filters) => filters
             .iter()
@@ -801,6 +866,7 @@ fn event_phrase(event: Event) -> &'static str {
         Event::OnMiss => "an attack misses",
         Event::OnDamageTaken => "damage is taken",
         Event::OnDamageDealt => "damage is dealt",
+        Event::OnStruck => "it is hit by an attack",
         Event::OnHeal => "healing happens",
         Event::OnEffectApplied => "an effect is applied",
         Event::OnEffectRemoved => "an effect is removed",
@@ -871,6 +937,7 @@ fn effect_word(kind: EffectKind) -> &'static str {
         EffectKind::Blessing => "blessing",
         EffectKind::PartyBonus => "party bonus",
         EffectKind::Bundle => "held item",
+        EffectKind::Skill => "effect",
     }
 }
 
@@ -893,6 +960,11 @@ fn stat_word(stat: Stat) -> String {
         Stat::HealingReceived => "healing received".to_owned(),
         Stat::AttributeRank(attribute) => humanise_camel(&format!("{attribute:?}")),
         Stat::ElementalAttributes => "elemental attributes".to_owned(),
+        Stat::HealthPerSecond => "health per second".to_owned(),
+        Stat::ActivationTimeOf(kind) => format!(
+            "activation time on {}",
+            pluralise(&humanise_camel(&format!("{kind:?}")))
+        ),
     }
 }
 
@@ -913,6 +985,7 @@ fn quantity_word(quantity: Quantity) -> &'static str {
         Quantity::EnchantmentsRemoved => "the enchantments removed",
         Quantity::CreaturesControlled => "the creatures you control",
         Quantity::SpiritsInEarshot => "the spirits within earshot",
+        Quantity::CurrentEnergy => "its energy",
     }
 }
 
@@ -929,6 +1002,7 @@ fn quantity_unit(quantity: Quantity) -> &'static str {
         Quantity::EnchantmentsRemoved => "enchantment removed",
         Quantity::CreaturesControlled => "creature you control",
         Quantity::SpiritsInEarshot => "spirit within earshot",
+        Quantity::CurrentEnergy => "point of its energy",
     }
 }
 
@@ -1007,4 +1081,12 @@ fn humanise_camel(name: &str) -> String {
         out.push(character);
     }
     out
+}
+
+/// "an enchantment", "a hex".
+fn with_article(noun: &str) -> String {
+    match noun.chars().next() {
+        Some('a' | 'e' | 'i' | 'o' | 'u') => format!("an {noun}"),
+        _ => format!("a {noun}"),
+    }
 }

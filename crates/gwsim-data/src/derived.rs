@@ -346,7 +346,22 @@ pub fn foe_energy(core: &CoreData, profession: Profession) -> EnergyStats {
 /// mode get level-20 armor in hard mode; foes above 20 keep their normal-mode
 /// armor. Higher hard-mode levels do *not* raise armor.
 pub fn foe_armor(foe: &Foe, core: &CoreData, damage_type: DamageType, hard_mode: bool) -> i16 {
-    if let Some(armor) = foe.armor.against(damage_type) {
+    foe_armor_with(foe, &foe.armor, core, damage_type, hard_mode)
+}
+
+/// A foe's armor using a given table, such as a variant's own (F2.11).
+///
+/// A table's figures hold in both modes: hard-mode foes gain no armor for
+/// their higher level (Hard mode). Without a table, the level formula and the
+/// profession's bonus apply.
+pub fn foe_armor_with(
+    foe: &Foe,
+    table: &crate::foe::ArmorTable,
+    core: &CoreData,
+    damage_type: DamageType,
+    hard_mode: bool,
+) -> i16 {
+    if let Some(armor) = table.against(damage_type) {
         return armor;
     }
 

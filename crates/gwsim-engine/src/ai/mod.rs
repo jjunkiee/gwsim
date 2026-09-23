@@ -96,8 +96,36 @@ impl Sim {
 
     /// The controllers WP4.4 and WP4.5 replace. Until then they attack the
     /// nearest hostile unit in aggro range, which is enough to drive a fight.
-    pub fn decide_by_rule(&mut self, unit: UnitId, _controller: Controller) -> Option<Order> {
-        let target = self.nearest_hostile(unit, self.fight.tunables.aggro_range)?;
+    /// Spirits never move and attack only what their weapon reaches; minions
+    /// fight their master's target, or follow their master (Minion).
+    pub fn decide_by_rule(&mut self, unit: UnitId, controller: Controller) -> Option<Order> {
+        let target = match controller {
+            Controller::Spirit => {
+                let reach = self.units[unit.index()].weapon.as_ref()?.range;
+                self.nearest_hostile(unit, reach)?
+            }
+            Controller::Minion => {
+                let u = &self.units[unit.index()];
+                let master = u.master?;
+                let masters_target = self.units[master.index()]
+                    .attack_target
+                    .filter(|t| self.units[t.index()].alive());
+                match masters_target
+                    .or_else(|| self.nearest_hostile(unit, self.fight.tunables.aggro_range))
+                {
+                    Some(target) => target,
+                    None => {
+                        let home = self.units[master.index()].pos;
+                        let follow = self.fight.tunables.collision_radius * 4.0;
+                        if u.pos.within(home, follow) || !self.units[master.index()].alive() {
+                            return None;
+                        }
+                        return Some(Order::MoveTo(home));
+                    }
+                }
+            }
+            _ => self.nearest_hostile(unit, self.fight.tunables.aggro_range)?,
+        };
         if self.units[unit.index()].attack_target == Some(target) {
             return None;
         }

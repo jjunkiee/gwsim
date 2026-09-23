@@ -3,8 +3,8 @@
     name: "Dummies HM",
     encounters: Single("training-dummies"),
     mode: (hard_mode: true),
-    party_size: 1,
+    party_size: 8,
     timeout: Some(180.0),
-    notes: "T3.10.2. Party size 1 for M0; the full party arrives in M1.",
+    notes: "T3.10.2. The M0 party is the player alone; M1 runs the full party here as a smoke test.",
     assumption_refs: ["A-030"],
 )

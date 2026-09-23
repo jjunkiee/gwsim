@@ -159,6 +159,8 @@ pub struct WeaponProfile {
     pub mastery: Option<Attribute>,
     /// Whether this is a spellcasting weapon (wand, staff), for AI rules.
     pub caster: bool,
+    /// Its hits ignore armor: spirit attacks (Spirit).
+    pub armor_ignoring: bool,
 }
 
 /// Where a unit is going.
@@ -259,6 +261,32 @@ pub struct Unit {
     pub soul_reaping: Vec<SimTime>,
     /// A fleshy corpse that nothing has exploited yet.
     pub corpse_available: bool,
+
+    /// When it entered the fight: at the start, or when a skill created it.
+    pub born_at: SimTime,
+    /// For a spirit, the aura its ritual gives (T4.3.7).
+    pub aura: Option<Aura>,
+    /// For a created creature, its type (`spirits.ron` or `minions.ron`
+    /// slug): only one allied spirit of each type may stand (ENG-32).
+    pub creature_type: Option<String>,
+    /// Death penalty, as a percentage off maximum health and energy
+    /// (§10.11).
+    pub death_penalty: u8,
+    /// Morale boost, as a percentage onto maximum health and energy.
+    pub morale: u8,
+}
+
+/// A spirit's aura: the `SpiritAura` effect definitions of the skill that
+/// created it, reaching units within the spirit's range.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Aura {
+    /// The creating skill, as a fight skill index.
+    pub skill: u16,
+    /// The rank the creator had, which the aura's values use.
+    pub rank: u8,
+    /// Whether it reaches foes too (nature rituals) or only allies (binding
+    /// rituals).
+    pub affects_all: bool,
 }
 
 impl Unit {

@@ -213,6 +213,11 @@ pub struct DescribeSkillArgs {
     #[arg(long, conflicts_with_all = ["skill", "profession", "status"])]
     pub all: bool,
 
+    /// Print a markdown review table (T4.1.1) instead: name, wiki link, type
+    /// and costs, generated text, roles and status.
+    #[arg(long)]
+    pub review_sheet: bool,
+
     /// Print as JSON.
     #[arg(long)]
     pub json: bool,

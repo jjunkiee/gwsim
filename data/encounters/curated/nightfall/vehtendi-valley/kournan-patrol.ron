@@ -1,0 +1,32 @@
+// The Kournan patrol in Vehtendi Valley (DESIGN §20.2, T4.8.2).
+// One of each Kournan foe, hand-authored: the wiki lists who lives in the area,
+// not how the groups are made up (A-006).
+(
+    name: "Kournan patrol",
+    area: "Vehtendi Valley",
+    campaign: Nightfall,
+    groups: [
+        (
+            foes: [
+                (foe: "kournan-guard"),
+                (foe: "kournan-zealot"),
+                (foe: "kournan-phalanx"),
+                (foe: "kournan-bowman"),
+                (foe: "kournan-scribe"),
+                (foe: "kournan-seer"),
+                (foe: "kournan-oppressor"),
+                (foe: "kournan-priest"),
+            ],
+            formation: Cluster(radius: 150.0),
+            position: (x: 0.0, y: 1800.0),
+        ),
+    ],
+    party_start: (x: 0.0, y: 0.0),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Vehtendi_Valley"],
+        crawled: "2026-09-23",
+        review: Draft,
+        assumptions: ["A-006", "A-007", "A-008"],
+        notes: "The Guard is its first (axe) form, A-007. The group stands 1,800 gwinches ahead and the party walks in until aggro, A-008.",
+    ),
+)

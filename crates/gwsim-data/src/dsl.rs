@@ -34,6 +34,12 @@ pub enum Value {
         percent: f32,
         of: Quantity,
     },
+    /// A percentage of something named, where the percentage itself scales.
+    /// Spirit Siphon, Aura of Restoration.
+    ShareOf {
+        percent: Box<Value>,
+        of: Quantity,
+    },
     /// A value repeated once per unit of something.
     PerUnit {
         value: Box<Value>,
@@ -52,7 +58,7 @@ impl Value {
         match self {
             Value::Scaled(at0, at15) | Value::ScaledBy(_, at0, at15) => at0 != at15,
             Value::TitleScaled(_, r0, rmax) => r0 != rmax,
-            Value::PerUnit { value, .. } => value.scales(),
+            Value::PerUnit { value, .. } | Value::ShareOf { percent: value, .. } => value.scales(),
             Value::Min(left, right) | Value::Max(left, right) => left.scales() || right.scales(),
             Value::Sum(values) => values.iter().any(Value::scales),
             Value::Fixed(_) | Value::Percent(_) | Value::PercentOf { .. } => false,
@@ -63,7 +69,9 @@ impl Value {
     pub fn walk(&self) -> Vec<&Value> {
         let mut found = vec![self];
         match self {
-            Value::PerUnit { value, .. } => found.extend(value.walk()),
+            Value::PerUnit { value, .. } | Value::ShareOf { percent: value, .. } => {
+                found.extend(value.walk())
+            }
             Value::Min(left, right) | Value::Max(left, right) => {
                 found.extend(left.walk());
                 found.extend(right.walk());
@@ -105,6 +113,9 @@ pub enum Quantity {
     CreaturesControlled,
     /// Spirits within earshot. Mend Body and Soul.
     SpiritsInEarshot,
+    /// The energy the creature an action reaches has now. Spirit Siphon's
+    /// "loses all energy".
+    CurrentEnergy,
 }
 
 // ---------------------------------------------------------------- selectors
@@ -118,7 +129,20 @@ pub enum Selector {
     TargetFoe,
     TargetAlly,
     TargetOtherAlly,
+    /// The other creature in the event that set off a trigger: the attacker
+    /// that struck a hexed foe, the creature that died. Blood Bond.
+    Other,
 
+    /// Around a creature, on the foe side or the ally side of the user. The
+    /// shorthands below pick the side for you: around a foe they reach its
+    /// fellow foes, around you or an ally they reach your foes. This names it
+    /// when the shorthand would pick wrong, as in Blood Bond's "allies
+    /// adjacent to that foe".
+    Around {
+        of: Box<Selector>,
+        band: RangeBand,
+        side: Side,
+    },
     Adjacent(Box<Selector>),
     Nearby(Box<Selector>),
     InTheArea(Box<Selector>),
@@ -168,6 +192,7 @@ impl Selector {
             | Selector::InRangeOf(inner)
             | Selector::Nearest(inner) => inner.is_foe_only(),
             Selector::Filtered { of, .. } | Selector::Secondary { of, .. } => of.is_foe_only(),
+            Selector::Around { side, .. } => *side == Side::Foes,
             _ => false,
         }
     }
@@ -189,9 +214,17 @@ impl Selector {
             | Selector::InRangeOf(inner)
             | Selector::Nearest(inner) => inner.is_ally_only(),
             Selector::Filtered { of, .. } | Selector::Secondary { of, .. } => of.is_ally_only(),
+            Selector::Around { side, .. } => *side == Side::Allies,
             _ => false,
         }
     }
+}
+
+/// A side of the fight, relative to the user.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum Side {
+    Foes,
+    Allies,
 }
 
 /// A test that narrows a selector.
@@ -241,6 +274,22 @@ pub enum Filter {
     },
     /// The skill being used exploits a corpse. Bloodstained.
     ExploitsCorpse,
+
+    /// This skill has just removed at least one effect of the kind. "If an
+    /// enchantment is removed" (Drain Enchantment, Shatter Hex).
+    Removed(EffectKind),
+    /// At least this many spirits are within earshot of the creature.
+    /// Spirit Light.
+    SpiritsInEarshot {
+        at_least: u8,
+    },
+    /// At least this many exploitable corpses are within earshot of the
+    /// creature. Lamentation.
+    CorpsesInEarshot {
+        at_least: u8,
+    },
+    /// One of the user's allies is near the creature. Crossfire.
+    NearAllies,
 
     Not(Box<Filter>),
     All(Vec<Filter>),
@@ -327,6 +376,9 @@ pub enum Action {
     /// Stops a skill in progress. The cost is lost and recharge starts.
     Interrupt {
         to: Selector,
+        /// Also disables the interrupted skill for this long. Disrupting Chop.
+        #[serde(default)]
+        disable: Option<Value>,
     },
     /// Makes a skill fail. **Not** the same as interrupting: a failed skill
     /// recharges instantly, an interrupted one does not (§10.5 ENG-14).
@@ -361,6 +413,10 @@ pub enum Action {
         spirit: Slug,
         level: Value,
         duration: Value,
+        /// The damage its attacks deal, for spirits that attack. Signet of
+        /// Spirits.
+        #[serde(default)]
+        attack_damage: Option<Value>,
     },
     CreateArea {
         area: Slug,
@@ -410,6 +466,17 @@ pub enum Action {
         /// spell damage only.
         #[serde(default)]
         only_from: Option<DamageSource>,
+        /// The most this effect prevents from one packet. Reversal of
+        /// Fortune's "maximum".
+        #[serde(default)]
+        limit: Option<Value>,
+        /// What it prevents heals the bearer instead. Reversal of Fortune.
+        #[serde(default)]
+        heals: bool,
+        /// Whenever it prevents damage, the creature granting it (a spirit)
+        /// loses this much health. Shelter, Union.
+        #[serde(default)]
+        cost_to_source: Option<Value>,
     },
     /// This attack cannot be blocked.
     SetUnblockable,
@@ -428,6 +495,13 @@ pub enum Action {
     RunHandler {
         name: String,
     },
+
+    /// Ends the effect whose trigger is running. "Fall Back!" ends on an ally
+    /// who hits with an attack.
+    EndEffect,
+    /// The skill's health sacrifice is not paid this time. Spirit Light
+    /// "if any spirits are within earshot".
+    WaiveSacrifice,
 
     Control(Box<Control>),
 }
@@ -461,6 +535,9 @@ pub enum EffectKind {
     Blessing,
     PartyBonus,
     Bundle,
+    /// A skill's own lasting effect with no type of its own, which nothing
+    /// removes. Soul Twisting.
+    Skill,
 }
 
 impl EffectKind {
@@ -506,6 +583,10 @@ pub enum Stat {
     AttributeRank(Attribute),
     /// Every elemental attribute at once. Master of Magic.
     ElementalAttributes,
+    /// Health gained each second, outside the ±10 pip cap. "Incoming!".
+    HealthPerSecond,
+    /// Activation time of one skill type only. Enchanter's Conundrum.
+    ActivationTimeOf(SkillType),
 }
 
 /// How a modifier combines with others.
@@ -572,6 +653,9 @@ pub enum Event {
     OnMiss,
     OnDamageTaken,
     OnDamageDealt,
+    /// The bearer is hit by an attack; the other creature is the attacker.
+    /// Blood Bond. (`OnHit` is the attacker's side of the same moment.)
+    OnStruck,
     OnHeal,
     OnEffectApplied,
     OnEffectRemoved,

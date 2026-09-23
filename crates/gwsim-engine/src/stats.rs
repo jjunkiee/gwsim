@@ -106,8 +106,14 @@ pub fn combine_rule(stat: Stat) -> Combine {
             min: f64::NEG_INFINITY,
             max: f64::INFINITY,
         },
-        Stat::MaxEnergy | Stat::MaxHealth | Stat::Armor => Combine::Sum {
+        Stat::MaxEnergy | Stat::MaxHealth | Stat::Armor | Stat::HealthPerSecond => Combine::Sum {
             min: f64::NEG_INFINITY,
+            max: f64::INFINITY,
+        },
+        // A hex that slows one skill type is outside the general activation
+        // cap (Enchanter's Conundrum doubles or triples it).
+        Stat::ActivationTimeOf(_) => Combine::Multiplier {
+            min: 0.5,
             max: f64::INFINITY,
         },
     }

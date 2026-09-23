@@ -24,11 +24,30 @@
         ],
         description_hash: Some("blake3:d77dd33876f68ff2bf1799c2ad636dfa"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            CreateSpirit(spirit: "shelter", level: Scaled(1, 12), duration: Scaled(30, 60)),
+        ],
+        effect_defs: [
+            (
+                id: "shelter",
+                kind: SpiritAura,
+                while_active: [
+                    ReduceIncomingDamage(
+                        to: Target,
+                        cap_percent_of_max_health: Some(Fixed(10)),
+                        only_from: Some(Attacks),
+                        cost_to_source: Some(Scaled(75, 45)),
+                    ),
+                ],
+            ),
+        ],
+        roles: [Protection, Spirit],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Shelter"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
         notes: "PvE version of a split skill (D3)",
     ),
 )

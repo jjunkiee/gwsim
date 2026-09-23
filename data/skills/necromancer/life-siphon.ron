@@ -24,10 +24,25 @@
         ],
         description_hash: Some("blake3:4b5f0d33952bdfd7c8f1edb6ebd0b436"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: TargetFoe, effect: "life-siphon", duration: Scaled(12, 24)),
+        ],
+        effect_defs: [
+            (
+                id: "life-siphon",
+                kind: Hex,
+                while_active: [
+                    ModifyStat(to: Target, stat: HealthRegeneration, amount: Scaled(-1, -3)),
+                    ModifyStat(to: Self, stat: HealthRegeneration, amount: Scaled(1, 3)),
+                ],
+            ),
+        ],
+        roles: [Hex, Pressure],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Life_Siphon"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
     ),
 )

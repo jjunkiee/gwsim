@@ -101,6 +101,9 @@ impl Sim {
         if state.adrenaline < adrenaline {
             return Err(Invalid::NoAdrenaline);
         }
+        if fight_skill.skill.flags.needs_corpse && self.nearest_corpse(unit).is_none() {
+            return Err(Invalid::BadTarget("no corpse in range"));
+        }
         if kind.uses_action_queue() {
             match u.action {
                 Action::Activating { .. } if kind.is_a(SkillType::FlashEnchantmentSpell) => {
@@ -368,10 +371,6 @@ impl Sim {
                 ..fired
             });
         }
-        self.fire(Fired {
-            event: Event::OnSkillUsed,
-            ..fired
-        });
 
         if !queued {
             // Shouts, stances and pet attacks happen at once, outside the
@@ -461,12 +460,21 @@ impl Sim {
                 fight.handlers.get(handler).on_use(self, &mut ctx);
             }
         }
+        self.inherent_after_use(unit, target, skill);
+        // A successful use: Panic listens for this.
+        self.fire(Fired {
+            event: Event::OnSkillUsed,
+            subject: unit,
+            other: target.unit(),
+            skill: Some(skill),
+            amount: 0.0,
+        });
         if !self.units[unit.index()].alive() {
             return;
         }
 
         // Sacrifice comes after success (ENG-13).
-        if fight_skill.skill.cost.sacrifice_pct > 0 {
+        if fight_skill.skill.cost.sacrifice_pct > 0 && !ctx.waive_sacrifice {
             self.sacrifice(unit, f64::from(fight_skill.skill.cost.sacrifice_pct));
             if !self.units[unit.index()].alive() {
                 return;
@@ -475,6 +483,7 @@ impl Sim {
 
         // Recharge starts now, unless a copy took over the slot meanwhile.
         let recharge = self.recharge_ms(unit, skill);
+        let recharge = self.adjust_recharge(unit, skill, recharge);
         let now = self.now;
         if let Some(state) = self.units[unit.index()].bar[usize::from(slot)].as_mut()
             && state.skill == skill
@@ -720,6 +729,15 @@ impl Sim {
         }
         if spell && self.has_condition(unit, Condition::Dazed) {
             time *= 2.0;
+        }
+        // Slower casting of one skill type (Enchanter's Conundrum).
+        for scoped in SkillType::ALL {
+            if kind.is_a(scoped) {
+                let modifiers = self.modifiers(unit, Stat::ActivationTimeOf(scoped), None);
+                if !modifiers.is_empty() {
+                    time *= crate::stats::combine(Stat::ActivationTimeOf(scoped), &modifiers);
+                }
+            }
         }
         let u = &self.units[unit.index()];
         if fight.hard_mode && u.team == Team::Foes && base > 2000.0 {

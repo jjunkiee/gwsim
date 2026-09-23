@@ -75,6 +75,8 @@ pub struct Sim {
     pub outcome: Option<(Outcome, SimTime)>,
     /// When the fight proper began (aggro). Clear time counts from here.
     pub engaged_at: Option<SimTime>,
+    /// Dhuum's Covenant was on and a party member died.
+    pub covenant_broken: bool,
     trigger_depth: u8,
 }
 
@@ -103,6 +105,7 @@ impl Sim {
             assumptions: 0,
             outcome: None,
             engaged_at: None,
+            covenant_broken: false,
             trigger_depth: 0,
         }
     }
@@ -192,6 +195,7 @@ impl Sim {
                 slot,
                 generation,
             } => self.revert_slot(unit, slot, generation),
+            EventKind::CreatureExpiry { unit } => self.kill(unit, None),
             EventKind::Marker(_) => {}
         }
         self.check_outcome();
@@ -314,8 +318,34 @@ impl Sim {
                 }
             }
 
+            // Triggers of the auras the subject stands in (Displacement's
+            // block, Infuriating Heat's adrenaline). Auras have no charges.
+            let mut aura_matches: Vec<(crate::exec::ActiveDef, usize)> = Vec::new();
+            for active in self.defs_on(subject) {
+                if active.effect.is_some() {
+                    continue;
+                }
+                let Some(def) = self.def_of(&active) else {
+                    continue;
+                };
+                for (index, trigger) in def.triggers.iter().enumerate() {
+                    if let Control::Triggered { event, filter, .. } = trigger
+                        && *event == fired.event
+                        && filter.as_ref().is_none_or(|filter| {
+                            let judged = fired.other.unwrap_or(subject);
+                            self.filter_passes(filter, judged, active.caster, None)
+                        })
+                    {
+                        aura_matches.push((active, index));
+                    }
+                }
+            }
+
             for (id, index) in matched {
                 self.run_trigger(subject, id, index, &fired);
+            }
+            for (active, index) in aura_matches {
+                self.run_aura_trigger(subject, &active, index, &fired);
             }
             let fight = Arc::clone(&self.fight);
             for (id, handler) in handled {
@@ -373,6 +403,34 @@ impl Sim {
         if exhausted {
             self.end_effect(bearer, id, EndReason::Replaced);
         }
+    }
+
+    /// Runs one trigger of an aura on a unit standing in it.
+    fn run_aura_trigger(
+        &mut self,
+        bearer: UnitId,
+        active: &crate::exec::ActiveDef,
+        index: usize,
+        fired: &Fired,
+    ) {
+        if !self.units[active.caster.index()].alive() {
+            return;
+        }
+        let fight = Arc::clone(&self.fight);
+        let Some(Control::Triggered { actions, .. }) = fight.skills[usize::from(active.skill)]
+            .skill
+            .encoding
+            .as_ref()
+            .and_then(|e| e.effect_defs.get(usize::from(active.def)))
+            .and_then(|def| def.triggers.get(index))
+        else {
+            return;
+        };
+        let mut ctx = ExecCtx::for_def(active, bearer);
+        ctx.other = fired.other;
+        ctx.event_skill = fired.skill;
+        ctx.event_amount = fired.amount;
+        self.execute(actions, &mut ctx);
     }
 
     /// Runs an effect's `on_end` actions.

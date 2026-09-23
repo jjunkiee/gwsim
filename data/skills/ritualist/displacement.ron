@@ -23,11 +23,24 @@
         ],
         description_hash: Some("blake3:ba2b610fb28cc60ae64efb89f7a88aba"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            CreateSpirit(spirit: "displacement", level: Scaled(1, 14), duration: Scaled(30, 60)),
+        ],
+        effect_defs: [
+            (
+                id: "displacement",
+                kind: SpiritAura,
+                while_active: [ModifyStat(to: Target, stat: BlockChance, amount: Fixed(75))],
+                triggers: [Triggered(event: OnBlocked, actions: [Damage(to: Self, amount: Fixed(60))])],
+            ),
+        ],
+        roles: [Protection, Defence, Spirit],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Displacement"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
         notes: "PvE version of a split skill (D3)",
     ),
 )

@@ -23,11 +23,26 @@
         ],
         description_hash: Some("blake3:4dc5cd63bcdc8f566adbd6e767f6ccb6"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: PartyInRange(Earshot), effect: "incoming", duration: Scaled(4, 10)),
+        ],
+        effect_defs: [
+            (
+                id: "incoming",
+                kind: ShoutOrChant,
+                while_active: [
+                    ModifyStat(to: Target, stat: MovementSpeed, amount: Fixed(33)),
+                    Control(If(condition: Moving, then: [ModifyStat(to: Target, stat: HealthPerSecond, amount: Scaled(5, 15))])),
+                ],
+            ),
+        ],
+        roles: [PartyBuff, Healing],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/%22Incoming!%22"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
         notes: "PvE version of a split skill (D3)",
     ),
 )

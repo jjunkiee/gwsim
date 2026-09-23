@@ -23,11 +23,23 @@
         ],
         description_hash: Some("blake3:09801fc0e05636d2d03d74d6943484be"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            CreateSpirit(spirit: "infuriating-heat", level: Scaled(1, 10), duration: Scaled(30, 120)),
+        ],
+        effect_defs: [
+            (
+                id: "infuriating-heat",
+                kind: SpiritAura,
+                triggers: [Triggered(event: OnHit, actions: [GainAdrenaline(to: Target, strikes: Fixed(1))])],
+            ),
+        ],
+        roles: [Spirit],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Infuriating_Heat"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
         notes: "PvE version of a split skill (D3)",
     ),
 )

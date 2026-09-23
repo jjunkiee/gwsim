@@ -184,8 +184,17 @@ pub struct FightData {
     pub plans: Vec<ResolvedPlan>,
     pub hard_mode: bool,
     pub timeout_ms: u32,
-    /// Spirit aura ranges by name, from `spirits.ron` (A-015).
-    pub spirit_ranges: BTreeMap<String, f32>,
+    /// The spirits skills can create, by slug (`spirits.ron`, A-015).
+    pub spirits: BTreeMap<String, gwsim_data::foe::Spirit>,
+    /// The minions skills can create, by slug (`minions.ron`).
+    pub minions: BTreeMap<String, gwsim_data::foe::Minion>,
+    /// Weapon profiles for minions, by slug, resolved once.
+    pub minion_weapons: BTreeMap<String, WeaponProfile>,
+    /// Death penalty the party starts with, and its morale boost (§10.11).
+    pub starting_dp: u8,
+    pub starting_morale: u8,
+    /// Whether Dhuum's Covenant is on (a party death breaks it).
+    pub dhuums_covenant: bool,
     /// Title ranks for PvE-only skills. With no account profile every track
     /// is at its maximum (Q14).
     pub title_ranks: BTreeMap<TitleTrack, u8>,
@@ -374,17 +383,58 @@ impl FightSetup {
             return Err(SetupError(problems));
         }
 
-        let spirit_ranges = data
+        let spirits: BTreeMap<String, gwsim_data::foe::Spirit> = data
             .spirits
             .as_ref()
             .map(|file| {
                 file.value
                     .spirits
                     .iter()
-                    .filter_map(|s| s.range.map(|r| (s.name.clone(), r)))
+                    .map(|s| (s.slug.to_string(), s.clone()))
                     .collect()
             })
             .unwrap_or_default();
+        let minions: BTreeMap<String, gwsim_data::foe::Minion> = data
+            .minions
+            .as_ref()
+            .map(|file| {
+                file.value
+                    .minions
+                    .iter()
+                    .map(|m| (m.slug.to_string(), m.clone()))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let minion_weapons = minions
+            .iter()
+            .filter_map(|(slug, minion)| {
+                let weapon = minion.weapon.as_ref()?;
+                let mut profile = weapon_profile(
+                    data,
+                    &weapon.weapon_type,
+                    Profession::Necromancer,
+                    &tunables,
+                )?;
+                if let Some((low, high)) = weapon.damage {
+                    profile.damage = (i32::from(low), i32::from(high));
+                }
+                if let Some(interval) = weapon.attack_interval {
+                    profile.interval_ms = interval.ms();
+                }
+                if let Some(range) = minion.range {
+                    profile.range = range;
+                }
+                // A-043: minions strike at three times their level.
+                profile.mastery = None;
+                Some((slug.clone(), profile))
+            })
+            .collect();
+        for unit in &mut units {
+            if unit.team == Team::Party && !unit.kind.is_summoned() {
+                unit.death_penalty = situation.starting_dp;
+                unit.morale = situation.starting_morale;
+            }
+        }
         let fight = FightData {
             core: core.clone(),
             skills: table.skills,
@@ -393,7 +443,12 @@ impl FightSetup {
             plans,
             hard_mode,
             timeout_ms,
-            spirit_ranges,
+            spirits,
+            minions,
+            minion_weapons,
+            starting_dp: situation.starting_dp,
+            starting_morale: situation.starting_morale,
+            dhuums_covenant: situation.mode.dhuums_covenant,
             title_ranks: BTreeMap::new(),
         };
         let slot_names = party.slots.iter().map(|s| s.name.clone()).collect();
@@ -506,7 +561,7 @@ fn resolve_plan(
 }
 
 /// An empty unit with the fields every kind shares.
-fn blank_unit(
+pub(crate) fn blank_unit(
     id: UnitId,
     name: String,
     team: Team,
@@ -561,6 +616,11 @@ fn blank_unit(
         dead_at: None,
         soul_reaping: Vec::new(),
         corpse_available: false,
+        born_at: SimTime::ZERO,
+        aura: None,
+        creature_type: None,
+        death_penalty: 0,
+        morale: 0,
     }
 }
 
@@ -605,6 +665,7 @@ fn weapon_profile(
             .or_else(|| tunables.projectile_speeds.get(slug.as_str()).copied()),
         mastery: weapon.mastery,
         caster,
+        armor_ignoring: false,
     })
 }
 
@@ -878,14 +939,17 @@ fn foe_unit(
     for (attribute, rank) in ranks {
         unit.base_ranks[attribute.index()] = rank;
     }
+    let chosen = variant.and_then(|name| foe.variants.iter().find(|v| v.name == *name));
+    let armor_table = chosen.and_then(|v| v.armor.as_ref()).unwrap_or(&foe.armor);
     let mut by_type = [0i16; 11];
     for damage in DamageType::ALL {
-        by_type[damage.index()] = derived::foe_armor(foe, core, damage, hard_mode);
+        by_type[damage.index()] =
+            derived::foe_armor_with(foe, armor_table, core, damage, hard_mode);
     }
-    let base = by_type[DamageType::Fire.index()];
+    // Chaos is the type no profession bonus touches, so it is the base.
+    let base = by_type[DamageType::Chaos.index()];
     unit.armor = [PerDamageType { base, by_type }; 5];
 
-    let chosen = variant.and_then(|name| foe.variants.iter().find(|v| v.name == *name));
     let weapon = chosen
         .and_then(|v| v.weapon.as_ref())
         .or(foe.weapon.as_ref());

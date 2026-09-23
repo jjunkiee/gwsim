@@ -1,0 +1,24 @@
+// The spirits M1's rituals and signets create (T4.3.7).
+// Health and armor are A-015: 20 health per level (times 1 + 4% per rank of the
+// creator's Spawning Power) and 2 + 6 armor per level, from the wiki's unofficial
+// figures; hostile spirits have 100 armor in hard mode.
+(
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Spirit", "https://wiki.guildwars.com/wiki/Spirit_range", "https://wiki.guildwars.com/wiki/Signet_of_Spirits"],
+        crawled: "2026-09-23",
+        review: Draft,
+        assumptions: ["A-015", "A-018"],
+        notes: "Binding rituals reach spirit range (2,512); nature rituals 3,000 since the 2026-08-26 update (A-018). Spirits have 31 energy and 4 pips (41 for hostile spirits in hard mode). Attack spirits attack every 2 seconds at longbow range for armor-ignoring damage.",
+    ),
+    spirits: [
+        (slug: "shelter", name: "Shelter", range: Some(2512.0)),
+        (slug: "union", name: "Union", range: Some(2512.0)),
+        (slug: "displacement", name: "Displacement", range: Some(2512.0)),
+        (slug: "recuperation", name: "Recuperation", range: Some(2512.0)),
+        (slug: "life", name: "Life", range: Some(2512.0)),
+        (slug: "infuriating-heat", name: "Infuriating Heat", range: Some(3000.0), affects: All),
+        (slug: "spirit-of-anger", name: "Spirit of Anger", range: Some(2512.0), attack: Some((interval: 2.0, range: 1498.0))),
+        (slug: "spirit-of-hate", name: "Spirit of Hate", range: Some(2512.0), attack: Some((interval: 2.0, range: 1498.0))),
+        (slug: "spirit-of-suffering", name: "Spirit of Suffering", range: Some(2512.0), attack: Some((interval: 2.0, range: 1498.0))),
+    ],
+)

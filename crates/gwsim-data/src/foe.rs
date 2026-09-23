@@ -152,6 +152,10 @@ pub struct FoeVariant {
     /// A replacement bar. [`None`] keeps the foe's own.
     #[serde(default)]
     pub skills: Option<Vec<FoeSkill>>,
+    /// A replacement armor table, where the wiki gives the variant its own
+    /// (the Kournan Guard's hammer form). [`None`] keeps the foe's own.
+    #[serde(default)]
+    pub armor: Option<ArmorTable>,
 }
 
 /// A foe's armor, as the wiki's armor table gives it.
@@ -290,6 +294,13 @@ pub struct Minion {
     pub degeneration: Option<i8>,
     #[serde(default)]
     pub traits: Vec<CreatureTrait>,
+    /// Armor as `slope × level + intercept`, where the wiki gives a formula
+    /// rather than a figure (Bone Fiend: 2.84 × level + 3.1).
+    #[serde(default)]
+    pub armor_per_level: Option<(f32, f32)>,
+    /// Attack range in gwinches, where it is not the weapon type's own.
+    #[serde(default)]
+    pub range: Option<f32>,
 }
 
 /// `data/creatures/spirits.ron`.
@@ -317,6 +328,33 @@ pub struct Spirit {
     /// How far its aura reaches, in gwinches.
     #[serde(default)]
     pub range: Option<f32>,
+    /// Whom its aura reaches: its own side (binding rituals) or every
+    /// non-spirit creature (nature rituals).
+    #[serde(default)]
+    pub affects: AuraReach,
+    /// How it attacks, for spirits that do.
+    #[serde(default)]
+    pub attack: Option<SpiritAttack>,
+}
+
+/// Whom a spirit's aura reaches.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]
+pub enum AuraReach {
+    /// Non-spirit allies of the spirit. Binding rituals.
+    #[default]
+    Allies,
+    /// Every non-spirit creature. Nature rituals.
+    All,
+}
+
+/// A spirit's attack. Its damage comes from the skill that made it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SpiritAttack {
+    /// Time from one attack to the next.
+    pub interval: Seconds,
+    /// Reach in gwinches.
+    pub range: f32,
 }
 
 /// `data/creatures/dummies.ron` (T3.10.2).

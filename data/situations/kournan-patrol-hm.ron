@@ -1,0 +1,10 @@
+// Kournan patrol HM (DESIGN §20.6, T4.8.3).
+(
+    name: "Kournan patrol HM",
+    encounters: Single("kournan-patrol"),
+    mode: (hard_mode: true),
+    party_size: 8,
+    timeout: Some(180.0),
+    notes: "The M1 benchmark fight: the curated patrol at hard-mode level 26.",
+    assumption_refs: ["A-030"],
+)

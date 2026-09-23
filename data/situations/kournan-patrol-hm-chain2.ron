@@ -1,0 +1,13 @@
+// Kournan patrol HM chain2 (DESIGN §20.6, T4.8.3).
+(
+    name: "Kournan patrol HM chain2",
+    encounters: Chain([
+        (encounter: "kournan-patrol"),
+        (encounter: "kournan-patrol"),
+    ]),
+    mode: (hard_mode: true),
+    party_size: 8,
+    timeout: Some(180.0),
+    notes: "Two patrols in a row with the default rest between them (A-028); health, energy, recharges, effects, minions and death penalty carry over.",
+    assumption_refs: ["A-028", "A-030"],
+)

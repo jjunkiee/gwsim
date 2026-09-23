@@ -282,7 +282,7 @@ fn action_selector(action: &Action) -> Option<&Selector> {
         | Action::GainAdrenaline { to, .. }
         | Action::ApplyCondition { to, .. }
         | Action::ApplyEffect { to, .. }
-        | Action::Interrupt { to }
+        | Action::Interrupt { to, .. }
         | Action::FailSkill { to }
         | Action::KnockDown { to, .. }
         | Action::DisableSkills { to, .. }

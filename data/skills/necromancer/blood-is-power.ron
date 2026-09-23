@@ -22,10 +22,22 @@
         ],
         description_hash: Some("blake3:69329be759db2f053bc7cd34de8eea8b"),
     ),
-    encoding: None,
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: TargetOtherAlly, effect: "blood-is-power", duration: Fixed(10)),
+        ],
+        effect_defs: [
+            (
+                id: "blood-is-power",
+                kind: Enchantment,
+                while_active: [ModifyStat(to: Target, stat: EnergyRegeneration, amount: Scaled(3, 6))],
+            ),
+        ],
+        roles: [EnergyManagement],
+    )),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Blood_is_Power"],
         crawled: "2026-09-23",
-        review: NumbersOnly,
+        review: Draft,
     ),
 )

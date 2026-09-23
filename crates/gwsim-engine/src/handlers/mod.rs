@@ -46,6 +46,43 @@ pub trait SkillHandler: HandlerDescribe + Send + Sync {
         _reason: EndReason,
     ) {
     }
+
+    /// The energy cost of a skill the bearer is about to use, while an
+    /// effect this handler created is on it (Soul Twisting).
+    fn adjust_cost(
+        &self,
+        _sim: &Sim,
+        _bearer: UnitId,
+        _effect: &ActiveEffect,
+        _skill: u16,
+        cost: f64,
+    ) -> f64 {
+        cost
+    }
+
+    /// The recharge of a skill the bearer has just used, while an effect this
+    /// handler created is on it (Soul Twisting).
+    fn adjust_recharge(
+        &self,
+        _sim: &Sim,
+        _bearer: UnitId,
+        _effect: &ActiveEffect,
+        _skill: u16,
+        recharge_ms: u32,
+    ) -> u32 {
+        recharge_ms
+    }
+
+    /// A rank this handler's effect sets outright, replacing the bearer's
+    /// own (Master of Magic).
+    fn set_rank(
+        &self,
+        _sim: &Sim,
+        _effect: &ActiveEffect,
+        _attribute: gwsim_data::core::Attribute,
+    ) -> Option<u8> {
+        None
+    }
 }
 
 /// Every handler the engine has, by name.

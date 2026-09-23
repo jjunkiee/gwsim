@@ -1611,7 +1611,7 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-001 | Base movement speed of characters and foes | Find the value on the wiki during WP3.2; otherwise a documented community value, flagged | Not captured in the research |
 | A-002 | Collision radius of units (for body-blocking) | Single default radius; larger for big creatures later | Not documented |
 | A-003 | Projectile travel speeds per weapon and spell type | From wiki weapon pages if present; otherwise defaults per category | Not documented per item |
-| A-004 | Foe weapon damage and attack interval | Player weapon-type tables at the foe's level and strike rules | Not recorded on creature pages |
+| A-004 | Foe weapon damage and attack interval | The player weapon of the foe's type at maximum requirement; casters hold a staff, archers a flatbow (set in P4, T4.2.1) | Not recorded on creature pages |
 | A-005 | Missing HM attribute ranks | Use given HM ranks; otherwise NM rank + 5, capped at 20 (matching Seer and Oppressor +5; Bowman shows +2), flagged per foe | The wiki gives HM ranks for few foes |
 | A-006 | Kournan patrol composition | One of each of 8 types | No composition on the wiki |
 | A-007 | Kournan Guard weapon | Axe variant | The wiki lists axe and hammer variants |
@@ -1639,7 +1639,7 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-029 | Human play quality | Plan executed exactly as written, with A-012 delay | Modelling choice |
 | A-030 | Fight timeout | 180 s, counted as a loss | Modelling choice |
 | A-031 | Armor bug with net bonus ≥ 26 (reductions ignored) | Modelled as documented | Documented bug |
-| A-032 | HM recharge reduction for foes | Amount to be found on the wiki; otherwise a default, flagged | "Shorter recharges" isn't quantified in the research |
+| A-032 | HM recharge reduction for foes | **0%**, flagged on every hard-mode result (set in P4, T4.2.1: no figure exists) | "Shorter recharges" isn't quantified anywhere on the wiki |
 | A-033 | Player rune choice | Superior Domination Magic (head), minor Fast Casting, minor Inspiration Magic, superior Vigor, Vitae — **settled 2026-09-23 from the current PvX page** | No longer an assumption: the page's equipment list names them |
 | A-034 | Hero 7's staff modifiers | The Hale staff head and of Fortitude wrapping are named by PvX but their health values are not in gwsim's item data, so they are unencoded | Hero 7's reported health is a floor, not the true value |
 | A-035 | When an auto-attack hits within its swing | Halfway through the attack interval (added in P3) | The wiki gives intervals, not hit timing |
@@ -1649,6 +1649,8 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-039 | Hit location of skill damage | The same weights as weapon hits (added in P3) | The wiki documents hit locations for attacks only |
 | A-040 | The target dies or is lost during an activation | The skill fails: energy spent, no recharge penalty beyond the normal one (added in P3) | Observed in play, not documented |
 | A-041 | When a "next spell" trigger fires | At the start of the spell's activation (added in P3) | Mistrust's wording is ambiguous; activation start matches play |
+| A-042 | Ranks of attributes a foe's page omits | The highest listed rank; with none listed, 14 for martial foes and 15 for casters (added in P4) | Kournan pages list at most the primary attribute, yet other attributes scale their skills |
+| A-043 | A minion's attack damage | The weapon of its type at maximum requirement, striking at three times its level (added in P4) | The Minion page says only that damage depends on level |
 
 ---
 

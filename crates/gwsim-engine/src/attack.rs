@@ -36,6 +36,16 @@ pub struct Projectile {
     pub skill: Option<u16>,
     pub bonus: f64,
     pub unblockable: bool,
+    /// What the attack skill does if it hits, run when it lands.
+    pub on_hit: Option<Box<OnHit>>,
+}
+
+/// An attack skill's effects that wait for its hit (T3.4.10): conditions,
+/// interrupts, stance removal. Blocked or missed, they never happen.
+#[derive(Debug, Clone, PartialEq)]
+pub struct OnHit {
+    pub actions: Vec<DslAction>,
+    pub ctx: ExecCtx,
 }
 
 /// The intercept time for a projectile from `from` at `speed` against a
@@ -137,10 +147,11 @@ impl Sim {
             return;
         };
         self.units[unit.index()].swing_hits_at = None;
-        self.launch_or_strike(unit, target, None, 0.0, false);
+        self.launch_or_strike(unit, target, None, 0.0, false, None, 1.0);
     }
 
     /// Fires a projectile for a ranged weapon, or strikes at once for melee.
+    #[allow(clippy::too_many_arguments)]
     fn launch_or_strike(
         &mut self,
         unit: UnitId,
@@ -148,6 +159,8 @@ impl Sim {
         skill: Option<u16>,
         bonus: f64,
         unblockable: bool,
+        on_hit: Option<Box<OnHit>>,
+        speed_factor: f64,
     ) {
         let Some(weapon) = self.units[unit.index()].weapon.clone() else {
             return;
@@ -155,7 +168,8 @@ impl Sim {
         match weapon.projectile_speed {
             Some(speed) => {
                 self.touch(3);
-                let speed = speed * self.stat_multiplier(unit, Stat::ProjectileSpeed) as f32;
+                let speed = speed
+                    * (self.stat_multiplier(unit, Stat::ProjectileSpeed) * speed_factor) as f32;
                 let from = self.units[unit.index()].pos;
                 let to = self.units[target.index()].pos;
                 let velocity = self.units[target.index()].velocity;
@@ -173,11 +187,12 @@ impl Sim {
                     skill,
                     bonus,
                     unblockable,
+                    on_hit,
                 });
                 self.queue
                     .schedule(impact_at, EventKind::ProjectileImpact { projectile: id });
             }
-            None => self.resolve_attack(unit, target, skill, bonus, unblockable),
+            None => self.resolve_attack(unit, target, skill, bonus, unblockable, on_hit),
         }
     }
 
@@ -200,6 +215,7 @@ impl Sim {
                 projectile.skill,
                 projectile.bonus,
                 projectile.unblockable,
+                projectile.on_hit,
             );
         } else {
             self.log_event(
@@ -219,6 +235,7 @@ impl Sim {
         skill: Option<u16>,
         bonus: f64,
         unblockable: bool,
+        on_hit: Option<Box<OnHit>>,
     ) {
         if !self.units[attacker.index()].alive() || !self.units[target.index()].alive() {
             return;
@@ -307,9 +324,14 @@ impl Sim {
         if weapon.slug == "hornbow" {
             penetration += 0.10;
         }
-        let armor = self.armor_against(target, weapon.damage_type, piece, penetration);
         let strike = if critical { strike + 20.0 } else { strike };
-        let weapon_part = combat::damage_packet(base, strike, armor);
+        // Spirit attacks ignore armor, and their crits add nothing (Spirit).
+        let weapon_part = if weapon.armor_ignoring {
+            base
+        } else {
+            let armor = self.armor_against(target, weapon.damage_type, piece, penetration);
+            combat::damage_packet(base, strike, armor)
+        };
         if critical {
             self.log_event(
                 LogEvent::new(self.now, LogKind::CriticalHit)
@@ -344,6 +366,17 @@ impl Sim {
             skill,
             amount: 0.0,
         });
+        self.fire(Fired {
+            event: Event::OnStruck,
+            subject: target,
+            other: Some(attacker),
+            skill,
+            amount: 0.0,
+        });
+        if let Some(on_hit) = on_hit {
+            let OnHit { actions, mut ctx } = *on_hit;
+            self.execute(&actions, &mut ctx);
+        }
     }
 
     /// An attack skill: a weapon attack whose top-level `Damage` actions on
@@ -361,7 +394,11 @@ impl Sim {
             self.execute(effects, ctx);
             return;
         };
+        // Three kinds of action: the "+X damage" bonus joins the weapon's
+        // packet; gating actions (unblockable, a faster projectile) shape the
+        // attack before it flies; everything else waits for the hit.
         let mut bonus = 0.0;
+        let mut gating = Vec::new();
         let mut rest = Vec::new();
         for action in effects {
             match action {
@@ -370,15 +407,32 @@ impl Sim {
                     amount,
                     ..
                 } => bonus += self.eval_value(amount, ctx),
-                DslAction::SetUnblockable => ctx.unblockable = true,
+                DslAction::ModifyStat {
+                    stat: Stat::ProjectileSpeed,
+                    amount,
+                    ..
+                } => ctx.projectile_speed *= 1.0 + self.eval_value(amount, ctx) / 100.0,
+                other if gates_attack(other) => gating.push(other.clone()),
                 other => rest.push(other.clone()),
             }
         }
-        // Unblockable may also be gated on a condition; run gating actions
-        // first so they can set it.
-        self.execute(&rest, ctx);
+        self.execute(&gating, ctx);
+        let on_hit = (!rest.is_empty()).then(|| {
+            Box::new(OnHit {
+                actions: rest,
+                ctx: ctx.clone(),
+            })
+        });
         if self.units[target_unit.index()].alive() {
-            self.launch_or_strike(unit, target_unit, Some(skill), bonus, ctx.unblockable);
+            self.launch_or_strike(
+                unit,
+                target_unit,
+                Some(skill),
+                bonus,
+                ctx.unblockable,
+                on_hit,
+                ctx.projectile_speed,
+            );
         }
         // An attack skill resets the swing, so the next auto-attack follows it.
         let now = self.now;
@@ -401,6 +455,24 @@ impl Sim {
             .scaled
             .first()
             .map(|n| Value::Scaled(n.r0, n.r15))
+    }
+}
+
+/// Whether an attack skill's action shapes the attack itself, and so runs
+/// before it flies: `SetUnblockable`, alone or behind an `If`.
+fn gates_attack(action: &DslAction) -> bool {
+    match action {
+        DslAction::SetUnblockable => true,
+        DslAction::Control(control) => match control.as_ref() {
+            gwsim_data::dsl::Control::If {
+                then, otherwise, ..
+            } => then
+                .iter()
+                .chain(otherwise.iter())
+                .all(|a| matches!(a, DslAction::SetUnblockable)),
+            _ => false,
+        },
+        _ => false,
     }
 }
 

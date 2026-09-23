@@ -8,7 +8,7 @@
     traits: [Fleshy],
     professions: (Ranger,None),
     level: (nm: 20, hm: Some(26)),
-    attributes: (nm: [(Expertise,14)], hm: Some([(Expertise,16)])),
+    attributes: (nm: [(Expertise,14),(Marksmanship,14),(WildernessSurvival,14)], hm: Some([(Expertise,16),(Marksmanship,16),(WildernessSurvival,16)])),
     skills: [
         (skill: Slug("crossfire")),
         (skill: Slug("infuriating-heat")),
@@ -29,12 +29,13 @@
             ]),
         ),
     ],
-    armor: (default: Some(100), per_type: [(Blunt,70),(Piercing,70),(Slashing,70)], level_context: Some(20)),
+    armor: (default: Some(70), per_type: [(Cold,100),(Earth,100),(Fire,100),(Lightning,100)], level_context: Some(20), note: "a ranger gets +30 against elemental damage, so the physical figure is the base"),
+    weapon: Some((weapon_type: "flatbow")),
     provenance: (
         sources: ["https://wiki.guildwars.com/wiki/Kournan_Bowman"],
         crawled: "2026-09-23",
         review: Draft,
-        assumptions: ["A-004","A-007"],
+        assumptions: ["A-004","A-007","A-042"],
         notes: "the page lists 2 level pairs; the highest, 20 (26), is used; the bar is the page\'s first variant (unnamed); the others are listed as variants; some skills are carried only at higher levels; the bar is the full one",
     ),
 )
