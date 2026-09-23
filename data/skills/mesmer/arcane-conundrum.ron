@@ -1,0 +1,46 @@
+// Arcane Conundrum — seeded from https://wiki.guildwars.com/wiki/Arcane_Conundrum
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 36,
+    name: "Arcane Conundrum",
+    wiki: "Arcane Conundrum",
+    profession: Some(Mesmer),
+    attribute: Some(IllusionMagic),
+    kind: HexSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 2.0,
+    recharge: 30.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 5, r12: 13, r15: 15),
+            (label: "energy gain", r0: 1, r12: 6, r15: 7),
+        ],
+        description_hash: Some("blake3:703ec30dafd69c046d788a8581613723"),
+    ),
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: Adjacent(TargetFoe), effect: "arcane-conundrum", duration: Scaled(5, 15)),
+        ],
+        effect_defs: [
+            (
+                id: "arcane-conundrum",
+                kind: Hex,
+                while_active: [ModifyStat(to: Target, stat: ActivationTimeOf(Spell), amount: Fixed(100))],
+                on_end: [GainEnergy(to: Self, amount: Scaled(1, 7))],
+            ),
+        ],
+        roles: [Hex, Aoe, EnergyManagement],
+    )),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Arcane_Conundrum"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "The end-effect energy goes to the caster, once per hexed foe as each hex ends; the wiki marks the description [sic] and does not say whether adjacent foes pay out too.",
+    ),
+)

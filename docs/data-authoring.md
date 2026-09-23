@@ -207,7 +207,7 @@ The extractor seeds a skill as `NumbersOnly`: its costs, times and scaled values
 
 Constructs added during M1 that are easy to miss:
 
-- **Selectors.** `Other` means everyone but the user. `Around { of, band, side }` covers an area around a unit, on a chosen side. `Reduced { of, factor }` applies a share of a value to what another selector reaches, as in Mistrust's 75%.
+- **Selectors.** `Other` is the other creature in the event that set off a trigger: the attacker, the struck foe, the one that died. `Around { of, band, side }` covers an area around a unit, on a chosen side. `Reduced { of, factor }` applies a share of a value to what another selector reaches, as in Mistrust's 75%.
 - **Side rule.** An area around a *foe* reaches that foe's team. An area around the *user or an ally* reaches the user's foes (F4.1).
 - **`OnStruck`**, for effects that fire when their bearer is hit.
 - **`ReduceIncomingDamage { limit, heals, cost_to_source }`**, for spirits such as Shelter, Union and Displacement, and for Protective Was Kaolai.

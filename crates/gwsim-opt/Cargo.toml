@@ -9,6 +9,14 @@ publish.workspace = true
 [dependencies]
 gwsim-engine = { path = "../gwsim-engine" }
 gwsim-data = { path = "../gwsim-data" }
+serde.workspace = true
+serde_json.workspace = true
+ron.workspace = true
+blake3.workspace = true
+rayon.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
 
 [lints]
 workspace = true

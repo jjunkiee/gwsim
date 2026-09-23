@@ -15,12 +15,17 @@
         sources: [
             "https://wiki.guildwars.com/wiki/Title",
             "https://wiki.guildwars.com/wiki/Asura_rank",
+            "https://wiki.guildwars.com/wiki/Deldrimor_rank",
+            "https://wiki.guildwars.com/wiki/Ebon_Vanguard_rank",
+            "https://wiki.guildwars.com/wiki/Norn_rank",
+            "https://wiki.guildwars.com/wiki/Sunspear_rank",
+            "https://wiki.guildwars.com/wiki/Lightbringer_rank",
+            "https://wiki.guildwars.com/wiki/Allegiance_rank",
         ],
         crawled: "2026-09-22",
-        review: Reviewed,
-        reviewed_by: Some("Jake Mansell"),
+        review: Draft,
         assumptions: ["A-020"],
-        notes: "Values from T1.1.1. Only Asura is modelled: Air of Superiority is the one M1 skill that scales on a title track. WP5.7 and WP7.5 add the rest. Normal mode caps these tracks at rank 8, but the table plateaus at rank 5, so that cap never changes an effective rank and is a profile-legality matter rather than something this file expresses.",
+        notes: "Values from T1.1.1. Asura was reviewed by the owner (2026-09-22); WP5.7 added the other seven tracks, so the file is back to Draft until they are reviewed. Normal mode caps these tracks at rank 8, but the table plateaus at rank 5, so that cap never changes an effective rank and is a profile-legality matter rather than something this file expresses.",
     ),
 
     tracks: [
@@ -32,5 +37,18 @@
             //                r0 r1 r2 r3  r4  r5+
             effective_ranks: [0, 3, 6, 9, 12, 15, 15, 15, 15, 15, 15],
         ),
+        // The other Eye of the North reputation tracks use the same table
+        // (the rank pages: "used as the attribute for ... skills").
+        (key: Deldrimor, max_rank: 10, effective_ranks: [0, 3, 6, 9, 12, 15, 15, 15, 15, 15, 15]),
+        (key: EbonVanguard, max_rank: 10, effective_ranks: [0, 3, 6, 9, 12, 15, 15, 15, 15, 15, 15]),
+        (key: Norn, max_rank: 10, effective_ranks: [0, 3, 6, 9, 12, 15, 15, 15, 15, 15, 15]),
+        // Sunspear, Lightbringer and the two allegiance tracks scale their
+        // skills on the title rank itself rather than through a lookup, so
+        // the effective rank is the rank (T5.7.1; the linear mechanism the
+        // header mentions). Maximum ranks from the rank pages.
+        (key: Sunspear, max_rank: 10, effective_ranks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+        (key: Lightbringer, max_rank: 8, effective_ranks: [0, 1, 2, 3, 4, 5, 6, 7, 8]),
+        (key: Kurzick, max_rank: 12, effective_ranks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+        (key: Luxon, max_rank: 12, effective_ranks: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
     ],
 )

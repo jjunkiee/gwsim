@@ -122,6 +122,18 @@ pub fn checks() -> Vec<Check> {
             suite: CheckSuite::Relative,
             run: check_rc6,
         },
+        Check {
+            id: "RC4",
+            description: "The PvX bar ranks highly among random legal player builds (§17.4).",
+            suite: CheckSuite::Relative,
+            run: crate::check_opt::check_rc4,
+        },
+        Check {
+            id: "RC5",
+            description: "The optimiser does at least as well as the PvX bar (§17.4).",
+            suite: CheckSuite::Relative,
+            run: crate::check_opt::check_rc5,
+        },
     ]
 }
 

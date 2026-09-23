@@ -44,11 +44,27 @@ impl Campaign {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum TitleTrack {
     Asura,
+    Deldrimor,
+    EbonVanguard,
+    Norn,
+    Sunspear,
+    Lightbringer,
+    Kurzick,
+    Luxon,
 }
 
 impl TitleTrack {
-    /// Every title track modelled so far.
-    pub const ALL: [TitleTrack; 1] = [TitleTrack::Asura];
+    /// Every title track that sets PvE-only skill values (T5.7.1).
+    pub const ALL: [TitleTrack; 8] = [
+        TitleTrack::Asura,
+        TitleTrack::Deldrimor,
+        TitleTrack::EbonVanguard,
+        TitleTrack::Norn,
+        TitleTrack::Sunspear,
+        TitleTrack::Lightbringer,
+        TitleTrack::Kurzick,
+        TitleTrack::Luxon,
+    ];
 
     /// This track's position in [`Self::ALL`].
     ///

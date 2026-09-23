@@ -22,6 +22,7 @@ pub mod items;
 pub mod pack;
 pub mod party;
 pub mod plan;
+pub mod profile;
 pub mod provenance;
 pub mod scenario;
 pub mod skill;

@@ -1,0 +1,51 @@
+// Splinter Weapon — seeded from https://wiki.guildwars.com/wiki/Splinter_Weapon
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 792,
+    name: "Splinter Weapon",
+    wiki: "Splinter Weapon",
+    profession: Some(Ritualist),
+    attribute: Some(ChannelingMagic),
+    kind: WeaponSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 5),
+    activation: 1.0,
+    recharge: 5.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "attacks", r0: 1, r12: 4, r15: 5),
+            (label: "damage", r0: 5, r12: 41, r15: 50),
+        ],
+        description_hash: Some("blake3:0a20c7a6ae59cb511812a8636028d55b"),
+    ),
+    encoding: Some((
+        effects: [
+            ApplyEffect(to: TargetAlly, effect: "splinter-weapon", duration: Fixed(20)),
+        ],
+        effect_defs: [
+            (
+                id: "splinter-weapon",
+                kind: WeaponSpell,
+                triggers: [
+                    Triggered(
+                        event: OnHit,
+                        actions: [Damage(to: Secondary(of: Adjacent(Other), factor: 1.0), amount: Scaled(5, 50))],
+                        charges: Some(4),
+                    ),
+                ],
+            ),
+        ],
+        roles: [Damage, Aoe, PartyBuff],
+    )),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Splinter_Weapon"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "PvE version of a split skill (D3) Ends after 1...4...5 attacks; a trigger's charges are a fixed number, so the rank-12 value, 4, is used for every rank (fallout F5.14). The wiki's \"3 [sic] adjacent foes\" is read as all adjacent foes.",
+    ),
+)

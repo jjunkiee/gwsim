@@ -682,6 +682,19 @@ impl FightSetup {
         })
     }
 
+    /// Sets the title ranks PvE-only skills use (an account profile's, or
+    /// all zero under Melandru's Accord). Tracks left out stay at their
+    /// maximum.
+    pub fn with_title_ranks(mut self, ranks: BTreeMap<TitleTrack, u8>) -> FightSetup {
+        // A setup fresh from `new` holds the only reference, which is the
+        // only way it is meant to be called.
+        match Arc::get_mut(&mut self.fight) {
+            Some(fight) => fight.title_ranks = ranks,
+            None => unreachable!("with_title_ranks is called on a fresh setup"),
+        }
+        self
+    }
+
     /// A fresh fight for a seed.
     pub fn sim(&self, seed: RunSeed) -> Sim {
         Sim::new(

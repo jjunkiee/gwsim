@@ -122,5 +122,17 @@
             per_piece: true,
             template_modifier_id: Some(322),
         ),
+        (
+            // The Solo Resto Splinter Support hero wears five (T5.10.3).
+            // +10 armor against physical damage on its own piece: the DSL
+            // has no armor-against-a-damage-type stat, so the bonus is not
+            // modelled yet (fallout F5.15). Its template id is not in the
+            // T1.3.1 table.
+            slug: "stalwart",
+            name: "Stalwart Insignia",
+            profession: None,
+            effects: [],
+            per_piece: true,
+        ),
     ],
 )

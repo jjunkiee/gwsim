@@ -1,0 +1,38 @@
+// Signet of Clumsiness — seeded from https://wiki.guildwars.com/wiki/Signet_of_Clumsiness
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1657,
+    name: "Signet of Clumsiness",
+    wiki: "Signet of Clumsiness",
+    profession: Some(Mesmer),
+    attribute: Some(IllusionMagic),
+    kind: Signet,
+    elite: false,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (),
+    activation: 0.25,
+    recharge: 8.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "damage", r0: 15, r12: 51, r15: 60),
+        ],
+        description_hash: Some("blake3:11561aa6b0caea692f51af1197664492"),
+    ),
+    encoding: Some((
+        effects: [
+            Damage(to: Filtered(of: Adjacent(TargetFoe), filter: Attacking), amount: Scaled(15, 60)),
+            Interrupt(to: Filtered(of: Adjacent(TargetFoe), filter: Attacking)),
+        ],
+        roles: [Interrupt, Damage, Aoe],
+    )),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Signet_of_Clumsiness"],
+        crawled: "2026-09-23",
+        review: Draft,
+        notes: "PvE version of a split skill (D3) The knock-down of foes using attack skills is not modelled: no filter tells an attack skill from an auto-attack (fallout F5.14). The damage is dealt before the interrupt, because the interrupt ends the attack the filter looks for.",
+    ),
+)

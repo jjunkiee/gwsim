@@ -138,6 +138,21 @@ Some useful options:
 
 The same seed always gives the same result, on any machine and at any thread count.
 
+Since milestone M2 gwsim can also **search** for builds. This command frees the player
+slot and looks for the best player bar for the Mesmerway team on all six M1 situations:
+
+```powershell
+cargo run --release -p gwsim-cli -- optimise --party data/parties/m1-mesmerway.ron --free player --situations m1 --budget 5m
+```
+
+It prints a ranked list of builds with template codes and metrics, and a frontier of
+trade-offs between clear time and deaths. A few options:
+
+- `--generations 20` in place of `--budget` makes a run exactly reproducible from its `--seed`.
+- `--mode exhaustive --pool pool.ron` tries every combination from a small list of skills.
+- `--profile mine` limits the search to what an account owns. Manage profiles with `gwsim profile new mine`, `gwsim profile lock mine skill energy-surge` and similar.
+- `--json result.json` writes the full result.
+
 ### 5. Tests
 
 ```powershell
