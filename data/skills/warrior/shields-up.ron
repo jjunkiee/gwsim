@@ -1,0 +1,31 @@
+// "Shields Up!" — seeded from https://wiki.guildwars.com/wiki/%22Shields_Up!%22
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 367,
+    name: "\"Shields Up!\"",
+    wiki: "\"Shields Up!\"",
+    profession: Some(Warrior),
+    attribute: Some(Tactics),
+    kind: Shout,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 0.0,
+    recharge: 30.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(Earshot)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 5, r12: 10, r15: 11),
+        ],
+        description_hash: Some("blake3:d0b02ce421bcf59b1e8d7a84ac87d714"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/%22Shields_Up!%22"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

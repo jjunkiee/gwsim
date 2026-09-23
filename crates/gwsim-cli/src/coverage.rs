@@ -42,8 +42,8 @@ fn write_text(coverage: &Coverage, args: &CoverageArgs, out: &mut impl Write) ->
 
     writeln!(
         out,
-        "{:<16} {:>10} {:>7} {:>9} {:>7} {:>9}",
-        "profession", "NumbersOnly", "Draft", "Reviewed", "total", "encoded"
+        "{:<16} {:>11} {:>11} {:>7} {:>9} {:>7} {:>9}",
+        "profession", "not started", "NumbersOnly", "Draft", "Reviewed", "total", "encoded"
     )?;
 
     let wanted = args.profession.as_deref();
@@ -63,11 +63,16 @@ fn write_text(coverage: &Coverage, args: &CoverageArgs, out: &mut impl Write) ->
         writeln!(out)?;
         write_row("all", &coverage.total, out)?;
 
-        // Saying what the percentage is of matters: until T2.3.6 adds the
-        // skill index there is no list of every skill in the game, so
-        // "encoded" is a share of the files that exist, which is not the
-        // same as a share of the game.
-        if !coverage.denominator_is_complete {
+        // Saying what the percentage is of matters: without the skill index
+        // there is no list of every skill in the game, so "encoded" would be
+        // a share of the files that exist, which is not a share of the game.
+        if coverage.denominator_is_complete {
+            writeln!(
+                out,
+                "
+Percentages are of every player skill in data/skills/index.ron."
+            )?;
+        } else {
             writeln!(
                 out,
                 "\nPercentages are of the skill files that exist, not of every skill in \
@@ -99,7 +104,8 @@ fn write_text(coverage: &Coverage, args: &CoverageArgs, out: &mut impl Write) ->
 fn write_row(name: &str, counts: &StatusCounts, out: &mut impl Write) -> io::Result<()> {
     writeln!(
         out,
-        "{name:<16} {:>10} {:>7} {:>9} {:>7} {:>8.0}%",
+        "{name:<16} {:>11} {:>11} {:>7} {:>9} {:>7} {:>8.0}%",
+        counts.not_started,
         counts.numbers_only,
         counts.draft,
         counts.reviewed,
@@ -111,6 +117,7 @@ fn write_row(name: &str, counts: &StatusCounts, out: &mut impl Write) -> io::Res
 fn as_json(coverage: &Coverage) -> serde_json::Value {
     let counts = |counts: &StatusCounts| {
         serde_json::json!({
+            "not_started": counts.not_started,
             "numbers_only": counts.numbers_only,
             "draft": counts.draft,
             "reviewed": counts.reviewed,

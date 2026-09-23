@@ -1,0 +1,32 @@
+// Energy Surge — seeded from https://wiki.guildwars.com/wiki/Energy_Surge
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 39,
+    name: "Energy Surge",
+    wiki: "Energy Surge",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: Spell,
+    elite: true,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 5),
+    activation: 2.0,
+    recharge: 15.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Nearby)),
+    extracted: (
+        scaled: [
+            (label: "energy loss", r0: 1, r12: 8, r15: 10),
+            (label: "total damage (target)", r0: 7, r12: 56, r15: 70, special_rounding: true),
+        ],
+        description_hash: Some("blake3:14aba0794bcf6e049d003ac9c13b721c"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Energy_Surge"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

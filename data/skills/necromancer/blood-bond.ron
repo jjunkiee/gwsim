@@ -1,0 +1,33 @@
+// Blood Bond — seeded from https://wiki.guildwars.com/wiki/Blood_Bond
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 835,
+    name: "Blood Bond",
+    wiki: "Blood Bond",
+    profession: Some(Necromancer),
+    attribute: Some(BloodMagic),
+    kind: HexSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 5),
+    activation: 1.0,
+    recharge: 8.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 3, r12: 10, r15: 12),
+            (label: "health gain", r0: 5, r12: 17, r15: 20),
+            (label: "healing", r0: 20, r12: 84, r15: 100),
+        ],
+        description_hash: Some("blake3:9dc1d8edd9473e6d7a1b13a1f49f9754"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Blood_Bond"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

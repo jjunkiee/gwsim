@@ -1,0 +1,31 @@
+// Panic — seeded from https://wiki.guildwars.com/wiki/Panic
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 52,
+    name: "Panic",
+    wiki: "Panic",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: HexSpell,
+    elite: true,
+    pve_only: false,
+    campaign: Prophecies,
+    cost: (energy: 10),
+    activation: 1.0,
+    recharge: 15.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Nearby)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 1, r12: 8, r15: 10),
+        ],
+        description_hash: Some("blake3:f1f6ffae2f85ac4b9364d03852fb3106"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Panic"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

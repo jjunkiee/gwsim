@@ -1,0 +1,33 @@
+// Veil of Thorns — seeded from https://wiki.guildwars.com/wiki/Veil_of_Thorns
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1757,
+    name: "Veil of Thorns",
+    wiki: "Veil of Thorns",
+    profession: Some(Dervish),
+    attribute: Some(EarthPrayers),
+    kind: FlashEnchantmentSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 10),
+    activation: 0.0,
+    recharge: 15.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(Nearby)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 5, r12: 21, r15: 25),
+            (label: "piercing damage", r0: 5, r12: 41, r15: 50),
+            (label: "spell damage reduction", r0: 5, r12: 29, r15: 35),
+        ],
+        description_hash: Some("blake3:9fed5873f49ccae1cb523ab3025c1305"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Veil_of_Thorns"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

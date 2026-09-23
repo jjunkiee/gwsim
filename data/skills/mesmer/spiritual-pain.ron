@@ -1,0 +1,33 @@
+// Spiritual Pain — seeded from https://wiki.guildwars.com/wiki/Spiritual_Pain
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1336,
+    name: "Spiritual Pain",
+    wiki: "Spiritual Pain",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 5),
+    activation: 1.0,
+    recharge: 7.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(InTheArea)),
+    extracted: (
+        scaled: [
+            (label: "damage", r0: 15, r12: 63, r15: 75),
+            (label: "damage to summoned creatures", r0: 25, r12: 105, r15: 125),
+        ],
+        description_hash: Some("blake3:27d8b8a0902d92947559c17698eac5a6"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Spiritual_Pain"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

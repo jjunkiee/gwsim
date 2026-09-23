@@ -1,0 +1,34 @@
+// Enchanter's Conundrum — seeded from https://wiki.guildwars.com/wiki/Enchanter%27s_Conundrum
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1345,
+    name: "Enchanter\'s Conundrum",
+    wiki: "Enchanter\'s Conundrum",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: HexSpell,
+    elite: true,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 10),
+    activation: 2.0,
+    recharge: 10.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "cast time % increase", r0: 100, r12: 180, r15: 200),
+            (label: "target damage", r0: 10, r12: 82, r15: 100),
+            (label: "area damage", r0: 8, r12: 62, r15: 75),
+        ],
+        description_hash: Some("blake3:c0698696717fef6644ed94168e02ac75"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Enchanter%27s_Conundrum"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

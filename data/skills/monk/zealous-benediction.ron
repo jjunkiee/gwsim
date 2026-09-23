@@ -1,0 +1,31 @@
+// Zealous Benediction — seeded from https://wiki.guildwars.com/wiki/Zealous_Benediction
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1687,
+    name: "Zealous Benediction",
+    wiki: "Zealous Benediction",
+    profession: Some(Monk),
+    attribute: Some(ProtectionPrayers),
+    kind: Spell,
+    elite: true,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 10),
+    activation: 0.75,
+    recharge: 4.0,
+    target: Self,
+    range: None,
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "healing", r0: 30, r12: 150, r15: 180),
+        ],
+        description_hash: Some("blake3:3373bc437eb9c0c36c62b45787c17ccc"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Zealous_Benediction"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

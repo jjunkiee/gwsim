@@ -11,6 +11,7 @@ use crate::items::{
 };
 use crate::scenario::{Benchmark, Encounter, Situation, SituationSet};
 use crate::skill::Skill;
+use crate::skill_index::SkillIndexFile;
 use crate::source::DataSource;
 
 /// An entity loaded from a file, and the file it came from.
@@ -38,6 +39,9 @@ pub struct DataSet {
     pub situations: BTreeMap<Slug, Entry<Situation>>,
     pub situation_sets: BTreeMap<Slug, Entry<SituationSet>>,
     pub benchmarks: BTreeMap<Slug, Entry<Benchmark>>,
+
+    /// Every player skill in the game, the coverage denominator (T2.3.6).
+    pub skill_index: Option<Entry<SkillIndexFile>>,
 
     pub armor: Option<Entry<ArmorFile>>,
     pub runes: Option<Entry<RunesFile>>,
@@ -140,6 +144,10 @@ impl DataSet {
                 if let Some(file) = parse::<AssumptionsFile>(path, &text, problems) {
                     self.assumptions = Assumptions::new(file.assumptions);
                 }
+            }
+
+            ["skills", "index.ron"] => {
+                self.skill_index = parse(path, &text, problems).map(|value| entry(path, value));
             }
 
             ["skills", _folder, _file] => match parse::<Skill>(path, &text, problems) {
@@ -283,6 +291,13 @@ impl DataSet {
             // rather than by someone wondering where it went.
             let folder = entry.path.split('/').nth(1).unwrap_or("");
             let expected = match entry.value.profession {
+                // PvE-only skills sit outside every profession's pool, so they
+                // all live in common/, even the ones a profession owns (such as
+                // the Kurzick and Luxon allegiance skills). That rule belongs to
+                // the pve_only check in checks.rs; enforcing the profession
+                // folder here as well made the two contradict each other
+                // (fallout F2.8).
+                Some(_) if entry.value.pve_only => folder.to_owned(),
                 Some(profession) => format!("{profession:?}").to_lowercase(),
                 None => {
                     if folder == "common" || folder == "monster" {

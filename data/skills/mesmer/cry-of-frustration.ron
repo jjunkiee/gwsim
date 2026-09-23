@@ -1,0 +1,32 @@
+// Cry of Frustration — seeded from https://wiki.guildwars.com/wiki/Cry_of_Frustration
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 57,
+    name: "Cry of Frustration",
+    wiki: "Cry of Frustration",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 0.25,
+    recharge: 20.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(InTheArea)),
+    extracted: (
+        scaled: [
+            (label: "target damage", r0: 15, r12: 63, r15: 75),
+            (label: "area damage", r0: 11, r12: 47, r15: 56),
+        ],
+        description_hash: Some("blake3:68c40835ff10410e5a2a5d7f319d5448"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Cry_of_Frustration"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

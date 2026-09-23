@@ -1,0 +1,32 @@
+// Spirit Transfer — seeded from https://wiki.guildwars.com/wiki/Spirit_Transfer
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 962,
+    name: "Spirit Transfer",
+    wiki: "Spirit Transfer",
+    profession: Some(Ritualist),
+    attribute: Some(RestorationMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 10),
+    activation: 0.25,
+    recharge: 5.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "spirit health loss", r0: 5, r12: 41, r15: 50),
+            (label: "healing", r0: 25, r12: 205, r15: 250),
+        ],
+        description_hash: Some("blake3:92788199d6b1d60107dbc8cebb08c16b"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Spirit_Transfer"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

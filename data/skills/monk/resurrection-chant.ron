@@ -1,0 +1,32 @@
+// Resurrection Chant — seeded from https://wiki.guildwars.com/wiki/Resurrection_Chant
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1128,
+    name: "Resurrection Chant",
+    wiki: "Resurrection Chant",
+    profession: Some(Monk),
+    attribute: Some(HealingPrayers),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 10),
+    activation: 6.0,
+    recharge: 15.0,
+    target: Corpse,
+    range: Some(Casting),
+    aoe: None,
+    flags: (half_range: true),
+    extracted: (
+        scaled: [
+            (label: "% energy", r0: 5, r12: 29, r15: 35),
+        ],
+        description_hash: Some("blake3:b8c5aa8a0e8c0a0d076d5f2a24ac8c15"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Resurrection_Chant"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

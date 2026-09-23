@@ -1,0 +1,31 @@
+// Mend Body and Soul — seeded from https://wiki.guildwars.com/wiki/Mend_Body_and_Soul
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1234,
+    name: "Mend Body and Soul",
+    wiki: "Mend Body and Soul",
+    profession: Some(Ritualist),
+    attribute: Some(RestorationMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (energy: 5),
+    activation: 0.75,
+    recharge: 3.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "healing", r0: 20, r12: 96, r15: 115),
+        ],
+        description_hash: Some("blake3:8e497115aec32f86c7fc46565c934315"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Mend_Body_and_Soul"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

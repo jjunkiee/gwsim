@@ -1,0 +1,32 @@
+// Armor of Sanctity — seeded from https://wiki.guildwars.com/wiki/Armor_of_Sanctity
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1515,
+    name: "Armor of Sanctity",
+    wiki: "Armor of Sanctity",
+    profession: Some(Dervish),
+    attribute: Some(EarthPrayers),
+    kind: EnchantmentSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 5),
+    activation: 0.25,
+    recharge: 15.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "weakness duration", r0: 5, r12: 13, r15: 15),
+            (label: "damage reduction", r0: 5, r12: 17, r15: 20),
+        ],
+        description_hash: Some("blake3:59787f81571c4163a8085f7eaefbe061"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Armor_of_Sanctity"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

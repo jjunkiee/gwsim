@@ -1,0 +1,31 @@
+// Convert Hexes — seeded from https://wiki.guildwars.com/wiki/Convert_Hexes
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 303,
+    name: "Convert Hexes",
+    wiki: "Convert Hexes",
+    profession: Some(Monk),
+    attribute: Some(ProtectionPrayers),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 15),
+    activation: 1.0,
+    recharge: 12.0,
+    target: OtherAlly,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 8, r12: 18, r15: 20),
+        ],
+        description_hash: Some("blake3:511ef8d6f3809d6b0240860a10dab230"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Convert_Hexes"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

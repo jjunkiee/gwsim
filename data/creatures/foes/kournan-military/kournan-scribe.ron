@@ -1,0 +1,27 @@
+// Kournan Scribe — seeded from https://wiki.guildwars.com/wiki/Kournan_Scribe
+// Draft: `gwsim-extract seed` wrote the numbers; gaps carry assumption references.
+(
+    name: "Kournan Scribe",
+    wiki: "Kournan Scribe",
+    affiliation: "Kournan military",
+    species: "Human",
+    traits: [Fleshy],
+    professions: (Elementalist,None),
+    level: (nm: 20, hm: Some(26)),
+    attributes: (nm: [(FireMagic,15)], hm: None),
+    skills: [
+        (skill: Slug("aftershock")),
+        (skill: Slug("aura-of-restoration")),
+        (skill: Slug("fireball")),
+        (skill: Slug("master-of-magic")),
+        (skill: Slug("meteor")),
+    ],
+    armor: (default: Some(60), level_context: Some(20)),
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Kournan_Scribe"],
+        crawled: "2026-09-23",
+        review: Draft,
+        assumptions: ["A-004","A-005"],
+        notes: "the page lists 2 level pairs; the highest, 20 (26), is used; the bar is the page\'s \"Levels 20 and above\" list, which covers level 20; 1 level variant(s) for other levels were left out",
+    ),
+)

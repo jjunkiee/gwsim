@@ -121,11 +121,54 @@ separate tool, `gwsim-extract`. **It is a developer tool and is not shipped with
 application** — you do not need it to use gwsim, because the data it produces is committed
 to this repository.
 
-If you do run it, the crawl etiquette is not optional: article pages only, at least three
-seconds between requests, an honest User-Agent, and stop immediately on `403` or `429`. A
-full crawl takes roughly 3.3 hours. See [CONTRIBUTING.md](CONTRIBUTING.md) before you start.
+It does three jobs:
 
-*This section will be expanded once the extractor exists.*
+- **`crawl`** fetches wiki pages into a local cache, slowly and resumably;
+- **`seed`** writes initial data files from the cache — numbers only for skills, `Draft`
+  for foes — and **never overwrites a file that exists**;
+- **`diff`** compares the cache with the committed data and writes a change report. It
+  never writes to `data/`.
+
+```powershell
+# The skill lists (about 20 pages, 1 minute), then the index that coverage counts against
+cargo run -p gwsim-extractor -- crawl --scope skills --discovery-only
+cargo run -p gwsim-extractor -- index
+
+# Particular pages, then seed them
+cargo run -p gwsim-extractor -- crawl --only "Energy Surge" "Kournan Seer"
+cargo run -p gwsim-extractor -- seed --scope skills --only "Energy Surge"
+cargo run -p gwsim-extractor -- seed --scope foes --only "Kournan Seer"
+
+# What changed since seeding
+cargo run -p gwsim-extractor -- diff --out report.md --json report.json
+```
+
+`crawl --dry-run` prints the URLs it would fetch and fetches nothing. `crawl` prints the page
+count and an estimate before it starts: a full crawl of every skill page is about 1,350 pages,
+**roughly 70 minutes**, and the change report needs one.
+
+**The etiquette is enforced, not optional** (DESIGN §9.1, EXT-1 to EXT-7):
+
+- `robots.txt` is fetched first and obeyed; a session stops if it cannot be read;
+- only `https://wiki.guildwars.com/wiki/<Title>` article pages are ever requested — never
+  `/api.php`, `/index.php` or `Special:` pages;
+- at least 3 seconds between requests (`--delay` refuses anything under 2);
+- the User-Agent names the project and nobody else;
+- `5xx` backs off 30, 60 then 120 seconds; **`403` or `429` stops the session at once**;
+- wiki text never reaches `data/`: only numbers, flags and a hash of each description.
+
+The cache lives in `.cache/wiki/`, one `.html` and one `.meta.json` per page. It holds raw
+wiki HTML, so **it is git-ignored and must never be committed**. An interrupted crawl
+resumes from `.cache/crawl-state.json`; delete that file to abandon it.
+
+**Applying a balance patch** (UC11, detailed in WP7.18): crawl the changed pages (or
+everything), run `diff`, read the report — it flags changed numbers, pages that vanished,
+and descriptions that changed and so need their encoding re-checked — edit the data by
+hand, then re-run `gwsim data validate` and `gwsim check`. Add `--updates
+"Feedback:Game updates/<date>"` to `diff`, after crawling that page, to see the update
+note beside each change.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) before you start.
 
 ### Troubleshooting
 

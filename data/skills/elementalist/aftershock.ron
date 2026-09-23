@@ -1,0 +1,32 @@
+// Aftershock — seeded from https://wiki.guildwars.com/wiki/Aftershock
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 174,
+    name: "Aftershock",
+    wiki: "Aftershock",
+    profession: Some(Elementalist),
+    attribute: Some(EarthMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 0.75,
+    recharge: 10.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(Nearby)),
+    extracted: (
+        scaled: [
+            (label: "earth damage", r0: 15, r12: 71, r15: 85),
+            (label: "+ earth damage", r0: 15, r12: 71, r15: 85),
+        ],
+        description_hash: Some("blake3:caa04058d33d4f8d83060720c986f6bb"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Aftershock"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

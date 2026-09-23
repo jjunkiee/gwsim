@@ -1,0 +1,31 @@
+// Shatter Hex — seeded from https://wiki.guildwars.com/wiki/Shatter_Hex
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 67,
+    name: "Shatter Hex",
+    wiki: "Shatter Hex",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: Spell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 1.0,
+    recharge: 10.0,
+    target: Ally,
+    range: Some(Casting),
+    aoe: Some(Band(Nearby)),
+    extracted: (
+        scaled: [
+            (label: "damage", r0: 30, r12: 102, r15: 120),
+        ],
+        description_hash: Some("blake3:57b2a1a79434385746d46a4a592b9bc0"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Shatter_Hex"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)

@@ -1,0 +1,33 @@
+// "Fall Back!" — seeded from https://wiki.guildwars.com/wiki/%22Fall_Back!%22
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 1595,
+    name: "\"Fall Back!\"",
+    wiki: "\"Fall Back!\"",
+    profession: Some(Paragon),
+    attribute: Some(Command),
+    kind: Shout,
+    elite: false,
+    pve_only: false,
+    campaign: Nightfall,
+    cost: (energy: 10),
+    activation: 0.0,
+    recharge: 20.0,
+    target: r#None,
+    range: None,
+    aoe: Some(Band(Earshot)),
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 4, r12: 9, r15: 10),
+            (label: "health gain", r0: 5, r12: 13, r15: 15),
+        ],
+        description_hash: Some("blake3:50a08b6e2ccb1c0ca9ea429d6a7b4fb1"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/%22Fall_Back!%22"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

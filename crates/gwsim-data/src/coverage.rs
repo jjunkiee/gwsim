@@ -98,11 +98,19 @@ pub struct StatusCounts {
     pub numbers_only: usize,
     pub draft: usize,
     pub reviewed: usize,
+    /// Skills the index lists that have no file yet. Always zero without an
+    /// index, because nothing then says which skills exist.
+    pub not_started: usize,
 }
 
 impl StatusCounts {
-    /// Every skill counted.
+    /// Every skill counted, including those with no file yet.
     pub fn total(&self) -> usize {
+        self.numbers_only + self.draft + self.reviewed + self.not_started
+    }
+
+    /// Skills that have a file, whatever its status.
+    pub fn with_files(&self) -> usize {
         self.numbers_only + self.draft + self.reviewed
     }
 
@@ -135,11 +143,32 @@ impl Coverage {
     /// Works out what a data set covers.
     pub fn compute(data: &DataSet) -> Coverage {
         let mut coverage = Coverage {
-            // T2.3.6 adds data/skills/index.ron, which is the first real
-            // denominator. Until then, every percentage is of what exists.
-            denominator_is_complete: false,
+            // With data/skills/index.ron every percentage is of the whole
+            // game; without it, only of the files that exist.
+            denominator_is_complete: data.skill_index.is_some(),
             ..Coverage::default()
         };
+
+        if let Some(index) = &data.skill_index {
+            for indexed in &index.value.skills {
+                if data.skill_by_id(indexed.id).is_some() {
+                    continue;
+                }
+                coverage
+                    .by_profession
+                    .entry(indexed.profession)
+                    .or_default()
+                    .not_started += 1;
+                if let Some(campaign) = indexed.campaign {
+                    coverage
+                        .by_campaign
+                        .entry(campaign)
+                        .or_default()
+                        .not_started += 1;
+                }
+                coverage.total.not_started += 1;
+            }
+        }
 
         for entry in data.skills.values() {
             let skill = &entry.value;
@@ -215,7 +244,8 @@ impl Coverage {
         coverage
     }
 
-    /// Whether anything at all has been encoded.
+    /// Whether there is nothing at all to report: no skill files and no
+    /// index.
     pub fn is_empty(&self) -> bool {
         self.total.total() == 0
     }
@@ -263,10 +293,20 @@ mod tests {
             numbers_only: 3,
             draft: 5,
             reviewed: 2,
+            not_started: 0,
         };
         assert_eq!(counts.total(), 10);
         assert_eq!(counts.encoded_percent(), 70.0);
         assert_eq!(counts.reviewed_percent(), 20.0);
+
+        // With an index, skills that have no file count against the total.
+        let counts = StatusCounts {
+            not_started: 10,
+            ..counts
+        };
+        assert_eq!(counts.total(), 20);
+        assert_eq!(counts.with_files(), 10);
+        assert_eq!(counts.encoded_percent(), 35.0);
     }
 
     #[test]

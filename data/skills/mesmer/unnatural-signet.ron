@@ -1,0 +1,33 @@
+// Unnatural Signet — seeded from https://wiki.guildwars.com/wiki/Unnatural_Signet
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 934,
+    name: "Unnatural Signet",
+    wiki: "Unnatural Signet",
+    profession: Some(Mesmer),
+    attribute: Some(DominationMagic),
+    kind: Signet,
+    elite: false,
+    pve_only: false,
+    campaign: Factions,
+    cost: (),
+    activation: 1.0,
+    recharge: 10.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: Some(Band(Adjacent)),
+    extracted: (
+        scaled: [
+            (label: "damage", r0: 15, r12: 63, r15: 75),
+            (label: "damage to adjacent", r0: 5, r12: 41, r15: 50),
+        ],
+        description_hash: Some("blake3:610f95e7252107e9c70e755d97c5879d"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Unnatural_Signet"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+        notes: "PvE version of a split skill (D3)",
+    ),
+)

@@ -1523,7 +1523,7 @@ PvX sources:
 | [Kournan Oppressor](https://wiki.guildwars.com/wiki/Kournan_Oppressor) | Necromancer | **Blood is Power** (elite), Life Siphon, Signet of Lost Souls, Strip Enchantment | Blood 15 (HM 20) | 60 |
 | [Kournan Priest](https://wiki.guildwars.com/wiki/Kournan_Priest) | Monk | Convert Hexes, Reversal of Fortune, Shielding Hands, **Zealous Benediction** (elite) | Divine Favor 15, Protection 15 | 60 |
 
-- **Armor to verify (WP4.2):** "a / b" means two values from the wiki's armor table (physical and elemental differences). Confirm which damage types and which level the table refers to.
+- **Armor, confirmed by T2.5.7:** "a / b" is **physical / elemental**: the first figure is blunt, piercing and slashing, the second cold, earth, fire and lightning. Every Kournan table states **level 20**. The table above is otherwise correct against the wiki as of 2026-09-23; the Zealot and Phalanx pages give no attribute ranks at all, and only the Bowman, Seer and Oppressor give hard-mode ranks ([T2.5.7](findings/T2.5.7-kournan-parse-check.md)).
 - There are no monster-only skills. The group gives little hex or condition pressure on the party (a known limitation of this encounter).
 
 ### 20.3 Skill inventory

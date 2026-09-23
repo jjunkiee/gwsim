@@ -1,0 +1,33 @@
+// Life Siphon — seeded from https://wiki.guildwars.com/wiki/Life_Siphon
+// The numbers were written by `gwsim-extract seed`; the encoding is written by hand (§8.3).
+(
+    id: 109,
+    name: "Life Siphon",
+    wiki: "Life Siphon",
+    profession: Some(Necromancer),
+    attribute: Some(BloodMagic),
+    kind: HexSpell,
+    elite: false,
+    pve_only: false,
+    campaign: Core,
+    cost: (energy: 10),
+    activation: 1.0,
+    recharge: 5.0,
+    target: Foe,
+    range: Some(Casting),
+    aoe: None,
+    extracted: (
+        scaled: [
+            (label: "duration", r0: 12, r12: 22, r15: 24),
+            (label: "health degeneration", r0: 1, r12: 3, r15: 3),
+            (label: "health regeneration", r0: 1, r12: 3, r15: 3),
+        ],
+        description_hash: Some("blake3:4b5f0d33952bdfd7c8f1edb6ebd0b436"),
+    ),
+    encoding: None,
+    provenance: (
+        sources: ["https://wiki.guildwars.com/wiki/Life_Siphon"],
+        crawled: "2026-09-23",
+        review: NumbersOnly,
+    ),
+)
