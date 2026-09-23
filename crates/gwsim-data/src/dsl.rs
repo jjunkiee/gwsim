@@ -177,6 +177,13 @@ pub enum Selector {
         of: Box<Selector>,
         factor: f32,
     },
+    /// Everyone a selector reaches, the main target included, taking a share.
+    /// Mistrust and Overload: since the 2026-06-24 update the area's 75%
+    /// applies to the target too.
+    Reduced {
+        of: Box<Selector>,
+        factor: f32,
+    },
 }
 
 impl Selector {
@@ -191,7 +198,9 @@ impl Selector {
             | Selector::SpiritRange(inner)
             | Selector::InRangeOf(inner)
             | Selector::Nearest(inner) => inner.is_foe_only(),
-            Selector::Filtered { of, .. } | Selector::Secondary { of, .. } => of.is_foe_only(),
+            Selector::Filtered { of, .. }
+            | Selector::Secondary { of, .. }
+            | Selector::Reduced { of, .. } => of.is_foe_only(),
             Selector::Around { side, .. } => *side == Side::Foes,
             _ => false,
         }
@@ -213,7 +222,9 @@ impl Selector {
             | Selector::SpiritRange(inner)
             | Selector::InRangeOf(inner)
             | Selector::Nearest(inner) => inner.is_ally_only(),
-            Selector::Filtered { of, .. } | Selector::Secondary { of, .. } => of.is_ally_only(),
+            Selector::Filtered { of, .. }
+            | Selector::Secondary { of, .. }
+            | Selector::Reduced { of, .. } => of.is_ally_only(),
             Selector::Around { side, .. } => *side == Side::Allies,
             _ => false,
         }

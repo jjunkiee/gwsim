@@ -41,6 +41,8 @@ pub struct FightSkill {
     pub skill: Skill,
     pub slug: Slug,
     pub handler: Option<usize>,
+    /// What the skill is for, as the AI reads it.
+    pub profile: crate::ai::profile::SkillProfile,
     pub aftercast_ms: u32,
     pub is_spell: bool,
     pub is_attack: bool,
@@ -66,6 +68,7 @@ impl FightSkill {
             .and_then(|e| e.handler.as_ref())
             .and_then(|h| handlers.index_of(&h.name));
         FightSkill {
+            profile: crate::ai::profile::SkillProfile::of(&skill),
             draft: skill.provenance.review == ReviewStatus::Draft,
             is_spell: kind.is_a(SkillType::Spell),
             is_attack,
@@ -88,8 +91,10 @@ pub struct Tunables {
     pub projectile_speeds: BTreeMap<String, f32>,
     /// A-009.
     pub aggro_range: f32,
-    /// A-010. Pending until T4.4.1; the M0 default is the human delay.
+    /// A-010, in normal mode.
     pub foe_reaction_ms: u32,
+    /// A-010, in hard mode.
+    pub foe_reaction_hm_ms: u32,
     /// A-011, for decisions other than interrupts.
     pub hero_reaction_ms: u32,
     /// A-012.
@@ -142,6 +147,14 @@ impl Tunables {
                 _ => None,
             }
         };
+        let table_entry = |id: &str, key: &str| -> Option<f64> {
+            match get(id)? {
+                AssumptionValue::Table(rows) => {
+                    rows.iter().find(|(k, _)| k == key).map(|(_, v)| *v)
+                }
+                _ => None,
+            }
+        };
         let projectile_speeds = match get("A-003") {
             Some(AssumptionValue::Table(rows)) => {
                 rows.iter().map(|(k, v)| (k.clone(), *v as f32)).collect()
@@ -157,7 +170,8 @@ impl Tunables {
             collision_radius: number("A-002", &mut problems) as f32,
             projectile_speeds,
             aggro_range: number("A-009", &mut problems) as f32,
-            foe_reaction_ms: optional("A-010").map(|v| v as u32).unwrap_or(human),
+            foe_reaction_ms: table_entry("A-010", "normal").unwrap_or(f64::from(human)) as u32,
+            foe_reaction_hm_ms: table_entry("A-010", "hard").unwrap_or(f64::from(human)) as u32,
             hero_reaction_ms: optional("A-011").map(|v| v as u32).unwrap_or(human),
             human_reaction_ms: human,
             rest_ms: number("A-028", &mut problems) as u32,
@@ -621,6 +635,11 @@ pub(crate) fn blank_unit(
         creature_type: None,
         death_penalty: 0,
         morale: 0,
+        group: None,
+        hero_mode: crate::unit::HeroMode::Fight,
+        focus: None,
+        home: Vec2::ZERO,
+        kiter: false,
     }
 }
 
@@ -693,6 +712,9 @@ fn party_unit(
     unit.slot_index = Some(slot_index);
     unit.professions = (build.primary, build.secondary);
     unit.pos = start + Vec2::new(0.0, -(slot_index as f32) * 60.0);
+    // A hero's formation point, relative to the leader (the tactics plan
+    // replaces this, WP4.7).
+    unit.home = unit.pos - start;
 
     for (attribute, rank) in derived::effective_ranks(build, data) {
         unit.base_ranks[attribute.index()] = rank;
@@ -720,6 +742,7 @@ fn party_unit(
                     name: insignia.name.clone(),
                     actions: insignia.effects.clone(),
                     piece: insignia.per_piece.then_some(piece.slot),
+                    scope: None,
                 });
             }
         }
@@ -737,6 +760,7 @@ fn party_unit(
                     name: upgrade.name.clone(),
                     actions: upgrade.effects.clone(),
                     piece: None,
+                    scope: set.attribute,
                 });
             }
         }
@@ -767,7 +791,7 @@ fn spawn_encounter(
 ) {
     let start = Vec2::new(encounter.party_start.x, encounter.party_start.y);
     let radius = tunables.collision_radius;
-    for group in &encounter.groups {
+    for (group_index, group) in encounter.groups.iter().enumerate() {
         let centre = start + Vec2::new(group.position.x, group.position.y);
         let members: Vec<(&Slug, Option<&String>)> = group
             .foes
@@ -799,6 +823,8 @@ fn spawn_encounter(
             match spawned {
                 Ok((mut unit, controller)) => {
                     unit.pos = position;
+                    unit.home = position;
+                    unit.group = Some(group_index as u16);
                     unit.foe_index = Some(names.len());
                     names.push(unit.name.clone());
                     units.push(unit);

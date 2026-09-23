@@ -766,6 +766,14 @@ pub fn render_phrase(selector: &Selector) -> Phrase {
             };
             Phrase::plural(format!("{text} ({percent}% of that)"))
         }
+        Selector::Reduced { of, factor } => {
+            let percent = (factor * 100.0).round();
+            let inner = render_phrase(of);
+            Phrase {
+                text: format!("{} ({percent}% of it)", inner.text),
+                plural: inner.plural,
+            }
+        }
     }
 }
 

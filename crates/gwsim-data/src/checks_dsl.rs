@@ -209,7 +209,9 @@ fn target_root(selector: &Selector) -> &Selector {
         | Selector::SpiritRange(inner)
         | Selector::InRangeOf(inner)
         | Selector::Nearest(inner) => target_root(inner),
-        Selector::Filtered { of, .. } | Selector::Secondary { of, .. } => target_root(of),
+        Selector::Filtered { of, .. }
+        | Selector::Secondary { of, .. }
+        | Selector::Reduced { of, .. } => target_root(of),
         other => other,
     }
 }

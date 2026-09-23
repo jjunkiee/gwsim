@@ -77,6 +77,10 @@ pub struct Sim {
     pub engaged_at: Option<SimTime>,
     /// Dhuum's Covenant was on and a party member died.
     pub covenant_broken: bool,
+    /// Which foe groups have noticed the party (AI-F1), by group index.
+    pub aggroed: Vec<bool>,
+    /// The party's called target (§11.6), which heroes attack first.
+    pub called_target: Option<UnitId>,
     trigger_depth: u8,
 }
 
@@ -106,6 +110,8 @@ impl Sim {
             outcome: None,
             engaged_at: None,
             covenant_broken: false,
+            aggroed: Vec::new(),
+            called_target: None,
             trigger_depth: 0,
         }
     }

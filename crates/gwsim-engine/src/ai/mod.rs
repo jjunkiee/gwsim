@@ -7,7 +7,11 @@
 //! trait objects so a fight can be cloned for each run and dispatch stays
 //! cheap and deterministic.
 
+pub mod foe;
+pub mod hero;
 pub mod plan;
+pub mod profile;
+pub mod skills;
 
 use crate::log::{LogEvent, LogKind};
 use crate::pipeline::Order;
@@ -47,7 +51,11 @@ pub fn reaction_delay(sim: &mut Sim, unit: UnitId) -> u32 {
         }
         Controller::Foe => {
             sim.touch(10);
-            sim.fight.tunables.foe_reaction_ms
+            if sim.fight.hard_mode {
+                sim.fight.tunables.foe_reaction_hm_ms
+            } else {
+                sim.fight.tunables.foe_reaction_ms
+            }
         }
         Controller::Hero => {
             sim.touch(11);
@@ -63,7 +71,7 @@ impl Sim {
         for index in 0..self.units.len() {
             let unit = UnitId(index as u16);
             let u = &self.units[index];
-            if !u.alive() || self.now < u.next_decision_at || u.goal.is_some() {
+            if !u.alive() || u.goal.is_some() {
                 continue;
             }
             if !matches!(u.action, Action::Idle | Action::Attacking { .. }) {
@@ -74,12 +82,21 @@ impl Sim {
                 .get(index)
                 .copied()
                 .unwrap_or(Controller::Idle);
+            if self.now < u.next_decision_at {
+                // Heroes interrupt without a reaction delay (A-011).
+                if controller == Controller::Hero
+                    && let Some(order) = hero::interrupt_now(self, unit)
+                {
+                    self.order(unit, order);
+                }
+                continue;
+            }
             let order = match controller {
                 Controller::Idle => None,
                 Controller::Plan { plan } => plan::decide(self, unit, plan),
-                Controller::Foe | Controller::Hero | Controller::Minion | Controller::Spirit => {
-                    self.decide_by_rule(unit, controller)
-                }
+                Controller::Foe => foe::decide(self, unit),
+                Controller::Hero => hero::decide(self, unit),
+                Controller::Minion | Controller::Spirit => self.decide_by_rule(unit, controller),
             };
             if let Some(order) = order {
                 if self.logging() {

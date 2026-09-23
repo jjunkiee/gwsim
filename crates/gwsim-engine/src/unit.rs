@@ -274,6 +274,31 @@ pub struct Unit {
     pub death_penalty: u8,
     /// Morale boost, as a percentage onto maximum health and energy.
     pub morale: u8,
+
+    /// For a foe, the group it aggroes with (AI-F1).
+    pub group: Option<u16>,
+    /// For a hero, its combat mode (AI-H2).
+    pub hero_mode: HeroMode,
+    /// The foe this unit is concentrating on: its last attack or offensive
+    /// skill target. Heroes lock onto the player's (AI-H1).
+    pub focus: Option<UnitId>,
+    /// Where it stands when it has nothing to do: a hero's flag or formation
+    /// point, a foe's spawn point.
+    pub home: Vec2,
+    /// Backs away from melee (AI-F5).
+    pub kiter: bool,
+}
+
+/// A hero's combat mode (AI-H2, Hero).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum HeroMode {
+    /// Attacks called targets, then targets engaging the party.
+    #[default]
+    Fight,
+    /// Holds its position and fights only when engaged.
+    Guard,
+    /// Never attacks; uses only indirect skills.
+    AvoidCombat,
 }
 
 /// A spirit's aura: the `SpiritAura` effect definitions of the skill that

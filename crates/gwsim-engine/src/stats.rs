@@ -48,6 +48,9 @@ pub struct GearEffect {
     pub actions: Vec<Action>,
     /// For per-piece insignias, the armor piece it sits on.
     pub piece: Option<ArmorSlot>,
+    /// For weapon upgrades, the attribute whose spells they reach (a "40/40
+    /// Domination set" halves Domination spells only). [`None`] reaches all.
+    pub scope: Option<gwsim_data::core::Attribute>,
 }
 
 /// How a stat's modifiers combine.

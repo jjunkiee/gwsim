@@ -1645,7 +1645,7 @@ Each entry becomes a record in `data/assumptions.ron`. The status of each starts
 | A-035 | When an auto-attack hits within its swing | Halfway through the attack interval (added in P3) | The wiki gives intervals, not hit timing |
 | A-036 | Experience range for Air of Superiority | 5,020 gwinches, about the radar's radius (added in P3) | "Earn experience from killing" needs a range; the wiki does not state one |
 | A-037 | Damage type of caster weapons | By profession, as the wiki's wand page lists (added in P3) | The type is not recorded per weapon in gwsim's data |
-| A-038 | Several "chance to" modifiers on one roll | They do not stack; the largest applies (added in P3) | The wiki is silent on combination |
+| A-038 | Several "chance to" modifiers on one roll | The weapon's and off-hand's chances add, as a "40/40 set" implies (revised in P4) | The wiki names the set but does not state the arithmetic |
 | A-039 | Hit location of skill damage | The same weights as weapon hits (added in P3) | The wiki documents hit locations for attacks only |
 | A-040 | The target dies or is lost during an activation | The skill fails: energy spent, no recharge penalty beyond the normal one (added in P3) | Observed in play, not documented |
 | A-041 | When a "next spell" trigger fires | At the start of the spell's activation (added in P3) | Mistrust's wording is ambiguous; activation start matches play |

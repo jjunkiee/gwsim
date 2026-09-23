@@ -21,7 +21,7 @@
         review: Draft,
         reviewed_by: None,
         assumptions: [],
-        notes: "Values from T1.4.1. Only the upgrades M1 uses are listed. Percentages are the maximum of the published range; lower-quality versions exist and are not modelled, because gwsim builds use perfect gear. KNOWN GAP: every one of these applies only to spells of the item's own attribute, and the DSL has no item-relative scope, so the encodings below are broader than the real effect. WP4.3 must narrow them before they are used for anything.",
+        notes: "Values from T1.4.1. Only the upgrades M1 uses are listed. Percentages are the maximum of the published range; lower-quality versions exist and are not modelled, because gwsim builds use perfect gear. Every one of these applies only to spells of the item's own attribute; a build names that attribute on its weapon set (weapon_set.attribute), and the engine scopes the chances to it (T4.3.14). A weapon and off-hand add their chances, as a 40/40 set's name implies (A-038).",
     ),
 
     upgrades: [

@@ -845,6 +845,10 @@ impl Sim {
                     .filter(|u| self.filter_passes(filter, *u, ctx.caster, Some(ctx)))
                     .collect()
             }
+            Selector::Reduced { of, factor: share } => {
+                *factor *= f64::from(*share);
+                self.resolve(of, ctx, factor)
+            }
             Selector::Secondary { of, factor: share } => {
                 *factor *= f64::from(*share);
                 let main = ctx.target_unit();
@@ -1267,11 +1271,17 @@ impl Sim {
         }
     }
 
-    /// The weapon chance mods on a unit for a stat: the highest single chance
-    /// and its amount (A-038: the same kind does not stack).
-    pub fn chance_mod(&self, unit: UnitId, stat: Stat) -> Option<(f64, f64)> {
-        let mut best: Option<(f64, f64)> = None;
+    /// The weapon chance mods on a unit for a stat, for one skill: their
+    /// chances added across the weapon and off-hand, to at most 100%, and the
+    /// amount (A-038: a "40/40 set" is 20% from each item). An upgrade reaches
+    /// only spells of its weapon set's attribute.
+    pub fn chance_mod(&self, unit: UnitId, stat: Stat, skill: u16) -> Option<(f64, f64)> {
+        let attribute = self.fight.skills[usize::from(skill)].skill.attribute;
+        let mut total: Option<(f64, f64)> = None;
         for gear in &self.units[unit.index()].gear {
+            if gear.scope.is_some() && gear.scope != attribute {
+                continue;
+            }
             for action in &gear.actions {
                 let Action::Control(control) = action else {
                     continue;
@@ -1288,14 +1298,15 @@ impl Sim {
                         let ctx = ExecCtx::for_skill(unit, Target::Unit(unit), 0, None, 0);
                         let value = self.eval_value(amount, &ctx);
                         let chance = f64::from(*percent) / 100.0;
-                        if best.is_none_or(|(c, _)| chance > c) {
-                            best = Some((chance, value));
-                        }
+                        total = Some(match total {
+                            Some((sum, _)) => ((sum + chance).min(1.0), value),
+                            None => (chance, value),
+                        });
                     }
                 }
             }
         }
-        best
+        total
     }
 
     /// Damage reductions on a target from its effects' `while_active` lists,

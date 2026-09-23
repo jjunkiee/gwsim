@@ -231,6 +231,7 @@ impl Sim {
             Order::Attack(target) => {
                 let u = &mut self.units[unit.index()];
                 u.attack_target = Some(target);
+                u.focus = Some(target);
                 if matches!(u.action, Action::Idle | Action::Attacking { .. }) {
                     u.action = Action::Attacking { target };
                 }
@@ -329,6 +330,11 @@ impl Sim {
             && self.units[t.index()].team != self.units[unit.index()].team
         {
             self.mark_combat(unit);
+            // A cast-time skill on a foe draws its group's attention (Aggro).
+            if activation_draws_aggro(fight_skill) {
+                self.mark_combat(t);
+            }
+            self.units[unit.index()].focus = Some(t);
         }
 
         let activation = self.activation_ms(unit, skill);
@@ -743,7 +749,8 @@ impl Sim {
         if fight.hard_mode && u.team == Team::Foes && base > 2000.0 {
             time *= 0.5;
         }
-        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::ActivationTime) {
+        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::ActivationTime, skill)
+        {
             self.touch(38);
             if self.streams.unit(unit, Purpose::SkillChance).chance(chance) {
                 time *= 1.0 + amount / 100.0;
@@ -777,7 +784,7 @@ impl Sim {
                 time *= 1.0 - reduction / 100.0;
             }
         }
-        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::Recharge) {
+        if spell && let Some((chance, amount)) = self.chance_mod(unit, Stat::Recharge, skill) {
             self.touch(38);
             if self.streams.unit(unit, Purpose::SkillChance).chance(chance) {
                 time *= 1.0 + amount / 100.0;
@@ -785,4 +792,10 @@ impl Sim {
         }
         ((time / 1000.0).round() * 1000.0).max(0.0) as u32
     }
+}
+
+/// Whether using a skill on a foe draws that foe's aggro: skills with a cast
+/// time do (Aggro).
+fn activation_draws_aggro(skill: &crate::setup::FightSkill) -> bool {
+    skill.skill.activation.ms() > 0
 }

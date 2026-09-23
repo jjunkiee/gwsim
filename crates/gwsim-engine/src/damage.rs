@@ -208,7 +208,12 @@ impl Sim {
         if let Some(slot) = self.units[target.index()].slot_index {
             self.stats.slots[slot].damage_taken += i64::from(damage);
         }
-        if let Some(skill) = info.skill {
+        // Damage a skill does to its own side (a spirit paying for a block)
+        // is a cost, not damage dealt.
+        let hostile = self.units[source.index()].team != self.units[target.index()].team;
+        if let Some(skill) = info.skill
+            && hostile
+        {
             self.stats.skills[usize::from(skill)].damage += i64::from(damage);
         }
         if self.logging() {
