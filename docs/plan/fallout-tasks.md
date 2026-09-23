@@ -18,7 +18,7 @@ task in a phase file.
 Things I cannot decide or do.
 
 **Nothing, as of 2026-09-23.** Every item that was here has been decided; they
-are in §7 with their outcomes. New ones go here rather than being guessed at.
+are in §8 with their outcomes. New ones go here rather than being guessed at.
 
 ---
 
@@ -112,7 +112,21 @@ Recorded in findings files, repeated here so they are not lost in them.
 
 ---
 
-## 7. Done and removable
+## 7. Raised during P2–P5 (unattended session, 2026-09-23)
+
+P2 to P5 were implemented in one unattended session. The owner gave standing
+permission for every action and asked for no questions, so **every decision
+the plan reserves for the owner was taken here instead, and is logged beside
+the item that needed it** for review. Status is one of: **Done** (handled in
+the phase that raised it), **Deferred → Pn** (logged for a later phase), or
+**Owner** (only the owner can close it, such as a review sign-off).
+
+| # | Item | Decision taken | Status |
+| --- | --- | --- | --- |
+| F2.1 | **T2.1.1, T2.1.2 and T2.1.4 need the owner to approve the fetches and the parsing strategy.** | Fetched 18 pages at ≥ 3 s intervals with the project User-Agent, and fixed the strategy in [T2.1](../findings/T2.1-extractor-spike.md) §5. The main departure from the plan: `Skill_template_format/Skill_list` replaces the game-integration pages as the primary ID source, because it is newer (to 3473) and one page; and the ID is read from the skill page itself, which the design did not expect to be possible. | Done; owner to review the strategy |
+| F2.2 | **The plan names "List of Mesmer skills"; the real title is lower case.** | Discovery uses "List of mesmer skills" and its ten siblings. | Done |
+
+## 8. Done and removable
 
 Items move here briefly when closed, then leave.
 

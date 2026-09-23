@@ -581,24 +581,25 @@ The DSL is a Rust enum tree, serialised as RON. It must express the formulaic (~
 | EXT-2 | Request only `https://wiki.guildwars.com/wiki/<Title>` article URLs, including `Category:` and project-namespace pages under `/wiki/`. |
 | EXT-3 | Wait at least **3 s** between requests [Proposed default, configurable, never below 2 s]. |
 | EXT-4 | User-Agent: `gwsim-extractor/<version> (+<project repo URL>)`. **No personal details** (no email) [D15]. |
-| EXT-5 | Cache every page locally in `.cache/wiki/` (git-ignored) with its fetch time, so re-runs are resumable. Use conditional requests (`If-Modified-Since` / `ETag`) if the server supports them [Proposed; verify]. |
+| EXT-5 | Cache every page locally in `.cache/wiki/` (git-ignored) with its fetch time, so re-runs are resumable. Use conditional requests: the server sends no `ETag` but honours `If-Modified-Since` with a 304 (verified in T2.1.1). |
 | EXT-6 | Back off exponentially on 5xx. **Stop** on 403 or 429 and report; never retry aggressively. |
 | EXT-7 | Never store wiki prose in `data/`. Description text is read only from the cache, to extract numbers and to help translation. |
 
 ### 9.2 Page discovery
 
-- On MediaWiki sites, category page pagination normally goes through `/index.php?…&pagefrom=…`, which is disallowed here. Discovery must therefore use article pages that list everything [Proposed; confirm in the spike]:
-  - [Guild Wars Wiki:Game integration/Skills/1-500](https://wiki.guildwars.com/wiki/Guild_Wars_Wiki:Game_integration/Skills/1-500), and its sibling pages up to 3001–3500. These list every skill ID and page. Last edited 2026-08-08, so they lack the newest IDs (e.g. 3443, Frenzy (PvP)).
-  - [List of all skills](https://wiki.guildwars.com/wiki/List_of_all_skills) and the per-profession skill list pages.
-  - [Skill template format/Skill list](https://wiki.guildwars.com/wiki/Skill_template_format/Skill_list), which has skill IDs.
+- On MediaWiki sites, category page pagination normally goes through `/index.php?…&pagefrom=…`, which is disallowed here. Discovery therefore uses article pages that list everything [confirmed by the WP2.1 spike, [T2.1](findings/T2.1-extractor-spike.md)]:
+  - [Skill template format/Skill list](https://wiki.guildwars.com/wiki/Skill_template_format/Skill_list): **the primary source**. It lists every player-loadable skill with its ID, up to 3473, which is newer than the game-integration pages.
+  - [Guild Wars Wiki:Game integration/Skills/1-500](https://wiki.guildwars.com/wiki/Guild_Wars_Wiki:Game_integration/Skills/1-500), and its sibling pages up to 3001–3500. These list every skill ID and page, monster skills included. Last edited 2026-08-08, so they lack the newest IDs (e.g. 3443, Frenzy (PvP)). Used for monster skills and as a cross-check.
+  - The per-profession skill list pages ("List of mesmer skills", lower case), for profession, attribute, campaign and elite, and "List of PvE-only skills" for that flag.
   - Area pages' `Foes` / `Bosses` sections, for creature pages.
 - The first page of a category (under 200 members, or the first 200) is reachable at `/wiki/Category:…` and can be used as a cross-check.
+- robots.txt uses `*` wildcards (`/wiki/Special:*`), so the extractor's robots parser supports wildcard matching.
 
 ### 9.3 Parsing (from rendered HTML)
 
 | Page kind | What to extract | Notes |
 | --- | --- | --- |
-| Skill | Infobox fields (profession, attribute, type, energy, adrenaline, sacrifice, upkeep, overcast, activation, recharge, elite, PvE-only, campaign, target, range, AoE, causes/removes tags), scaled values (rank 0 and 15) from the rendered progression table or from `x…y…z` text, and the skill ID | **Spike first:** confirm the rendered HTML exposes every field. The skill ID may not be displayed, so fall back to the game-integration lists. Normalise values such as `{{3/2}}` (fractions), `8%` and `-1`. |
+| Skill | Infobox fields (profession, attribute, type, energy, adrenaline, sacrifice, upkeep, overcast, activation, recharge, elite, PvE-only, campaign), target, range, AoE and flags **from the page's categories**, scaled values from the rendered progression table (the `x…y…z` text is a check only), and the skill ID | Confirmed by the spike (T2.1): **the skill ID is displayed**, as the infobox image's title, so no title join is needed. Normalise values such as `{{3/2}}` (fractions), `8%` and `-1`. |
 | Foe (`{{NPC infobox}}`) | Name, professions, level `NM (HM)`, species/type, boss flag, the Skills section (skill links, attribute text such as "15 Blood Magic (20 … in Hard mode)", `(Hard mode only)` tags, monster skills), the Armor ratings table (`{{NPC statistics}}`: blunt, piercing, slashing, cold, earth, fire, lightning), locations | Health isn't recorded per creature; use `20 × level + 80`, plus 20 per level above 20 in HM ([Creature](https://wiki.guildwars.com/wiki/Creature), [Level](https://wiki.guildwars.com/wiki/Level)). Weapon damage isn't recorded (assumption A-004). |
 | Area | `Foes` / `Bosses` lists with levels, spawn notes | No group composition or positions are available; those are hand-authored. |
 | Game update | Per-skill change lines | Context for the change report only. |
