@@ -191,6 +191,9 @@ impl Sim {
                 armor_ignoring: true,
             });
         }
+        if unit.aura.is_some() {
+            self.aura_spirits.push(id);
+        }
         self.add_creature(unit, Controller::Spirit, caster);
         self.queue.schedule(
             self.now.plus((seconds * 1000.0).round().max(0.0) as u32),

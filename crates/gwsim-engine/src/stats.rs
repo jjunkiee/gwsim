@@ -51,6 +51,9 @@ pub struct GearEffect {
     /// For weapon upgrades, the attribute whose spells they reach (a "40/40
     /// Domination set" halves Domination spells only). [`None`] reaches all.
     pub scope: Option<gwsim_data::core::Attribute>,
+    /// The stats its actions can modify ([`stat_bit`]), so a query for any
+    /// other stat skips it.
+    pub stats: u64,
 }
 
 /// How a stat's modifiers combine.
@@ -159,6 +162,67 @@ pub fn combine<'a>(stat: Stat, modifiers: impl IntoIterator<Item = &'a Modifier>
         Combine::Chance => (1.0 - capped * uncapped).clamp(0.0, 1.0),
         Combine::Sum { min, max } => capped.clamp(min, max) + uncapped,
     }
+}
+
+/// A bit per kind of stat, for skipping effects that cannot touch one
+/// (T4.11.4). Attribute ranks share a bit, as do the elemental attributes
+/// that reach them.
+pub fn stat_bit(stat: Stat) -> u64 {
+    let index = match stat {
+        Stat::Armor => 0,
+        Stat::MovementSpeed => 1,
+        Stat::AttackSpeed => 2,
+        Stat::ActivationTime => 3,
+        Stat::Recharge => 4,
+        Stat::AdrenalineRate => 5,
+        Stat::ProjectileSpeed => 6,
+        Stat::BlockChance => 7,
+        Stat::HealthRegeneration => 8,
+        Stat::EnergyRegeneration => 9,
+        Stat::MaxEnergy => 10,
+        Stat::MaxHealth => 11,
+        Stat::DamageDealt => 12,
+        Stat::DamageTaken => 13,
+        Stat::HealingReceived => 14,
+        Stat::AttributeRank(_) | Stat::ElementalAttributes => 15,
+        Stat::HealthPerSecond => 16,
+        Stat::ActivationTimeOf(_) => 17,
+    };
+    1 << index
+}
+
+/// The stats a list of actions can modify, following `If`, `Sequence` and
+/// `Chance`: every one, and those a `ModifyStat(to: Self)` gives the caster.
+pub fn actions_mask(actions: &[Action]) -> (u64, u64) {
+    let mut all = 0;
+    let mut caster = 0;
+    for action in actions {
+        match action {
+            Action::ModifyStat { to, stat, .. } => {
+                all |= stat_bit(*stat);
+                if matches!(to, gwsim_data::dsl::Selector::SelfUnit) {
+                    caster |= stat_bit(*stat);
+                }
+            }
+            Action::Control(control) => {
+                let inner: Vec<&Vec<Action>> = match control.as_ref() {
+                    gwsim_data::dsl::Control::If {
+                        then, otherwise, ..
+                    } => vec![then, otherwise],
+                    gwsim_data::dsl::Control::Sequence(list)
+                    | gwsim_data::dsl::Control::Chance { actions: list, .. } => vec![list],
+                    _ => Vec::new(),
+                };
+                for list in inner {
+                    let (a, c) = actions_mask(list);
+                    all |= a;
+                    caster |= c;
+                }
+            }
+            _ => {}
+        }
+    }
+    (all, caster)
 }
 
 #[cfg(test)]

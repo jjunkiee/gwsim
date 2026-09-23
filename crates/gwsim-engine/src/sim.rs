@@ -81,6 +81,14 @@ pub struct Sim {
     pub aggroed: Vec<bool>,
     /// The party's called target (§11.6), which heroes attack first.
     pub called_target: Option<UnitId>,
+    /// When a foe last started a skill, so heroes can interrupt at once.
+    pub foe_cast_started: Option<SimTime>,
+    /// Spirits carrying an aura, so stat queries need not scan every unit.
+    pub aura_spirits: Vec<UnitId>,
+    /// Effects whose definition gives its caster a modifier (Life Siphon's
+    /// regeneration), as (bearer, effect id), so stat queries need not scan
+    /// every effect in the fight.
+    pub caster_effects: Vec<(UnitId, u32)>,
     trigger_depth: u8,
 }
 
@@ -112,6 +120,9 @@ impl Sim {
             covenant_broken: false,
             aggroed: Vec::new(),
             called_target: None,
+            foe_cast_started: None,
+            aura_spirits: Vec::new(),
+            caster_effects: Vec::new(),
             trigger_depth: 0,
         }
     }
@@ -327,7 +338,7 @@ impl Sim {
             // Triggers of the auras the subject stands in (Displacement's
             // block, Infuriating Heat's adrenaline). Auras have no charges.
             let mut aura_matches: Vec<(crate::exec::ActiveDef, usize)> = Vec::new();
-            for active in self.defs_on(subject) {
+            for active in self.defs_flagged(subject, crate::setup::DEF_TRIGGERS) {
                 if active.effect.is_some() {
                     continue;
                 }

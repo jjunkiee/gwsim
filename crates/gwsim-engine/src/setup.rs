@@ -48,7 +48,20 @@ pub struct FightSkill {
     pub is_attack: bool,
     /// Used while only `Draft`, so results must say so (§8.7).
     pub draft: bool,
+    /// Per effect definition, the stats its `while_active` can modify: every
+    /// one, and those it gives its caster (T4.11.4).
+    pub def_stats: Vec<(u64, u64)>,
+    /// Per effect definition, what else it holds ([`DEF_REDUCES`] and so on),
+    /// so lookups skip definitions that cannot matter.
+    pub def_flags: Vec<u8>,
 }
+
+/// A definition reduces incoming damage.
+pub const DEF_REDUCES: u8 = 1;
+/// A definition grants immunity to critical hits.
+pub const DEF_CRIT_IMMUNE: u8 = 2;
+/// A definition has triggers.
+pub const DEF_TRIGGERS: u8 = 4;
 
 impl FightSkill {
     /// Prepares a skill for a fight.
@@ -67,7 +80,46 @@ impl FightSkill {
             .as_ref()
             .and_then(|e| e.handler.as_ref())
             .and_then(|h| handlers.index_of(&h.name));
+        let def_stats = skill
+            .encoding
+            .as_ref()
+            .map(|e| {
+                e.effect_defs
+                    .iter()
+                    .map(|d| crate::stats::actions_mask(&d.while_active))
+                    .collect()
+            })
+            .unwrap_or_default();
+        let def_flags = skill
+            .encoding
+            .as_ref()
+            .map(|e| {
+                e.effect_defs
+                    .iter()
+                    .map(|d| {
+                        let mut flags = 0;
+                        for action in &d.while_active {
+                            match action {
+                                gwsim_data::dsl::Action::ReduceIncomingDamage { .. } => {
+                                    flags |= DEF_REDUCES;
+                                }
+                                gwsim_data::dsl::Action::SetCriticalImmune { .. } => {
+                                    flags |= DEF_CRIT_IMMUNE;
+                                }
+                                _ => {}
+                            }
+                        }
+                        if !d.triggers.is_empty() {
+                            flags |= DEF_TRIGGERS;
+                        }
+                        flags
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
         FightSkill {
+            def_stats,
+            def_flags,
             profile: crate::ai::profile::SkillProfile::of(&skill),
             draft: skill.provenance.review == ReviewStatus::Draft,
             is_spell: kind.is_a(SkillType::Spell),
@@ -209,6 +261,11 @@ pub struct FightData {
     pub starting_morale: u8,
     /// Whether Dhuum's Covenant is on (a party death breaks it).
     pub dhuums_covenant: bool,
+    /// The stats any effect in the fight gives its caster rather than its
+    /// bearer; queries for others skip the caster scan.
+    pub caster_share_mask: u64,
+    /// Whether any skill in the fight maintains an effect with upkeep.
+    pub any_upkeep: bool,
     /// Title ranks for PvE-only skills. With no account profile every track
     /// is at its maximum (Q14).
     pub title_ranks: BTreeMap<TitleTrack, u8>,
@@ -449,6 +506,17 @@ impl FightSetup {
                 unit.morale = situation.starting_morale;
             }
         }
+        let caster_share_mask = table
+            .skills
+            .iter()
+            .flat_map(|s| s.def_stats.iter().map(|(_, caster)| *caster))
+            .fold(0, |mask, bits| mask | bits);
+        let any_upkeep = table.skills.iter().any(|s| {
+            s.skill
+                .encoding
+                .as_ref()
+                .is_some_and(|e| e.effect_defs.iter().any(|d| d.upkeep.is_some()))
+        });
         let fight = FightData {
             core: core.clone(),
             skills: table.skills,
@@ -463,6 +531,8 @@ impl FightSetup {
             starting_dp: situation.starting_dp,
             starting_morale: situation.starting_morale,
             dhuums_covenant: situation.mode.dhuums_covenant,
+            caster_share_mask,
+            any_upkeep,
             title_ranks: BTreeMap::new(),
         };
         let slot_names = party.slots.iter().map(|s| s.name.clone()).collect();
@@ -743,6 +813,7 @@ fn party_unit(
                     actions: insignia.effects.clone(),
                     piece: insignia.per_piece.then_some(piece.slot),
                     scope: None,
+                    stats: crate::stats::actions_mask(&insignia.effects).0,
                 });
             }
         }
@@ -761,6 +832,7 @@ fn party_unit(
                     actions: upgrade.effects.clone(),
                     piece: None,
                     scope: set.attribute,
+                    stats: crate::stats::actions_mask(&upgrade.effects).0,
                 });
             }
         }

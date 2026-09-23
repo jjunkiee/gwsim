@@ -83,13 +83,24 @@ impl Sim {
                 .copied()
                 .unwrap_or(Controller::Idle);
             if self.now < u.next_decision_at {
-                // Heroes interrupt without a reaction delay (A-011).
+                // Heroes interrupt without a reaction delay (A-011): they
+                // look again the moment a foe starts a skill.
+                let just_cast = self
+                    .foe_cast_started
+                    .is_some_and(|at| self.now.ms().saturating_sub(at.ms()) < crate::time::TICK_MS);
                 if controller == Controller::Hero
+                    && just_cast
                     && let Some(order) = hero::interrupt_now(self, unit)
                 {
                     self.order(unit, order);
                 }
                 continue;
+            }
+            // A controller with nothing to do looks again after its reaction
+            // delay, unless something changes first (T4.4.2's cadence).
+            if matches!(controller, Controller::Foe | Controller::Hero) {
+                let delay = reaction_delay(self, unit);
+                self.units[index].next_decision_at = self.now.plus(delay);
             }
             let order = match controller {
                 Controller::Idle => None,

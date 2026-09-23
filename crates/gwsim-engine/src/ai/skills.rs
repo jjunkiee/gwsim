@@ -66,6 +66,11 @@ impl Sim {
             let Some(skill) = self.slot_skill(unit, slot) else {
                 continue;
             };
+            // What does not depend on the target first: recharge, energy,
+            // adrenaline, a busy caster.
+            if !self.ready(unit, slot) {
+                continue;
+            }
             for target in self.candidates(unit, skill, situation) {
                 if self.can_use(unit, slot, target).is_err() {
                     continue;
@@ -312,6 +317,15 @@ impl Sim {
             score += f64::from(hints.priority) * 10.0;
         }
         Some(score)
+    }
+
+    /// Whether a slot could be used now, whatever the target.
+    fn ready(&self, unit: UnitId, slot: u8) -> bool {
+        match self.can_use(unit, slot, Target::Unit(unit)) {
+            Ok(()) => true,
+            Err(crate::pipeline::Invalid::BadTarget(_)) => true,
+            Err(_) => false,
+        }
     }
 
     /// Whether a unit bears an effect from a skill: a given definition, or

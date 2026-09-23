@@ -956,6 +956,81 @@ impl Sim {
         found
     }
 
+    /// The definitions acting on a unit that carry a flag
+    /// ([`crate::setup::DEF_REDUCES`] and so on).
+    pub fn defs_flagged(&self, unit: UnitId, flag: u8) -> Vec<ActiveDef> {
+        self.defs_matching(unit, |skill, def| {
+            self.fight.skills[usize::from(skill)]
+                .def_flags
+                .get(usize::from(def))
+                .is_some_and(|flags| flags & flag != 0)
+        })
+    }
+
+    /// [`Self::defs_on`], keeping only definitions a predicate accepts, and
+    /// skipping the aura scan's range checks for auras it rejects.
+    fn defs_matching(&self, unit: UnitId, touches: impl Fn(u16, u16) -> bool) -> Vec<ActiveDef> {
+        let mut found = Vec::new();
+        self.for_each_matching(unit, touches, |active| found.push(active));
+        found
+    }
+
+    /// Visits the definitions acting on a unit that a predicate accepts,
+    /// without allocating: the hot path of every stat query (T4.11.4).
+    fn for_each_matching(
+        &self,
+        unit: UnitId,
+        touches: impl Fn(u16, u16) -> bool,
+        mut visit: impl FnMut(ActiveDef),
+    ) {
+        let me = &self.units[unit.index()];
+        for effect in &me.effects {
+            if let EffectSource::Skill { skill, def } = effect.source
+                && touches(skill, def)
+            {
+                visit(ActiveDef {
+                    skill,
+                    def,
+                    caster: effect.caster,
+                    rank: effect.rank,
+                    effect: Some(effect.id),
+                    slot: effect.slot,
+                });
+            }
+        }
+        if me.kind == UnitKind::Spirit || me.has_trait(CreatureTrait::Spirit) {
+            return;
+        }
+        for spirit in self.aura_spirits.iter().map(|id| &self.units[id.index()]) {
+            let Some(aura) = spirit.aura else { continue };
+            if !spirit.alive() || (!aura.affects_all && spirit.team != me.team) {
+                continue;
+            }
+            let Some(encoding) = &self.fight.skills[usize::from(aura.skill)].skill.encoding else {
+                continue;
+            };
+            let mut in_range: Option<bool> = None;
+            for (index, def) in encoding.effect_defs.iter().enumerate() {
+                if def.kind != EffectKind::SpiritAura || !touches(aura.skill, index as u16) {
+                    continue;
+                }
+                let close = *in_range
+                    .get_or_insert_with(|| me.pos.within(spirit.pos, self.aura_range(spirit.id)));
+                if !close {
+                    break;
+                }
+                visit(ActiveDef {
+                    skill: aura.skill,
+                    def: index as u16,
+                    caster: spirit.id,
+                    rank: aura.rank,
+                    effect: None,
+                    slot: None,
+                });
+            }
+        }
+    }
+
     /// The definition an active def points at.
     pub fn def_of(&self, def: &ActiveDef) -> Option<&gwsim_data::dsl::EffectDef> {
         self.fight.skills[usize::from(def.skill)]
@@ -1112,7 +1187,11 @@ impl Sim {
             .copied()
             .collect();
 
+        let bit = crate::stats::stat_bit(stat);
         for gear in &u.gear {
+            if gear.stats & bit == 0 {
+                continue;
+            }
             if gear.piece.is_some() && gear.piece != piece && stat == Stat::Armor {
                 continue;
             }
@@ -1128,9 +1207,15 @@ impl Sim {
             );
         }
 
-        for active in self.defs_on(unit) {
+        let touches = |skill: u16, def: u16| {
+            self.fight.skills[usize::from(skill)]
+                .def_stats
+                .get(usize::from(def))
+                .is_some_and(|(all, _)| all & bit != 0)
+        };
+        self.for_each_matching(unit, touches, |active| {
             let Some(def) = self.def_of(&active) else {
-                continue;
+                return;
             };
             let ctx = ExecCtx::for_def(&active, unit);
             // A `ModifyStat(to: Self)` in a hex helps its caster, not the
@@ -1149,17 +1234,24 @@ impl Sim {
                 bearer_share,
                 &mut found,
             );
-        }
+        });
         // The caster's share of effects it put on others.
-        for other in &self.units {
-            if other.id == unit {
+        let caster_scan = self.fight.caster_share_mask & bit != 0;
+        for (bearer, id) in self.caster_effects.iter().filter(|_| caster_scan) {
+            if *bearer == unit {
                 continue;
             }
-            for effect in &other.effects {
+            let other = &self.units[bearer.index()];
+            for effect in other.effects.iter().filter(|e| e.id == *id) {
                 let EffectSource::Skill { skill, def } = effect.source else {
                     continue;
                 };
-                if effect.caster != unit {
+                if effect.caster != unit
+                    || self.fight.skills[usize::from(skill)]
+                        .def_stats
+                        .get(usize::from(def))
+                        .is_none_or(|(_, caster)| caster & bit == 0)
+                {
                     continue;
                 }
                 let Some(def) = self.fight.skills[usize::from(skill)]
@@ -1314,7 +1406,7 @@ impl Sim {
     /// from, caster, skill)`.
     pub fn damage_reductions(&self, unit: UnitId) -> Vec<crate::damage::Reduction> {
         let mut found = Vec::new();
-        for active in self.defs_on(unit) {
+        for active in self.defs_flagged(unit, crate::setup::DEF_REDUCES) {
             let Some(def) = self.def_of(&active) else {
                 continue;
             };
@@ -1352,13 +1444,15 @@ impl Sim {
 
     /// Whether a unit is immune to critical hits.
     pub fn critical_immune(&self, unit: UnitId) -> bool {
-        self.defs_on(unit).iter().any(|active| {
-            self.def_of(active).is_some_and(|d| {
-                d.while_active
-                    .iter()
-                    .any(|a| matches!(a, Action::SetCriticalImmune { .. }))
+        self.defs_flagged(unit, crate::setup::DEF_CRIT_IMMUNE)
+            .iter()
+            .any(|active| {
+                self.def_of(active).is_some_and(|d| {
+                    d.while_active
+                        .iter()
+                        .any(|a| matches!(a, Action::SetCriticalImmune { .. }))
+                })
             })
-        })
     }
 
     /// Whether a skill type counts as a spell for Fast Casting and Dazed.

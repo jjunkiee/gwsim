@@ -348,6 +348,9 @@ impl Sim {
             self.log_event(event.amount(activation as i32));
         }
 
+        if self.units[unit.index()].team == crate::unit::Team::Foes && activation > 0 {
+            self.foe_cast_started = Some(self.now);
+        }
         if queued {
             let now = self.now;
             let u = &mut self.units[unit.index()];

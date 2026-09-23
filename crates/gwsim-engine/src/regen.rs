@@ -67,13 +67,16 @@ impl Sim {
 
     /// Energy pips after upkeep, capped at ±10.
     pub fn energy_pips(&self, unit: UnitId) -> i32 {
-        let upkeep: i32 = self
-            .units
-            .iter()
-            .flat_map(|u| u.effects.iter())
-            .filter(|e| e.caster == unit && e.upkeep != 0)
-            .map(|e| i32::from(e.upkeep))
-            .sum();
+        let upkeep: i32 = if self.fight.any_upkeep {
+            self.units
+                .iter()
+                .flat_map(|u| u.effects.iter())
+                .filter(|e| e.caster == unit && e.upkeep != 0)
+                .map(|e| i32::from(e.upkeep))
+                .sum()
+        } else {
+            0
+        };
         (self.energy_pips_uncapped(unit) - upkeep).clamp(-10, 10)
     }
 
@@ -85,14 +88,15 @@ impl Sim {
         for modifier in self.modifiers(unit, Stat::HealthRegeneration, None) {
             pips += modifier.value;
         }
-        for (condition, degeneration) in [
-            (Condition::Bleeding, 3.0),
-            (Condition::Burning, 7.0),
-            (Condition::Poison, 4.0),
-            (Condition::Disease, 4.0),
-        ] {
-            if self.has_condition(unit, condition) {
-                pips -= degeneration;
+        // Degenerating conditions, in one pass over the effects.
+        for effect in &u.effects {
+            if let crate::effects::EffectSource::Condition(condition) = effect.source {
+                pips -= match condition {
+                    Condition::Bleeding => 3.0,
+                    Condition::Burning => 7.0,
+                    Condition::Poison | Condition::Disease => 4.0,
+                    _ => 0.0,
+                };
             }
         }
         let mut pips = pips.round() as i32;
