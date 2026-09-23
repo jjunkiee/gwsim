@@ -48,11 +48,43 @@ pub struct SkillStats {
     pub interrupts: u32,
 }
 
+/// What one party slot achieved with one skill (§14.2), or with its
+/// attacks and everything else no skill caused when `skill` is [`None`].
+///
+/// Minions' damage is credited to their master and spirits' to their caster;
+/// damage an effect prevents is credited to whoever put the effect there.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct Contribution {
+    pub slot: u8,
+    /// The fight skill, by index.
+    pub skill: Option<u16>,
+    pub uses: u32,
+    pub damage: i64,
+    pub healing: i64,
+    pub overhealing: i64,
+    pub mitigation: i64,
+    pub interrupts: u32,
+}
+
+/// How often one skill interrupted another.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+pub struct Stopped {
+    /// The interrupting fight skill.
+    pub by: u16,
+    /// The fight skill it stopped.
+    pub stopped: u16,
+    pub count: u32,
+}
+
 /// Everything recorded during one fight.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
 pub struct RunStats {
     pub slots: Vec<SlotStats>,
     pub skills: Vec<SkillStats>,
+    /// Per slot and skill, in the order they first contributed (T4.9.7).
+    pub contributions: Vec<Contribution>,
+    /// What interrupts stopped.
+    pub stopped: Vec<Stopped>,
     /// Time to kill per foe, in foe order.
     pub foe_ttk_ms: Vec<Option<u32>>,
     /// Energy per party slot, sampled every second.
@@ -76,6 +108,45 @@ impl RunStats {
             slots,
             skills: (0..skills).map(|_| SkillStats::default()).collect(),
             foe_ttk_ms: vec![None; foes],
+            contributions: Vec::new(),
+            stopped: Vec::new(),
+        }
+    }
+
+    /// The contribution row for a slot and skill, added when first needed.
+    pub fn contribution(&mut self, slot: usize, skill: Option<u16>) -> &mut Contribution {
+        let slot = slot as u8;
+        let index = match self
+            .contributions
+            .iter()
+            .position(|c| c.slot == slot && c.skill == skill)
+        {
+            Some(index) => index,
+            None => {
+                self.contributions.push(Contribution {
+                    slot,
+                    skill,
+                    ..Contribution::default()
+                });
+                self.contributions.len() - 1
+            }
+        };
+        &mut self.contributions[index]
+    }
+
+    /// Counts one interrupt of `stopped` by `by`.
+    pub fn record_stopped(&mut self, by: u16, stopped: u16) {
+        match self
+            .stopped
+            .iter_mut()
+            .find(|s| s.by == by && s.stopped == stopped)
+        {
+            Some(row) => row.count += 1,
+            None => self.stopped.push(Stopped {
+                by,
+                stopped,
+                count: 1,
+            }),
         }
     }
 

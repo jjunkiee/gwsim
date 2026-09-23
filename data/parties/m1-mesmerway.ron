@@ -8,6 +8,7 @@
         "https://web.archive.org/web/20260727151256/https://gwpvx.fandom.com/wiki/Build:Team_-_7_Hero_Mesmerway",
         "https://web.archive.org/web/20250803220419/https://gwpvx.fandom.com/wiki/Build:Me/any_PvE_Energy_Surge",
     ],
+    benchmarks: ["mesmerway-dual-resto", "me-any-pve-energy-surge"],
     slots: [
         (
             name: "player",

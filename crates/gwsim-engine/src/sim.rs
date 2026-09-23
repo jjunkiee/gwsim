@@ -573,6 +573,17 @@ impl Sim {
     }
 
     /// Whether a log is being kept.
+    /// The party slot credited with what a unit does (§14.2): its own slot,
+    /// or its master's for a minion or spirit.
+    pub fn credit_slot(&self, unit: UnitId) -> Option<usize> {
+        let u = &self.units[unit.index()];
+        if u.team != crate::unit::Team::Party {
+            return None;
+        }
+        u.slot_index
+            .or_else(|| u.master.and_then(|m| self.units[m.index()].slot_index))
+    }
+
     pub fn logging(&self) -> bool {
         self.log.is_some()
     }

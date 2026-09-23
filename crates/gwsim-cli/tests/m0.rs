@@ -420,7 +420,14 @@ fn digests(threads: &str) -> String {
         .unwrap();
     assert!(output.status.success());
     let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    json["digests"].to_string()
+    let digests: Vec<String> = json["situations"][0]["runs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|run| run["digest"].as_str().unwrap().to_owned())
+        .collect();
+    assert_eq!(digests.len(), 24);
+    digests.join(",")
 }
 
 #[test]

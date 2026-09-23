@@ -326,6 +326,9 @@ impl Sim {
             }
         }
         self.stats.skills[usize::from(skill)].uses += 1;
+        if let Some(index) = self.units[unit.index()].slot_index {
+            self.stats.contribution(index, Some(skill)).uses += 1;
+        }
         if let Some(t) = target.unit()
             && self.units[t.index()].team != self.units[unit.index()].team
         {

@@ -331,6 +331,11 @@ impl Sim {
                     let slot = self.units[target.index()]
                         .activating()
                         .map(|(slot, _)| slot);
+                    let stopped = slot.and_then(|s| {
+                        self.units[target.index()].bar[usize::from(s)]
+                            .as_ref()
+                            .map(|state| state.skill)
+                    });
                     if self.interrupt(target, ctx.caster, InterruptScope::Any) {
                         if let (Some(extra), Some(slot)) = (extra, slot)
                             && let Some(state) =
@@ -342,6 +347,12 @@ impl Sim {
                             self.stats.skills[usize::from(skill)].interrupts += 1;
                             if let Some(slot) = self.units[ctx.caster.index()].slot_index {
                                 self.stats.slots[slot].interrupts += 1;
+                            }
+                            if let Some(slot) = self.credit_slot(ctx.caster) {
+                                self.stats.contribution(slot, Some(skill)).interrupts += 1;
+                                if let Some(stopped) = stopped {
+                                    self.stats.record_stopped(skill, stopped);
+                                }
                             }
                         }
                     }

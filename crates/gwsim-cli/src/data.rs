@@ -25,7 +25,7 @@ pub fn validate(args: &ValidateArgs, out: &mut impl Write) -> io::Result<i32> {
     let origin = crate::loading::choose(args.data_dir.as_deref());
     let problems = collect(&origin);
 
-    match args.format {
+    match args.output_format() {
         OutputFormat::Text => write_text(&problems, &origin, out)?,
         OutputFormat::Json => write_json(&problems, out)?,
     }
@@ -117,6 +117,7 @@ mod tests {
         ValidateArgs {
             data_dir: Some(dir),
             format,
+            json: false,
         }
     }
 

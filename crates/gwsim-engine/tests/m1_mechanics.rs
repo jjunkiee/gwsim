@@ -795,3 +795,38 @@ fn m1_air_of_superiority_on_kill() {
         .count();
     assert_eq!(outcomes, 1);
 }
+
+#[test]
+fn report_4_credits_shelters_prevented_damage_to_hero_7() {
+    // T4.9.7: a 400-point hit capped at 10% by Shelter; what Shelter
+    // prevented is hero 7's, under Shelter.
+    let mut sim = arena();
+    let hero7 = slot(&sim, 7);
+    cast(&mut sim, hero7, "shelter", hero7);
+    let player = slot(&sim, 0);
+    let guard = foe(&sim, "Guard");
+    sim.units[guard.index()].pos = sim.units[player.index()].pos + Vec2::new(80.0, 0.0);
+    let before = health(&sim, player);
+    sim.resolve_attack(guard, player, None, 400.0, true, None);
+    let taken = before - health(&sim, player);
+    let shelter = sim
+        .fight
+        .skills
+        .iter()
+        .position(|s| s.slug.as_str() == "shelter")
+        .unwrap() as u16;
+    let rows: Vec<_> = sim
+        .stats
+        .contributions
+        .iter()
+        .filter(|c| c.mitigation > 0)
+        .collect();
+    assert_eq!(rows.len(), 1, "{rows:?}");
+    assert_eq!(rows[0].slot, 7);
+    assert_eq!(rows[0].skill, Some(shelter));
+    assert_eq!(
+        rows[0].mitigation,
+        sim.stats.skills[usize::from(shelter)].mitigation
+    );
+    assert!(rows[0].mitigation > i64::from(taken), "most of the hit was prevented");
+}

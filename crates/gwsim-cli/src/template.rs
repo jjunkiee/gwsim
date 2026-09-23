@@ -6,6 +6,7 @@ use std::path::Path;
 use gwsim_data::build::Build;
 use gwsim_data::core::Attribute;
 use gwsim_data::dataset::DataSet;
+use gwsim_data::party::PartyFile;
 use gwsim_data::source::DirSource;
 use gwsim_data::template::{
     EquipmentTemplate, SkillTemplate, Template, TemplateError, decode as decode_any,
@@ -64,6 +65,10 @@ pub fn encode(args: &EncodeArgs, out: &mut impl Write) -> io::Result<i32> {
             return Ok(FAILED);
         }
     };
+
+    if let Ok(party) = ron::from_str::<PartyFile>(&text) {
+        return encode_party(&party, args, out);
+    }
 
     let build_error = match ron::from_str::<Build>(&text) {
         Ok(build) => return encode_build(&build, args, out),
@@ -125,6 +130,33 @@ fn encode_build(build: &Build, args: &EncodeArgs, out: &mut impl Write) -> io::R
     Ok(OK)
 }
 
+/// Encodes every slot of a party file (T4.9.9).
+fn encode_party(party: &PartyFile, args: &EncodeArgs, out: &mut impl Write) -> io::Result<i32> {
+    let Some(data) = load_data(args.data_dir.as_deref()) else {
+        writeln!(
+            out,
+            "could not read the data directory, which holds the rune and insignia ids an equipment code needs; pass --data-dir"
+        )?;
+        return Ok(FAILED);
+    };
+    writeln!(out, "{}", party.name)?;
+    for slot in &party.slots {
+        let (skill, equipment) = slot.build.to_templates(&data);
+        writeln!(out, "  {}", slot.name)?;
+        writeln!(out, "    skill:     {}", skill.encode())?;
+        if equipment.items.is_empty() {
+            writeln!(out, "    equipment: (none)")?;
+        } else {
+            writeln!(out, "    equipment: {}", equipment.encode())?;
+        }
+    }
+    writeln!(
+        out,
+        "  note: equipment codes carry only the runes and insignias whose ids are known; PvE characters cannot load them, and a hero's carries weapons only."
+    )?;
+    Ok(OK)
+}
+
 fn load_data(data_dir: Option<&Path>) -> Option<DataSet> {
     let dir = data_dir.unwrap_or(Path::new("data"));
     if !dir.is_dir() {
@@ -176,13 +208,35 @@ fn write_skill_text(
         )?;
     }
 
+    let spent: u16 = template
+        .attributes
+        .iter()
+        .map(|(_, rank)| gwsim_data::derived::attribute_cost(*rank))
+        .sum();
+    writeln!(out, "  points:      {spent} of 200 spent")?;
+
     writeln!(out, "  skills:")?;
     for (index, slot) in template.skills.iter().enumerate() {
         let shown = match slot {
             Some(id) => skill_label(*id, data),
             None => "(empty)".to_owned(),
         };
-        writeln!(out, "    {}. {shown}", index + 1)?;
+        let detail = slot
+            .and_then(|id| data.and_then(|data| data.skill_by_id(id)))
+            .map(|skill| {
+                let attribute = skill
+                    .attribute
+                    .map(|a| format!(", {a:?}"))
+                    .unwrap_or_default();
+                let elite = if skill.elite { ", elite" } else { "" };
+                let rank = skill
+                    .attribute
+                    .map(|a| format!(" at rank {}", template.rank_of(a)))
+                    .unwrap_or_default();
+                format!(" [{:?}{attribute}{elite}]{rank}", skill.kind)
+            })
+            .unwrap_or_default();
+        writeln!(out, "    {}. {shown}{detail}", index + 1)?;
     }
 
     Ok(())

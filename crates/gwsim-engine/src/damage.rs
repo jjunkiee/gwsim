@@ -184,6 +184,13 @@ impl Sim {
             let prevented = combat::round_points(before - amount);
             if prevented > 0 {
                 self.stats.skills[usize::from(reduction.skill)].mitigation += i64::from(prevented);
+                if self.units[target.index()].team == crate::unit::Team::Party
+                    && let Some(slot) = self.credit_slot(reduction.caster)
+                {
+                    self.stats
+                        .contribution(slot, Some(reduction.skill))
+                        .mitigation += i64::from(prevented);
+                }
             }
         }
 
@@ -215,6 +222,9 @@ impl Sim {
             && hostile
         {
             self.stats.skills[usize::from(skill)].damage += i64::from(damage);
+        }
+        if hostile && let Some(slot) = self.credit_slot(source) {
+            self.stats.contribution(slot, info.skill).damage += i64::from(damage);
         }
         if self.logging() {
             let mut event = LogEvent::new(self.now, LogKind::Damage)
@@ -349,6 +359,11 @@ impl Sim {
         }
         if let Some(skill) = skill {
             self.stats.skills[usize::from(skill)].healing += i64::from(gained);
+        }
+        if let Some(slot) = self.credit_slot(source) {
+            let row = self.stats.contribution(slot, skill);
+            row.healing += i64::from(gained);
+            row.overhealing += i64::from(over);
         }
         if self.logging() {
             self.log_event(

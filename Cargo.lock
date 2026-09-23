@@ -556,9 +556,11 @@ dependencies = [
  "gwsim-data",
  "gwsim-engine",
  "gwsim-opt",
+ "insta",
  "predicates",
  "rayon",
  "ron",
+ "serde",
  "serde_json",
 ]
 

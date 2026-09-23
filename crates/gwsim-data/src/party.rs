@@ -22,6 +22,9 @@ pub struct PartyFile {
     /// Where the builds were read from, for benchmark parties.
     #[serde(default)]
     pub sources: Vec<String>,
+    /// The benchmark files the builds were taken from (T4.9.1).
+    #[serde(default)]
+    pub benchmarks: Vec<Slug>,
     pub slots: Vec<PartySlot>,
     /// Overrides for the tactics plan, for every situation this party runs
     /// (§11.6). A situation's own overrides win over these.

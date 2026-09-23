@@ -1,0 +1,36 @@
+---
+source: crates/gwsim-cli/src/report.rs
+expression: "String::from_utf8(out).unwrap()"
+---
+gwsim evaluate: M1 Mesmerway
+  Absolute numbers are uncalibrated: compare builds with each other under the same conditions, not with the game (D22).
+  data: data, pack 0123456789ab (baseline 2026-09-22, gwsim 0.1.0)
+  warning: 1 draft skill(s) used; see the notes at the end
+
+Kournan patrol HM [kournan-patrol-hm]
+  runs:          64 (Fixed)
+  win rate:      93.8  (85.0 to 97.5) %   60 of 64 won
+  clear time:    43.4  (42.3 to 44.6) s   median 43.4 s
+  deaths:        0.08  (0.01 to 0.14)
+  damage taken:  2042  (1944 to 2139)
+  energy left:   147  (142 to 153)
+  DP at end:     1.2  (0.2 to 2.2) %
+
+  Contributions per run
+    slot       skill                      uses   damage  healing overheal  prevent   intr
+    hero 7     Shelter                     2.0        0        0        0      161   0.00
+  Interrupts landed
+    Cry of Frustration stopped Fireball: 0.67 per run
+  Energy over time (mean, every 5 s)
+    player      42  37  32
+
+Notes
+  Absolute numbers are uncalibrated: compare builds with each other under the same conditions, not with the game (D22).
+  assumptions touched:
+    A-015 [Assumed] The health and armor of a created spirit.
+  warning: draft skills used (1); their encodings are not yet reviewed against the wiki, so results that depend on them may change:
+    Shelter
+  coverage limits:
+    128 of 141 Mesmer skills unavailable
+  data pack: 0123456789abcdef (baseline 2026-09-22, gwsim 0.1.0, from data)
+  seeds: master 1, runs 64

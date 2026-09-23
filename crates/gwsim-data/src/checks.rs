@@ -484,6 +484,14 @@ fn check_benchmarks(data: &DataSet, problems: &mut DataErrors) {
                     format!("slot {slot_number}'s skill_code does not decode: {error}"),
                 ));
             }
+            if let Some(code) = &slot.bar_code
+                && let Err(error) = crate::template::SkillTemplate::decode(code)
+            {
+                problems.0.push(DataError::consistency(
+                    &entry.path,
+                    format!("slot {slot_number}'s bar_code does not decode: {error}"),
+                ));
+            }
 
             if let Some(code) = &slot.equipment_code
                 && let Err(error) = crate::template::EquipmentTemplate::decode(code)
@@ -503,6 +511,14 @@ fn check_benchmarks(data: &DataSet, problems: &mut DataErrors) {
 /// skill a plan names is on that slot's bar.
 fn check_parties(data: &DataSet, problems: &mut DataErrors) {
     for entry in data.parties.values() {
+        for benchmark in &entry.value.benchmarks {
+            if !data.benchmarks.contains_key(benchmark) {
+                problems.0.push(DataError::consistency(
+                    &entry.path,
+                    format!("there is no benchmark {benchmark:?} in benchmarks/"),
+                ));
+            }
+        }
         for slot in &entry.value.slots {
             let label = &slot.name;
             let bar: Vec<crate::ids::SkillId> =

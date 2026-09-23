@@ -21,6 +21,8 @@ fn main() -> ExitCode {
         },
         Some(Command::Evaluate(args)) => run(|out| gwsim_cli::evaluate::run(&args, out)),
         Some(Command::Plan(args)) => run(|out| gwsim_cli::plan::run(&args, out)),
+        Some(Command::Log(args)) => run(|out| gwsim_cli::log::run(&args, out)),
+        Some(Command::Compare(args)) => run(|out| gwsim_cli::compare::run(&args, out)),
         Some(Command::Template(args)) => match args.command {
             TemplateCommand::Decode(args) => run(|out| gwsim_cli::template::decode(&args, out)),
             TemplateCommand::Encode(args) => run(|out| gwsim_cli::template::encode(&args, out)),

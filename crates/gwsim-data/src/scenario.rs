@@ -201,6 +201,10 @@ pub struct BenchmarkSlot {
     pub skill_code: String,
     #[serde(default)]
     pub equipment_code: Option<String>,
+    /// The code of the bar gwsim runs, where it differs from the published
+    /// one (an optional skill chosen, a column picked; T4.9.1).
+    #[serde(default)]
+    pub bar_code: Option<String>,
     #[serde(default)]
     pub notes: String,
 }

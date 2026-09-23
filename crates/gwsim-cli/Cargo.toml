@@ -11,6 +11,7 @@ gwsim-opt = { path = "../gwsim-opt" }
 gwsim-engine = { path = "../gwsim-engine" }
 gwsim-data = { path = "../gwsim-data" }
 clap.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 rayon.workspace = true
 ron.workspace = true
@@ -21,6 +22,8 @@ gwsim-data = { path = "../gwsim-data" }
 [dev-dependencies]
 assert_cmd.workspace = true
 predicates.workspace = true
+insta.workspace = true
+serde_json.workspace = true
 gwsim-data = { path = "../gwsim-data" }
 
 [[bin]]
