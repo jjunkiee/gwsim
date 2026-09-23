@@ -319,6 +319,40 @@ pub struct Spirit {
     pub range: Option<f32>,
 }
 
+/// `data/creatures/dummies.ron` (T3.10.2).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DummiesFile {
+    pub provenance: Provenance,
+    pub dummies: Vec<Dummy>,
+}
+
+/// A training dummy: stationary, with no skills and no attack.
+///
+/// Every stat is stated rather than derived, so a test knows exactly what it
+/// is hitting. Energy matters because Energy Surge's damage depends on the
+/// energy its target loses (§12.2).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Dummy {
+    pub slug: Slug,
+    pub name: String,
+    pub level: u8,
+    pub health: u32,
+    pub energy: u32,
+    /// Energy regeneration pips. Zero keeps the dummy's energy exactly where
+    /// a test left it.
+    #[serde(default)]
+    pub energy_regeneration: i8,
+    /// Armor against every damage type.
+    pub armor: i16,
+    /// Whether killing it grants experience, which Air of Superiority needs.
+    #[serde(default)]
+    pub gives_experience: bool,
+    #[serde(default)]
+    pub traits: Vec<CreatureTrait>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

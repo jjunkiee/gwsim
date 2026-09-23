@@ -104,6 +104,13 @@ impl DataPack {
     }
 }
 
+/// The files of a pack, as a source, without validating them.
+///
+/// For reading parts the [`DataSet`] does not hold, such as core data.
+pub fn source_from_bytes(bytes: &[u8]) -> Result<MemSource, DataErrors> {
+    Ok(MemSource::new(parse_bytes(bytes)?).described_as("the embedded data pack"))
+}
+
 /// Reads every file from a source, in sorted order.
 fn read_all(source: &dyn DataSource) -> Result<Vec<(String, String)>, DataErrors> {
     let mut problems = DataErrors::default();

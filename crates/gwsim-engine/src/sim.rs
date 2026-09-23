@@ -1,0 +1,441 @@
+//! One fight: the clock, the loop and the event bus (T3.1.5, T3.6.6).
+//!
+//! [`Sim::run`] alternates two things until the fight ends:
+//!
+//! 1. it pops every event due before the next tick, in `(time, class,
+//!    sequence)` order, setting the clock to each event's time;
+//! 2. it advances the clock to the tick and runs the continuous processes:
+//!    movement, regeneration, attacks and AI decisions.
+//!
+//! The fight ends in a **win** when every hostile unit is dead, a **wipe**
+//! when every party member is dead, and a **timeout** (a loss, §12.3) at the
+//! situation's limit, A-030 by default.
+
+use std::sync::Arc;
+
+use gwsim_data::AssumptionId;
+use gwsim_data::dsl::{Control, Event};
+
+use crate::effects::{ActiveEffect, EffectSource, EndReason};
+use crate::exec::ExecCtx;
+use crate::log::{LogEvent, LogKind};
+use crate::result::{Outcome, RunStats};
+use crate::rng::{RunSeed, Streams};
+use crate::setup::FightData;
+use crate::time::{EventKind, EventQueue, SimTime, TICK_MS};
+use crate::unit::{Action, Team, Unit, UnitId};
+
+/// How deep triggers may nest before the chain is cut (T3.6.6).
+pub const MAX_TRIGGER_DEPTH: u8 = 8;
+
+/// Something that happened, which triggers and handlers can react to.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Fired {
+    pub event: Event,
+    /// Whose effects are asked: the caster of a spell, the unit that was hit,
+    /// the unit that died.
+    pub subject: UnitId,
+    /// The other party: the spell's target, the attacker, the killer.
+    pub other: Option<UnitId>,
+    /// The skill involved, as a fight skill index.
+    pub skill: Option<u16>,
+    pub amount: f64,
+}
+
+impl Fired {
+    /// An event with only a subject.
+    pub fn new(event: Event, subject: UnitId) -> Self {
+        Fired {
+            event,
+            subject,
+            other: None,
+            skill: None,
+            amount: 0.0,
+        }
+    }
+}
+
+/// One fight in progress.
+#[derive(Debug, Clone)]
+pub struct Sim {
+    pub fight: Arc<FightData>,
+    pub seed: RunSeed,
+    pub now: SimTime,
+    pub queue: EventQueue,
+    pub units: Vec<Unit>,
+    pub controllers: Vec<crate::ai::Controller>,
+    pub streams: Streams,
+    pub next_effect_id: u32,
+    pub projectiles: Vec<crate::attack::Projectile>,
+    /// The combat log, when one was asked for (WP3.9).
+    pub log: Option<Vec<LogEvent>>,
+    pub stats: RunStats,
+    /// Assumptions this fight relied on, as a bit per id.
+    pub assumptions: u64,
+    pub outcome: Option<(Outcome, SimTime)>,
+    /// When the fight proper began (aggro). Clear time counts from here.
+    pub engaged_at: Option<SimTime>,
+    trigger_depth: u8,
+}
+
+impl Sim {
+    /// A fight ready to start. Normally built by [`crate::setup::FightSetup`].
+    pub fn new(
+        fight: Arc<FightData>,
+        units: Vec<Unit>,
+        controllers: Vec<crate::ai::Controller>,
+        seed: RunSeed,
+    ) -> Sim {
+        let stats = RunStats::new(&units, fight.skills.len());
+        let streams = Streams::new(seed, units.len());
+        Sim {
+            fight,
+            seed,
+            now: SimTime::ZERO,
+            queue: EventQueue::with_capacity(256),
+            units,
+            controllers,
+            streams,
+            next_effect_id: 0,
+            projectiles: Vec::new(),
+            log: None,
+            stats,
+            assumptions: 0,
+            outcome: None,
+            engaged_at: None,
+            trigger_depth: 0,
+        }
+    }
+
+    /// Turns on the combat log for this fight.
+    pub fn with_log(mut self) -> Sim {
+        self.log = Some(Vec::new());
+        self
+    }
+
+    /// Records that the fight relied on an assumption.
+    pub fn touch(&mut self, id: u16) {
+        if id < 64 {
+            self.assumptions |= 1 << id;
+        }
+    }
+
+    /// The assumptions touched, as ids.
+    pub fn assumptions_touched(&self) -> Vec<AssumptionId> {
+        (0..64u16)
+            .filter(|id| self.assumptions & (1 << id) != 0)
+            .filter_map(AssumptionId::from_number)
+            .collect()
+    }
+
+    /// Runs the fight to its end.
+    pub fn run(mut self) -> crate::result::RunResult {
+        self.check_outcome();
+        while self.outcome.is_none() {
+            let next_tick = SimTime((self.now.ms() / TICK_MS + 1) * TICK_MS);
+            self.step_until(next_tick);
+        }
+        self.finish()
+    }
+
+    /// Advances the fight to a time: events first, then any ticks passed.
+    pub fn step_until(&mut self, until: SimTime) {
+        while self.outcome.is_none() {
+            let next_tick = SimTime((self.now.ms() / TICK_MS + 1) * TICK_MS);
+            let horizon = next_tick.min(until);
+            while let Some(event) = self.queue.pop_due(horizon) {
+                self.now = event.at;
+                self.dispatch(event.kind);
+                if self.outcome.is_some() {
+                    return;
+                }
+            }
+            if next_tick > until {
+                self.now = until;
+                return;
+            }
+            self.now = next_tick;
+            self.tick();
+            self.check_outcome();
+            if self.now >= until {
+                return;
+            }
+        }
+    }
+
+    fn dispatch(&mut self, kind: EventKind) {
+        match kind {
+            EventKind::ActivationEnd { unit, generation } => {
+                if self.units[unit.index()].action_generation == generation {
+                    self.finish_activation(unit);
+                }
+            }
+            // The end of an aftercast, or of a knockdown.
+            EventKind::AftercastEnd { unit, generation } => {
+                let u = &mut self.units[unit.index()];
+                if u.action_generation == generation
+                    && matches!(
+                        u.action,
+                        Action::Aftercast { .. } | Action::KnockedDown { .. }
+                    )
+                {
+                    u.action = Action::Idle;
+                    u.action_generation = u.action_generation.wrapping_add(1);
+                    self.after_action(unit);
+                }
+            }
+            EventKind::EffectExpiry { unit, effect } => self.expire_effect(unit, effect),
+            EventKind::ProjectileImpact { projectile } => self.projectile_impact(projectile),
+            EventKind::AttackHit { unit, generation } => self.attack_hit(unit, generation),
+            EventKind::SlotRevert {
+                unit,
+                slot,
+                generation,
+            } => self.revert_slot(unit, slot, generation),
+            EventKind::Marker(_) => {}
+        }
+        self.check_outcome();
+    }
+
+    /// The continuous processes, once per tick.
+    fn tick(&mut self) {
+        self.move_units();
+        self.regenerate();
+        self.drive_attacks();
+        self.decide();
+        if self.now.ms().is_multiple_of(1000) {
+            self.stats.sample_energy(&self.units);
+        }
+    }
+
+    /// Ends the fight if a stop condition holds.
+    pub fn check_outcome(&mut self) {
+        if self.outcome.is_some() {
+            return;
+        }
+        let alive = |team: Team| {
+            self.units
+                .iter()
+                .filter(|u| u.team == team && u.alive() && !u.kind.is_summoned())
+                .count()
+        };
+        let foes_alive = alive(Team::Foes);
+        let party_alive = alive(Team::Party);
+        let has_foes = self
+            .units
+            .iter()
+            .any(|u| u.team == Team::Foes && !u.kind.is_summoned());
+        let outcome = if party_alive == 0 {
+            Some(Outcome::Wipe)
+        } else if has_foes && foes_alive == 0 {
+            Some(Outcome::Win)
+        } else if self.now.ms() >= self.fight.timeout_ms {
+            self.touch(30);
+            Some(Outcome::Timeout)
+        } else {
+            None
+        };
+        if let Some(outcome) = outcome {
+            self.outcome = Some((outcome, self.now));
+            self.log_event(
+                LogEvent::new(self.now, LogKind::FightEnded).detail(&format!("{outcome:?}")),
+            );
+        }
+    }
+
+    /// Called whenever a unit's action finishes and it is free again.
+    pub fn after_action(&mut self, unit: UnitId) {
+        let delay = crate::ai::reaction_delay(self, unit);
+        let u = &mut self.units[unit.index()];
+        u.next_decision_at = self.now.plus(delay);
+        // Resume the auto-attack if there was one.
+        if let Some(target) = u.attack_target
+            && u.alive()
+        {
+            u.action = Action::Attacking { target };
+        }
+    }
+
+    // ------------------------------------------------------------ triggers
+
+    /// Sends an event to the triggers and handlers that care (T3.6.6).
+    ///
+    /// Triggers are consumed deterministically, in effect order on the
+    /// subject. Nesting is limited to [`MAX_TRIGGER_DEPTH`]; a chain that
+    /// reaches it is cut and logged, never looped.
+    pub fn fire(&mut self, fired: Fired) {
+        if self.trigger_depth >= MAX_TRIGGER_DEPTH {
+            self.log_event(
+                LogEvent::new(self.now, LogKind::Warning)
+                    .source(fired.subject)
+                    .detail("trigger depth limit reached; chain cut"),
+            );
+            return;
+        }
+        self.trigger_depth += 1;
+
+        let subject = fired.subject;
+        if subject.index() < self.units.len() {
+            // Collect first: the actions may change the effect list.
+            let mut matched: Vec<(u32, usize)> = Vec::new();
+            let mut handled: Vec<(u32, usize)> = Vec::new();
+            for effect in &self.units[subject.index()].effects {
+                match effect.source {
+                    EffectSource::Skill { skill, def } => {
+                        let fight_skill = &self.fight.skills[usize::from(skill)];
+                        if let Some(handler) = fight_skill.handler {
+                            handled.push((effect.id, handler));
+                        }
+                        let Some(encoding) = &fight_skill.skill.encoding else {
+                            continue;
+                        };
+                        let Some(def) = encoding.effect_defs.get(usize::from(def)) else {
+                            continue;
+                        };
+                        for (index, trigger) in def.triggers.iter().enumerate() {
+                            if let Control::Triggered { event, filter, .. } = trigger
+                                && *event == fired.event
+                                && effect.charges.get(index).copied().flatten() != Some(0)
+                                && filter.as_ref().is_none_or(|filter| {
+                                    let judged = fired.other.unwrap_or(subject);
+                                    self.filter_passes(filter, judged, effect.caster, None)
+                                })
+                            {
+                                matched.push((effect.id, index));
+                            }
+                        }
+                    }
+                    EffectSource::Handler { skill } => {
+                        if let Some(handler) = self.fight.skills[usize::from(skill)].handler {
+                            handled.push((effect.id, handler));
+                        }
+                    }
+                    EffectSource::Condition(_) => {}
+                }
+            }
+
+            for (id, index) in matched {
+                self.run_trigger(subject, id, index, &fired);
+            }
+            let fight = Arc::clone(&self.fight);
+            for (id, handler) in handled {
+                if self.units[subject.index()]
+                    .effects
+                    .iter()
+                    .any(|e| e.id == id)
+                {
+                    fight
+                        .handlers
+                        .get(handler)
+                        .on_event(self, &fired, subject, id);
+                }
+            }
+        }
+
+        self.trigger_depth -= 1;
+    }
+
+    fn run_trigger(&mut self, bearer: UnitId, id: u32, index: usize, fired: &Fired) {
+        let Some(effect) = self.units[bearer.index()]
+            .effects
+            .iter_mut()
+            .find(|e| e.id == id)
+        else {
+            return;
+        };
+        let exhausted = match effect.charges.get_mut(index) {
+            Some(Some(charges)) => {
+                *charges = charges.saturating_sub(1);
+                effect.charges.iter().all(|c| *c == Some(0))
+            }
+            _ => false,
+        };
+        let effect = effect.clone();
+        let EffectSource::Skill { skill, def } = effect.source else {
+            return;
+        };
+        let fight = Arc::clone(&self.fight);
+        let Some(encoding) = &fight.skills[usize::from(skill)].skill.encoding else {
+            return;
+        };
+        let Some(Control::Triggered { actions, .. }) = encoding
+            .effect_defs
+            .get(usize::from(def))
+            .and_then(|def| def.triggers.get(index))
+        else {
+            return;
+        };
+        let mut ctx = ExecCtx::for_effect(&effect, bearer);
+        ctx.other = fired.other;
+        ctx.event_skill = fired.skill;
+        ctx.event_amount = fired.amount;
+        self.execute(actions, &mut ctx);
+        if exhausted {
+            self.end_effect(bearer, id, EndReason::Replaced);
+        }
+    }
+
+    /// Runs an effect's `on_end` actions.
+    pub fn run_on_end(&mut self, bearer: UnitId, effect: &ActiveEffect) {
+        let EffectSource::Skill { skill, def } = effect.source else {
+            return;
+        };
+        let fight = Arc::clone(&self.fight);
+        let Some(encoding) = &fight.skills[usize::from(skill)].skill.encoding else {
+            return;
+        };
+        let Some(def) = encoding.effect_defs.get(usize::from(def)) else {
+            return;
+        };
+        if def.on_end.is_empty() {
+            return;
+        }
+        let mut ctx = ExecCtx::for_effect(effect, bearer);
+        self.execute(&def.on_end, &mut ctx);
+    }
+
+    // ---------------------------------------------------------------- log
+
+    /// Records a log event, if logging is on. The closure-free signature is
+    /// deliberate: callers build the event only when [`Self::logging`] says so
+    /// for anything expensive.
+    pub fn log_event(&mut self, event: LogEvent) {
+        if let Some(log) = &mut self.log {
+            log.push(event);
+        }
+    }
+
+    /// Whether a log is being kept.
+    pub fn logging(&self) -> bool {
+        self.log.is_some()
+    }
+
+    pub(crate) fn log_effect(
+        &mut self,
+        kind: LogKind,
+        caster: UnitId,
+        target: UnitId,
+        source: EffectSource,
+    ) {
+        if !self.logging() {
+            return;
+        }
+        let name = self.effect_name(source);
+        self.log_event(
+            LogEvent::new(self.now, kind)
+                .source(caster)
+                .target(target)
+                .detail(&name),
+        );
+    }
+
+    /// A readable name for an effect.
+    pub fn effect_name(&self, source: EffectSource) -> String {
+        match source {
+            EffectSource::Skill { skill, .. } | EffectSource::Handler { skill } => {
+                self.fight.skills[usize::from(skill)].skill.name.clone()
+            }
+            EffectSource::Condition(condition) => format!("{condition:?}"),
+        }
+    }
+}

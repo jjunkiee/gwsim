@@ -172,12 +172,19 @@ fn check_control(
     }
 }
 
-/// A selector must not point at the other side from the skill's own target.
+/// A selector built on the skill's target must not name the other side's
+/// target: `TargetAlly` in a skill that targets a foe is a slip.
+///
+/// Only target-rooted selectors are judged. A foe-targeted skill may still
+/// reach the user or the party: Power Drain gives *you* energy (F3.1).
 fn check_selector(entry: &Entry<Skill>, selector: &Selector, problems: &mut DataErrors) {
     let target = entry.value.target;
+    let root = target_root(selector);
     let mismatch = match target {
-        TargetKind::Foe => selector.is_ally_only(),
-        TargetKind::Ally | TargetKind::OtherAlly | TargetKind::AllyOrSelf => selector.is_foe_only(),
+        TargetKind::Foe => matches!(root, Selector::TargetAlly | Selector::TargetOtherAlly),
+        TargetKind::Ally | TargetKind::OtherAlly | TargetKind::AllyOrSelf => {
+            matches!(root, Selector::TargetFoe)
+        }
         _ => false,
     };
 
@@ -189,6 +196,21 @@ fn check_selector(entry: &Entry<Skill>, selector: &Selector, problems: &mut Data
                  check the selector"
             ),
         ));
+    }
+}
+
+/// The innermost selector an area, filter or share is built on.
+fn target_root(selector: &Selector) -> &Selector {
+    match selector {
+        Selector::Adjacent(inner)
+        | Selector::Nearby(inner)
+        | Selector::InTheArea(inner)
+        | Selector::Earshot(inner)
+        | Selector::SpiritRange(inner)
+        | Selector::InRangeOf(inner)
+        | Selector::Nearest(inner) => target_root(inner),
+        Selector::Filtered { of, .. } | Selector::Secondary { of, .. } => target_root(of),
+        other => other,
     }
 }
 

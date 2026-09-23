@@ -34,6 +34,13 @@ dirs = "6"
 # The extractor only (T2.2.1, T2.4.1). Neither is used by anything shipped.
 ureq = "3"
 scraper = "0.27"
+# The engine's PRNG, pinned exactly: results must not change under a
+# dependency update without someone noticing (T3.7.1).
+rand_chacha = "=0.10.0"
+rand_core = "0.10"
+rayon = "1"
+smallvec = "1"
+proptest = "1"
 
 [profile.release]
 # Keeps release profiles readable for the performance work in WP4.11

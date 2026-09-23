@@ -48,6 +48,7 @@ pub fn run(data: &DataSet, problems: &mut DataErrors) {
     crate::checks_dsl::check_encodings(data, problems);
     check_foes(data, problems);
     check_benchmarks(data, problems);
+    check_parties(data, problems);
     check_provenance(data, problems);
     check_assumptions(data, problems);
     check_warnings(data, problems);
@@ -132,7 +133,8 @@ fn check_references(data: &DataSet, problems: &mut DataErrors) {
         for group in &entry.value.groups {
             for group_foe in &group.foes {
                 if !data.foes.contains_key(&group_foe.foe) {
-                    if data.is_unparsed(&group_foe.foe) {
+                    // A training dummy stands in a group like a foe (T3.10.2).
+                    if data.is_unparsed(&group_foe.foe) || data.dummy(&group_foe.foe).is_some() {
                         continue;
                     }
                     problems.0.push(DataError::reference(
@@ -490,6 +492,63 @@ fn check_benchmarks(data: &DataSet, problems: &mut DataErrors) {
                     &entry.path,
                     format!("slot {slot_number}'s equipment_code does not decode: {error}"),
                 ));
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- parties
+
+/// A party's bars name real skills, heroes carry no PvE-only skill, and every
+/// skill a plan names is on that slot's bar.
+fn check_parties(data: &DataSet, problems: &mut DataErrors) {
+    for entry in data.parties.values() {
+        for slot in &entry.value.slots {
+            let label = &slot.name;
+            let bar: Vec<crate::ids::SkillId> =
+                slot.build.skills.iter().flatten().copied().collect();
+            for id in &bar {
+                if data.skill_slug_for_id(*id).is_none() {
+                    problems.0.push(DataError::reference(
+                        &entry.path,
+                        format!(
+                            "slot {label}'s bar has skill #{}, which is not in the skill index",
+                            id.get()
+                        ),
+                    ));
+                }
+                if slot.kind != crate::build::SlotKind::Human
+                    && data.skill_by_id(*id).is_some_and(|skill| skill.pve_only)
+                {
+                    problems.0.push(DataError::consistency(
+                        &entry.path,
+                        format!(
+                            "slot {label} is a {:?} but carries PvE-only skill #{}; only the player may",
+                            slot.kind,
+                            id.get()
+                        ),
+                    ));
+                }
+            }
+
+            let on_bar = |reference: &SkillRef| match reference {
+                SkillRef::Id(id) => bar.contains(id),
+                SkillRef::Slug(slug) => bar
+                    .iter()
+                    .any(|id| data.skill_slug_for_id(*id) == Some(slug)),
+            };
+            let mut named: Vec<&SkillRef> = slot.disabled_skills.iter().collect();
+            if let Some(plan) = &slot.plan {
+                named.extend(plan.maintain.iter());
+                named.extend(plan.rules.iter().map(|rule| &rule.skill));
+            }
+            for reference in named {
+                if !on_bar(reference) {
+                    problems.0.push(DataError::consistency(
+                        &entry.path,
+                        format!("slot {label}'s plan names {reference:?}, which is not on its bar"),
+                    ));
+                }
             }
         }
     }

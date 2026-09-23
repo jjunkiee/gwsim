@@ -20,6 +20,8 @@ pub mod foe;
 pub mod ids;
 pub mod items;
 pub mod pack;
+pub mod party;
+pub mod plan;
 pub mod provenance;
 pub mod scenario;
 pub mod skill;
